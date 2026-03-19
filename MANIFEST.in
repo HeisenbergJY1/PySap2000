@@ -1,0 +1,22 @@
+include LICENSE
+include README.md
+include pyproject.toml
+
+# 排除非核心模块
+prune converters
+prune docs
+prune export_docs
+prune langchain_agent
+prune tests
+prune utils
+prune view
+prune visualization
+prune web_agent
+prune dluba,api
+
+# 排除开发文件
+exclude test_pysap2000.py
+exclude .gitignore
+prune .kiro
+prune .pytest_cache
+prune __pycache__

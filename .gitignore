@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Kiro
+.kiro/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs
+*.log
+
+# SAP2000 temp files
+*.sdb
+*.s2k
+*.$2k
+*.LOG
+*.OUT
+
+# Third-party API / reference docs (too large for git)
+dluba,api/
+docs/
+
+# Deprecated / not for release
+steel_design/
+utils/
+web_agent/
+langchain_agent/
+visualization/
+export_docs/
+view/
+converters/
+
+# Distribution
+*.whl
+*.tar.gz
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Web agent build artifacts
+web_agent/build/
+web_agent/dist/

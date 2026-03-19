@@ -1,0 +1,123 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pysap2000"
+dynamic = ["version"]
+description = "SAP2000 Python API 封装库，通过 comtypes 调用 COM 接口"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.7"
+authors = [
+    {name = "JIANGYAO-AISA"}
+]
+keywords = ["SAP2000", "structural-engineering", "FEM", "COM", "API"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: Microsoft :: Windows",
+    "License :: OSI Approved :: MIT License",
+]
+
+dependencies = [
+    "comtypes>=1.1.11",
+]
+
+[project.optional-dependencies]
+agent = [
+    "langchain>=0.1.0",
+    "langchain-community>=0.1.0",
+]
+vis = [
+    "plotly>=5.0",
+    "numpy>=1.20",
+]
+converters = [
+    "dlubal>=2.0",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-ordering>=0.6",
+]
+all = [
+    "pysap2000[agent,vis,converters,dev]",
+]
+
+[project.urls]
+Homepage = "https://github.com/JIANGYAO-AISA/PySap2000"
+Repository = "https://github.com/JIANGYAO-AISA/PySap2000"
+Issues = "https://github.com/JIANGYAO-AISA/PySap2000/issues"
+
+[tool.setuptools.dynamic]
+version = {attr = "PySap2000.__version__"}
+
+[tool.setuptools.packages.find]
+include = [
+    "PySap2000",
+    "PySap2000.analyze",
+    "PySap2000.area",
+    "PySap2000.cable",
+    "PySap2000.constraints",
+    "PySap2000.database_tables",
+    "PySap2000.design",
+    "PySap2000.edit",
+    "PySap2000.frame",
+    "PySap2000.geometry",
+    "PySap2000.global_parameters",
+    "PySap2000.group",
+    "PySap2000.link",
+    "PySap2000.loading",
+    "PySap2000.loads",
+    "PySap2000.named_assigns",
+    "PySap2000.point",
+    "PySap2000.report",
+    "PySap2000.results",
+    "PySap2000.section",
+    "PySap2000.selection",
+    "PySap2000.statistics",
+    "PySap2000.structure_core",
+]
+exclude = [
+    "converters*",
+    "docs*",
+    "export_docs*",
+    "langchain_agent*",
+    "tests*",
+    "utils*",
+    "view*",
+    "visualization*",
+    "web_agent*",
+    "dluba,api*",
+]
+
+[tool.setuptools.package-data]
+"PySap2000" = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "application: Application tests",
+    "point: Point tests",
+    "material: Material tests",
+    "frame: Frame tests",
+    "cable: Cable tests",
+    "area: Area tests",
+    "link: Link tests",
+    "loading: Loading tests",
+    "constraints: Constraints tests",
+    "named_assigns: NamedAssigns tests",
+    "edit: Edit tests",
+    "statistics: Statistics tests",
+    "selection: Selection tests",
+]
