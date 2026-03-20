@@ -167,7 +167,10 @@ def delete_point_restraint(
 
 def get_points_with_support(model) -> List[str]:
     """
-    获取所有有支座的节点名称列表
+    获取所有有支座的节点名称列表（使用 Database Tables API 批量获取）
+    
+    原实现: N 个节点 = N 次 COM 调用逐个检查约束
+    新实现: 1 次 DB Tables 调用获取所有约束数据
     
     Args:
         model: SapModel 对象
@@ -179,18 +182,27 @@ def get_points_with_support(model) -> List[str]:
         supported_points = get_points_with_support(model)
         print(f"共有 {len(supported_points)} 个支座节点")
     """
+    from PySap2000.database_tables import DatabaseTables
+    
+    # 一次 COM 调用获取所有约束分配
+    table_data = DatabaseTables.get_table_for_display(
+        model, "Joint Restraint Assignments"
+    )
+    
+    if table_data is None or table_data.num_records == 0:
+        return []
+    
     supported = []
+    restraint_fields = ["U1", "U2", "U3", "R1", "R2", "R3"]
     
-    # 获取所有节点
-    result = model.PointObj.GetNameList(0, [])
-    names = com_data(result, 1)
-    if not names:
-        return supported
-    
-    # 检查每个节点
-    for name in names:
-        restraints = get_point_restraint(model, name)
-        if restraints and any(restraints):
-            supported.append(name)
+    for row in table_data.to_dict_list():
+        joint_name = row.get("Joint", "")
+        # 只要有任意一个自由度被约束（值为 "Yes"），就算有支座
+        has_restraint = any(
+            row.get(f, "").strip().lower() == "yes"
+            for f in restraint_fields
+        )
+        if has_restraint:
+            supported.append(joint_name)
     
     return supported

@@ -19,15 +19,15 @@ Usage:
     names = com_data(model.FrameObj.GetNameList(0, []), index=1, default=[])
 """
 
-import inspect
+import sys
 import logging
 import os
-from typing import Any, Tuple
+from typing import Any
 
 _log = logging.getLogger("pysap2000.com")
 
 
-def com_ret(result) -> int:
+def com_ret(result, *, context: str = "") -> int:
     """
     从 COM 返回值提取返回码（最后一个元素）
 
@@ -39,9 +39,13 @@ def com_ret(result) -> int:
 
     Args:
         result: COM 调用的原始返回值
+        context: 可选的手动上下文描述，为空时自动从调用栈获取
 
     Returns:
         返回码，0 表示成功
+
+    Raises:
+        PySap2000Error: strict_mode 开启且返回码非零时抛出
 
     Example:
         ret = com_ret(model.FrameObj.Delete("1"))
@@ -53,10 +57,19 @@ def com_ret(result) -> int:
         ret = result
 
     if ret != 0:
-        frame = inspect.stack()[1]
-        filename = os.path.basename(frame[1])
-        func_name = frame[3]
-        msg = "COM 调用失败: %s:%s(), 返回码=%s" % (filename, func_name, ret)
+        # 用 sys._getframe 替代 inspect.stack()，性能提升 10x+
+        if context:
+            caller_info = context
+        else:
+            try:
+                frame = sys._getframe(1)
+                filename = os.path.basename(frame.f_code.co_filename)
+                func_name = frame.f_code.co_name
+                caller_info = f"{filename}:{func_name}()"
+            except (AttributeError, ValueError):
+                caller_info = "<unknown>"
+
+        msg = f"COM 调用失败: {caller_info}, 返回码={ret}"
         _log.warning(msg)
 
         from PySap2000.config import config

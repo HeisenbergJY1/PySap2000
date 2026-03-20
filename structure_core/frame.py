@@ -44,7 +44,7 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Tuple, Union, ClassVar
 
 # 从 frame 模块导入枚举 (避免重复定义)
-from frame.enums import (
+from PySap2000.frame.enums import (
     FrameType,
     FrameSectionType,
     FrameReleaseType,
@@ -319,9 +319,26 @@ class Frame:
         except Exception:
             pass
     
-    def _calculate_length(self, model):
-        """计算杆件长度"""
+    def _calculate_length(self, model, point_cache: dict = None):
+        """
+        计算杆件长度
+        
+        Args:
+            model: SapModel 对象
+            point_cache: 可选的节点坐标缓存 {name: (x, y, z)}，
+                         批量操作时传入可避免重复 COM 调用
+        """
         try:
+            if point_cache is not None:
+                p1 = point_cache.get(str(self.start_point))
+                p2 = point_cache.get(str(self.end_point))
+                if p1 and p2:
+                    self.length = round(
+                        math.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2 + (p2[2]-p1[2])**2),
+                        3
+                    )
+                    return
+            # 回退到逐个查询
             from PySap2000.structure_core.point import Point
             p1 = Point(no=self.start_point)._get(model)
             p2 = Point(no=self.end_point)._get(model)
@@ -332,16 +349,18 @@ class Frame:
         except Exception:
             self.length = None
     
-    def _calculate_weight(self, model) -> float:
+    def _calculate_weight(self, model, *, _units_context: bool = False) -> float:
         """
         计算杆件重量 (kg)
         
         weight = weight_per_meter × length
         
-        如果当前不是 N-m-C 单位，会临时切换获取数据
+        如果当前不是 N-m-C 单位，会临时切换获取数据。
+        批量调用时可由调用方统一切换单位后传入 _units_context=True 避免反复切换。
         
         Args:
             model: SapModel 对象
+            _units_context: True 表示调用方已切换到 N_M_C 单位，跳过切换
             
         Returns:
             杆件重量 (kg)，如果截面或长度无效则返回 0.0
@@ -351,14 +370,16 @@ class Frame:
             return 0.0
         
         try:
-            from section.frame_section import FrameSection
-            from global_parameters.units import Units, UnitSystem
+            from PySap2000.section.frame_section import FrameSection
+            from PySap2000.global_parameters.units import Units, UnitSystem
             
-            current_units = Units.get_present_units(model)
-            need_switch = current_units != UnitSystem.N_M_C
-            
-            if need_switch:
-                Units.set_present_units(model, UnitSystem.N_M_C)
+            # _units_context 为 True 时表示调用方已切换到 N_M_C，跳过切换
+            need_switch = False
+            if not _units_context:
+                current_units = Units.get_present_units(model)
+                need_switch = current_units != UnitSystem.N_M_C
+                if need_switch:
+                    Units.set_present_units(model, UnitSystem.N_M_C)
             
             try:
                 # 获取截面的单位长度重量 (kg/m)
@@ -430,16 +451,89 @@ class Frame:
     @classmethod
     def get_all(cls, model, names: List[str] = None) -> List['Frame']:
         """
-        获取所有杆件
+        获取所有杆件（使用 Database Tables API 批量获取，性能远优于逐个 COM 调用）
         
+        原实现: N 个杆件 = N×6+ 次 COM 调用 + 2N 次节点查询
+        新实现: 3 次 DB Tables 调用获取全部数据
+        
+        Args:
+            model: SapModel 对象
+            names: 可选，指定杆件名称列表。如果为 None，获取所有杆件
+            
+        Returns:
+            Frame 对象列表
+            
         Example:
             frames = Frame.get_all(model)
             for f in frames:
-                print(f"{f.no}: {f.section}")
+                print(f"{f.no}: {f.section}, L={f.length}")
         """
-        if names is None:
-            names = cls.get_name_list(model)
-        return [cls.get_by_name(model, name) for name in names]
+        from PySap2000.database_tables import DatabaseTables
+        
+        # 1) 批量获取杆件连接关系 (Frame名, 起点, 终点)
+        conn_table = DatabaseTables.get_table_for_display(
+            model, "Connectivity - Frame"
+        )
+        if conn_table is None or conn_table.num_records == 0:
+            return []
+        
+        # 2) 批量获取截面分配
+        sec_table = DatabaseTables.get_table_for_display(
+            model, "Frame Section Assignments"
+        )
+        section_map = {}  # {frame_name: (section, s_auto)}
+        if sec_table and sec_table.num_records > 0:
+            for row in sec_table.to_dict_list():
+                fname = row.get("Frame", "")
+                section_map[fname] = (
+                    row.get("AnalSect", ""),
+                    row.get("AutoSelect", ""),
+                )
+        
+        # 3) 批量获取节点坐标（用于计算长度）
+        coord_table = DatabaseTables.get_table_for_display(
+            model, "Joint Coordinates"
+        )
+        point_cache = {}  # {joint_name: (x, y, z)}
+        if coord_table and coord_table.num_records > 0:
+            for row in coord_table.to_dict_list():
+                jname = row.get("Joint", "")
+                try:
+                    point_cache[jname] = (
+                        float(row.get("XorR", 0)),
+                        float(row.get("Y", 0)),
+                        float(row.get("Z", 0)),
+                    )
+                except (ValueError, TypeError):
+                    pass
+        
+        # 构建 name filter
+        name_filter = set(str(n) for n in names) if names else None
+        
+        frames = []
+        for row in conn_table.to_dict_list():
+            frame_name = row.get("Frame", "")
+            if name_filter and frame_name not in name_filter:
+                continue
+            
+            start_pt = row.get("JointI", "")
+            end_pt = row.get("JointJ", "")
+            sec_info = section_map.get(frame_name, ("", ""))
+            
+            frame = cls(
+                no=frame_name,
+                start_point=start_pt,
+                end_point=end_pt,
+                section=sec_info[0],
+                s_auto=sec_info[1] if sec_info[1] else "",
+            )
+            
+            # 用缓存计算长度，不产生额外 COM 调用
+            frame._calculate_length(model, point_cache=point_cache)
+            
+            frames.append(frame)
+        
+        return frames
     
     # ==================== 批量操作方法 ====================
     
@@ -450,9 +544,7 @@ class Frame:
         frames: List['Frame'] = None
     ) -> dict:
         """
-        批量计算杆件重量，只切换一次单位
-        
-        相比逐个调用 _calculate_weight()，性能更好
+        批量计算杆件重量，只切换一次单位，用 Database Tables 预加载节点坐标
         
         Args:
             model: SapModel 对象
@@ -466,9 +558,9 @@ class Frame:
             total = sum(weights.values())
             print(f"总重量: {total:.2f} kg")
         """
-        from global_parameters.units import Units, UnitSystem
-        from section.frame_section import FrameSection
-        from PySap2000.structure_core.point import Point
+        from PySap2000.global_parameters.units import Units, UnitSystem
+        from PySap2000.section.frame_section import FrameSection
+        from PySap2000.database_tables import DatabaseTables
         
         if frames is None:
             frames = cls.get_all(model)
@@ -485,9 +577,25 @@ class Frame:
         
         weights = {}
         section_cache = {}  # 缓存截面数据
-        point_cache = {}    # 缓存节点坐标
         
         try:
+            # 用 Database Tables 一次性获取所有节点坐标（替代逐个 COM 调用）
+            point_cache = {}
+            coord_table = DatabaseTables.get_table_for_display(
+                model, "Joint Coordinates"
+            )
+            if coord_table and coord_table.num_records > 0:
+                for row in coord_table.to_dict_list():
+                    jname = row.get("Joint", "")
+                    try:
+                        point_cache[jname] = (
+                            float(row.get("XorR", 0)),
+                            float(row.get("Y", 0)),
+                            float(row.get("Z", 0)),
+                        )
+                    except (ValueError, TypeError):
+                        pass
+            
             for frame in frames:
                 try:
                     # 获取截面重量（带缓存）
@@ -500,14 +608,12 @@ class Frame:
                         weights[str(frame.no)] = 0.0
                         continue
                     
-                    # 获取节点坐标（带缓存）
-                    for pt_name in [frame.start_point, frame.end_point]:
-                        if pt_name not in point_cache:
-                            pt = Point(no=pt_name)._get(model)
-                            point_cache[pt_name] = (pt.x, pt.y, pt.z)
+                    p1 = point_cache.get(str(frame.start_point))
+                    p2 = point_cache.get(str(frame.end_point))
                     
-                    p1 = point_cache[frame.start_point]
-                    p2 = point_cache[frame.end_point]
+                    if not p1 or not p2:
+                        weights[str(frame.no)] = 0.0
+                        continue
                     
                     # 计算长度和重量
                     length = math.sqrt(

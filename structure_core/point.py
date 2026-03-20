@@ -266,30 +266,50 @@ class Point:
     @classmethod
     def get_all(cls, model, names: List[str] = None) -> List['Point']:
         """
-        获取所有节点
-        
+        获取所有节点（使用 Database Tables API 批量获取，性能远优于逐个 COM 调用）
+
         Args:
             model: SapModel 对象
             names: 可选，指定节点名称列表。如果为 None，获取所有节点
-            
+
         Returns:
             Point 对象列表，每个对象已填充基本数据
-            
+
         Example:
             points = Point.get_all(model)
             for p in points:
                 print(f"{p.no}: ({p.x}, {p.y}, {p.z})")
         """
-        if names is None:
-            names = cls.get_name_list(model)
-        
+        from PySap2000.database_tables import DatabaseTables
+
+        # 一次 COM 调用获取所有节点坐标
+        table_data = DatabaseTables.get_table_for_display(
+            model, "Joint Coordinates"
+        )
+
+        if table_data is None or table_data.num_records == 0:
+            return []
+
+        # 将 names 转为 set 用于快速过滤
+        name_filter = set(str(n) for n in names) if names else None
+
         points = []
-        for name in names:
-            point = cls(no=name)
-            point._get(model)
+        for row in table_data.to_dict_list():
+            joint_name = row.get("Joint", "")
+            if name_filter and joint_name not in name_filter:
+                continue
+
+            point = cls(
+                no=joint_name,
+                x=float(row.get("XorR", 0)),
+                y=float(row.get("Y", 0)),
+                z=float(row.get("Z", 0)),
+                coordinate_system=row.get("CoordSys", "Global"),
+            )
             points.append(point)
-        
+
         return points
+
     
     @classmethod
     def get_by_name(cls, model, name: str) -> 'Point':
@@ -357,7 +377,7 @@ class Point:
         Returns:
             0 表示成功，非 0 表示失败
         """
-        from point.enums import ItemType
+        from PySap2000.point.enums import ItemType
         return model.PointObj.DeleteSpecialPoint(str(self.no), ItemType.OBJECT)
 
     # ==================== 特殊节点方法 ====================
@@ -375,7 +395,7 @@ class Point:
         Returns:
             0 表示成功
         """
-        from point.enums import ItemType
+        from PySap2000.point.enums import ItemType
         return model.PointObj.SetSpecialPoint(str(self.no), special, ItemType.OBJECT)
     
     def get_special_point(self, model) -> bool:
@@ -405,7 +425,7 @@ class Point:
         Returns:
             0 表示成功
         """
-        from point.enums import ItemType
+        from PySap2000.point.enums import ItemType
         self.selected = selected
         return model.PointObj.SetSelected(str(self.no), selected, ItemType.OBJECT)
     
@@ -471,7 +491,7 @@ class Point:
         Returns:
             0 表示成功
         """
-        from point.enums import ItemType
+        from PySap2000.point.enums import ItemType
         return model.PointObj.SetGroupAssign(str(self.no), group_name, remove, ItemType.OBJECT)
     
     def get_group_assign(self, model) -> Optional[List[str]]:
