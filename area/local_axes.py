@@ -4,7 +4,7 @@ local_axes.py - 面单元局部坐标轴函数
 对应 SAP2000 的 AreaObj 局部坐标轴相关 API
 """
 
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 from .enums import PlaneRefVectorOption, ItemType
 from .data_classes import AreaLocalAxesData, AreaLocalAxesAdvancedData

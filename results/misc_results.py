@@ -49,6 +49,9 @@ def get_assembled_joint_mass(
     )
     
     num = com_data(result, 0, 0)
+    if isinstance(num, (list, tuple)):
+        num = num[0] if num else 0
+    num = int(num) if num else 0
     ret = com_ret(result)
     
     if ret == 0 and num > 0:

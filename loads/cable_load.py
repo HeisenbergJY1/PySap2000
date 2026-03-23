@@ -219,7 +219,6 @@ def set_cable_load_temperature(
     cable_name: str,
     load_pattern: str,
     value: float,
-    load_type: int = 1,
     pattern_name: str = "",
     replace: bool = True,
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
@@ -227,13 +226,15 @@ def set_cable_load_temperature(
     """
     设置索单元温度荷载
     
+    SAP2000 API: CableObj.SetLoadTemperature(Name, LoadPat, Val, PatternName, Replace, ItemType)
+    注意: Cable 温度荷载没有 load_type 参数（与 Frame 不同）
+    
     Args:
         model: SapModel 对象
         cable_name: 索单元名称
         load_pattern: 荷载模式名称
-        value: 温度值
-        load_type: 荷载类型 (1=Temperature, 2=Temperature Gradient)
-        pattern_name: 模式名称
+        value: 温度变化值 [T]
+        pattern_name: 联合模式名称（空白则均匀分布）
         replace: True=替换现有荷载, False=叠加
         item_type: 操作范围
     
@@ -241,7 +242,7 @@ def set_cable_load_temperature(
         0 表示成功
     """
     return model.CableObj.SetLoadTemperature(
-        str(cable_name), load_pattern, load_type, value, pattern_name, replace, int(item_type)
+        str(cable_name), load_pattern, value, pattern_name, replace, int(item_type)
     )
 
 
@@ -597,11 +598,13 @@ def set_cable_load_target_force(
     load_pattern: str,
     p: float,
     rd: float = 0.5,
-    replace: bool = True,
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
     设置索单元目标力荷载
+    
+    SAP2000 API: CableObj.SetLoadTargetForce(Name, LoadPat, P, RD, ItemType)
+    注意: Cable 目标力没有 replace 参数
     
     Args:
         model: SapModel 对象
@@ -609,14 +612,13 @@ def set_cable_load_target_force(
         load_pattern: 荷载模式名称
         p: 目标轴力 [F]
         rd: 相对距离 (0-1)
-        replace: True=替换现有荷载, False=叠加
         item_type: 操作范围
     
     Returns:
         0 表示成功
     """
     return model.CableObj.SetLoadTargetForce(
-        str(cable_name), load_pattern, p, rd, replace, int(item_type)
+        str(cable_name), load_pattern, p, rd, int(item_type)
     )
 
 
