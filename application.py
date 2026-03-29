@@ -23,15 +23,22 @@ Usage:
 """
 
 import gc
+import threading
 import comtypes.client
-from typing import Optional, List, Union, TypeVar, Type
+from typing import Optional, List, Union, TypeVar, Type, TYPE_CHECKING
 from PySap2000.exceptions import ConnectionError, ObjectError
 from PySap2000.logger import get_logger
 from PySap2000.com_helper import com_ret, com_data
 
+if TYPE_CHECKING:
+    from PySap2000.utils.protocols import Creatable, Deletable, Gettable, Updatable
+
 _logger = get_logger("application")
 
 T = TypeVar('T')
+
+# SAP2000 最低支持版本
+MIN_SAP2000_VERSION = 20.0
 
 
 class Application:
@@ -50,7 +57,7 @@ class Application:
     def __init__(self, attach_to_instance: bool = True, program_path: str = ""):
         """
         初始化 SAP2000 连接
-        
+
         Args:
             attach_to_instance: True 连接已运行的实例，False 启动新实例
             program_path: SAP2000 程序路径（启动新实例时使用）
@@ -59,18 +66,22 @@ class Application:
         self._model = None
         self._in_modification = False
         self._owns_instance = not attach_to_instance
-        
+        self._lock = threading.RLock()  # 线程安全锁
+
         if attach_to_instance:
             self._attach_to_instance()
         else:
             self._start_application(program_path)
 
+        # 检查 SAP2000 版本
+        self._check_version()
+
     def _ensure_connected(self):
         """
         检查 COM 连接是否有效，无效时抛出 ConnectionError。
-        
+
         所有使用 self._model 的公共方法都应先调用此方法。
-        
+
         Raises:
             ConnectionError: 当 COM 连接已断开时
         """
@@ -78,6 +89,51 @@ class Application:
             raise ConnectionError(
                 "SAP2000 连接已断开。请重新创建 Application 实例或检查 SAP2000 是否仍在运行。"
             )
+
+    def _check_version(self):
+        """
+        检查 SAP2000 版本是否满足最低要求
+
+        Raises:
+            ConnectionError: 版本过低时抛出
+        """
+        try:
+            version_info = self._model.GetVersion()
+            version_number = com_data(version_info, 1, default=0.0)
+            if version_number < MIN_SAP2000_VERSION:
+                raise ConnectionError(
+                    f"SAP2000 v{version_number} 不受支持。最低版本要求: v{MIN_SAP2000_VERSION}"
+                )
+        except ConnectionError:
+            raise
+        except Exception as e:
+            _logger.warning(f"无法检查 SAP2000 版本: {e}")
+
+    def is_alive(self) -> bool:
+        """
+        检查 COM 连接是否仍然有效
+
+        Returns:
+            True 表示连接有效，False 表示连接已断开
+        """
+        try:
+            if self._model is None:
+                return False
+            _ = self._model.GetVersion()
+            return True
+        except:
+            return False
+
+    def __del__(self):
+        """
+        析构函数，确保资源释放
+
+        作为安全网，防止用户忘记调用 disconnect()
+        """
+        try:
+            self.disconnect()
+        except:
+            pass
     
     def _attach_to_instance(self):
         """连接到已运行的 SAP2000 实例"""
@@ -230,33 +286,34 @@ class Application:
     def create_object(self, obj) -> int:
         """
         创建单个对象
-        
+
         Args:
             obj: 要创建的对象 (Point, Member, Material, Section 等)
-            
+
         Returns:
             0 表示成功
-            
+
         Raises:
             ConnectionError: COM 连接已断开
             ObjectError: 对象不支持 create 操作
-            
+
         Example:
             app.create_object(Point(no=1, x=0, y=0, z=0))
             app.create_object(Member(no=1, start_point=1, end_point=2))
         """
-        self._ensure_connected()
-        if hasattr(obj, '_create'):
-            ret = obj._create(self._model)
-            desc = self._obj_desc(obj)
-            if ret == 0:
-                _logger.info(f"Created {desc}")
-            elif ret == -1:
-                pass  # already exists, skipped
-            else:
-                _logger.warning(f"Failed to create {desc}, ret={ret}")
-            return ret
-        raise ObjectError(f"{type(obj).__name__} does not support create")
+        with self._lock:
+            self._ensure_connected()
+            if hasattr(obj, '_create'):
+                ret = obj._create(self._model)
+                desc = self._obj_desc(obj)
+                if ret == 0:
+                    _logger.info(f"Created {desc}")
+                elif ret == -1:
+                    pass  # already exists, skipped
+                else:
+                    _logger.warning(f"Failed to create {desc}, ret={ret}")
+                return ret
+            raise ObjectError(f"{type(obj).__name__} does not support create")
     
     def create_object_list(self, objs: List) -> int:
         """
@@ -387,27 +444,28 @@ class Application:
     def delete_object(self, obj) -> int:
         """
         删除单个对象
-        
+
         Args:
             obj: 要删除的对象（需要 no 属性）
-            
+
         Returns:
             0 表示成功
-            
+
         Raises:
             ConnectionError: COM 连接已断开
             ObjectError: 对象不支持 delete 操作
         """
-        self._ensure_connected()
-        if hasattr(obj, '_delete'):
-            ret = obj._delete(self._model)
-            desc = self._obj_desc(obj)
-            if ret == 0:
-                _logger.info(f"Deleted {desc}")
-            else:
-                _logger.warning(f"Failed to delete {desc}, ret={ret}")
-            return ret
-        raise ObjectError(f"{type(obj).__name__} does not support delete")
+        with self._lock:
+            self._ensure_connected()
+            if hasattr(obj, '_delete'):
+                ret = obj._delete(self._model)
+                desc = self._obj_desc(obj)
+                if ret == 0:
+                    _logger.info(f"Deleted {desc}")
+                else:
+                    _logger.warning(f"Failed to delete {desc}, ret={ret}")
+                return ret
+            raise ObjectError(f"{type(obj).__name__} does not support delete")
 
     # ==================== 模型操作 ====================
     
@@ -485,16 +543,17 @@ class Application:
     def calculate(self) -> int:
         """
         运行分析
-        
+
         Returns:
             0 表示成功
-            
+
         Raises:
             ConnectionError: COM 连接已断开
         """
-        self._ensure_connected()
-        com_ret(self._model.Analyze.SetRunCaseFlag("", True, True))
-        return com_ret(self._model.Analyze.RunAnalysis())
+        with self._lock:
+            self._ensure_connected()
+            com_ret(self._model.Analyze.SetRunCaseFlag("", True, True))
+            return com_ret(self._model.Analyze.RunAnalysis())
     
     def delete_results(self) -> int:
         """

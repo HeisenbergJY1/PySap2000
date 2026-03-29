@@ -20,6 +20,7 @@ import logging
 import sys
 from typing import Optional
 from pathlib import Path
+from logging.handlers import RotatingFileHandler
 
 
 # 创建 PySap2000 专用日志器
@@ -53,61 +54,70 @@ def setup_logger(
     level: str = "INFO",
     log_file: Optional[str] = None,
     format_string: Optional[str] = None,
-    use_colors: bool = True
+    use_colors: bool = True,
+    max_bytes: int = 10 * 1024 * 1024,  # 10MB
+    backup_count: int = 5
 ) -> logging.Logger:
     """
     配置 PySap2000 日志器
-    
+
     Args:
         level: 日志级别 ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
         log_file: 日志文件路径（可选），如果提供则同时输出到文件
         format_string: 自定义日志格式
         use_colors: 是否在终端使用颜色
-        
+        max_bytes: 单个日志文件最大字节数（默认 10MB）
+        backup_count: 保留的备份文件数量（默认 5）
+
     Returns:
         配置好的日志器
-        
+
     Example:
         # 开发模式：显示 DEBUG 级别
         setup_logger(level="DEBUG")
-        
-        # 生产模式：保存到文件
-        setup_logger(level="INFO", log_file="app.log")
+
+        # 生产模式：保存到文件，带轮转
+        setup_logger(level="INFO", log_file="app.log", max_bytes=10*1024*1024, backup_count=5)
     """
     # 清除现有处理器
     logger.handlers.clear()
-    
+
     # 设置日志级别
     log_level = getattr(logging, level.upper(), logging.INFO)
     logger.setLevel(log_level)
-    
+
     # 设置格式
     fmt = format_string or DEFAULT_FORMAT
-    
+
     # 控制台处理器
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(log_level)
-    
+
     if use_colors and sys.stdout.isatty():
         console_handler.setFormatter(ColoredFormatter(fmt))
     else:
         console_handler.setFormatter(logging.Formatter(fmt))
-    
+
     logger.addHandler(console_handler)
-    
-    # 文件处理器（如果指定）
+
+    # 文件处理器（如果指定）- 使用轮转
     if log_file:
         log_path = Path(log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        file_handler = logging.FileHandler(log_file, encoding='utf-8')
+
+        file_handler = RotatingFileHandler(
+            log_file,
+            maxBytes=max_bytes,
+            backupCount=backup_count,
+            encoding='utf-8'
+        )
         file_handler.setLevel(log_level)
         file_handler.setFormatter(logging.Formatter(fmt))
         logger.addHandler(file_handler)
-    
+
     # 防止日志传播到根日志器
     logger.propagate = False
-    
+
     return logger
 
 

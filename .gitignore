@@ -63,3 +63,10 @@ htmlcov/
 # Web agent build artifacts
 web_agent/build/
 web_agent/dist/
+
+# Review and test files
+.claude/
+CLAUDE.md
+EXPERT_REVIEW.md
+IMPROVEMENTS.md
+test_pysap2000.py
