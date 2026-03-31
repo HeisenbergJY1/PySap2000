@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-selection.py - Cable 选择状态
+selection.py - Cable selection helpers.
 
 SAP2000 API:
 - CableObj.SetSelected(Name, Selected, ItemType)
@@ -19,22 +19,22 @@ def set_cable_selected(
     item_type: CableItemType = CableItemType.OBJECT
 ) -> int:
     """
-    设置 Cable 选择状态
+    Set the selection state of a cable object.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
-        selected: True=选中, False=取消选中
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        cable_name: Cable object name
+        selected: `True` to select, `False` to deselect
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
-        # 选中单个 Cable
+        # Select a single cable
         set_cable_selected(model, "1", True)
         
-        # 选中所有 Cable
+        # Select all cables in the target scope
         set_cable_selected(model, "ALL", True, CableItemType.GROUP)
     """
     return model.CableObj.SetSelected(str(cable_name), selected, int(item_type))
@@ -42,18 +42,18 @@ def set_cable_selected(
 
 def get_cable_selected(model, cable_name: str) -> Optional[bool]:
     """
-    获取 Cable 选择状态
+    Get the selection state of a cable object.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
+        model: SAP2000 SapModel object
+        cable_name: Cable object name
     
     Returns:
-        True=选中, False=未选中, None=失败
+        `True` if selected, `False` if not selected, or `None` if the query fails.
     
     Example:
         if get_cable_selected(model, "1"):
-            print("Cable 1 已选中")
+            print("Cable 1 is selected")
     """
     try:
         result = model.CableObj.GetSelected(str(cable_name), False)
@@ -65,21 +65,21 @@ def get_cable_selected(model, cable_name: str) -> Optional[bool]:
 
 def get_selected_cables(model) -> List[str]:
     """
-    获取所有选中的 Cable 名称列表
+    Get the names of all selected cable objects.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
     
     Returns:
-        选中的 Cable 名称列表
+        List of selected cable names.
     
     Example:
         selected = get_selected_cables(model)
-        print(f"选中了 {len(selected)} 个 Cable")
+        print(f"Selected {len(selected)} cable objects")
     """
     selected = []
     try:
-        # 获取所有 Cable
+        # Get all cable object names first, then filter by selection state.
         result = model.CableObj.GetNameList(0, [])
         names = com_data(result, 1)
         if names:

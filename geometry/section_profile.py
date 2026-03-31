@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-section_profile.py - 截面轮廓生成器
+section_profile.py - Section profile generator
 
-根据截面类型和参数，生成截面轮廓的二维坐标点
-用于后续生成三维实体（拉伸、扫掠等）
+Generates 2D section profile points from section type and parameters.
+Used for downstream 3D solid generation (extrusion, sweep, etc.).
 
-支持的截面类型：
-- Circle: 圆形截面
-- Rect: 矩形截面
-- I: 工字钢截面
-- Pipe: 圆管截面
-- Box: 箱形截面
-- Channel: 槽钢截面
-- Tee: T型钢截面
-- Angle: 角钢截面
+Supported section types:
+- Circle: Circular section
+- Rect: Rectangular section
+- I: I-section
+- Pipe: Pipe section
+- Box: Box section
+- Channel: Channel section
+- Tee: Tee section
+- Angle: Angle section
 """
 
 from dataclasses import dataclass
@@ -23,28 +23,28 @@ import math
 
 @dataclass
 class SectionProfile:
-    """截面轮廓基类"""
+    """Base section profile class"""
     
     def get_profile_points(self, num_segments: int = 16) -> List[Tuple[float, float]]:
         """
-        获取截面轮廓点（二维坐标，局部坐标系）
+        Get section profile points (2D local coordinates).
         
         Args:
-            num_segments: 圆弧分段数
+            num_segments: Number of arc segments
             
         Returns:
-            [(y, z), ...] 坐标点列表（x 为单元轴向）
+            [(y, z), ...] List of coordinate points (`x` is along the element axis)
         """
         raise NotImplementedError
 
 
 @dataclass
 class CircleProfile(SectionProfile):
-    """圆形截面"""
-    diameter: float  # 直径（米）
+    """Circular section"""
+    diameter: float  # Diameter (m)
     
     def get_profile_points(self, num_segments: int = 16) -> List[Tuple[float, float]]:
-        """生成圆形轮廓点"""
+        """Generate circular profile points"""
         radius = self.diameter / 2
         points = []
         for i in range(num_segments):
@@ -57,12 +57,12 @@ class CircleProfile(SectionProfile):
 
 @dataclass
 class RectProfile(SectionProfile):
-    """矩形截面"""
-    width: float   # 宽度（y 方向，米）
-    height: float  # 高度（z 方向，米）
+    """Rectangular section"""
+    width: float   # Width (y direction, m)
+    height: float  # Height (z direction, m)
     
     def get_profile_points(self, num_segments: int = 4) -> List[Tuple[float, float]]:
-        """生成矩形轮廓点"""
+        """Generate rectangular profile points"""
         w2 = self.width / 2
         h2 = self.height / 2
         return [
@@ -75,38 +75,38 @@ class RectProfile(SectionProfile):
 
 @dataclass
 class IProfile(SectionProfile):
-    """工字钢截面"""
-    height: float       # 总高度（米）
-    top_width: float    # 上翼缘宽度（米）
-    bottom_width: float # 下翼缘宽度（米）
-    web_thickness: float    # 腹板厚度（米）
-    flange_thickness: float # 上翼缘厚度（米）
-    bottom_flange_thickness: float = None  # 下翼缘厚度（米），None 则使用 flange_thickness
+    """I-section"""
+    height: float       # Total height (m)
+    top_width: float    # Top flange width (m)
+    bottom_width: float # Bottom flange width (m)
+    web_thickness: float    # Web thickness (m)
+    flange_thickness: float # Top flange thickness (m)
+    bottom_flange_thickness: float = None  # Bottom flange thickness (m); if `None`, uses `flange_thickness`
     
     def get_profile_points(self, num_segments: int = 12) -> List[Tuple[float, float]]:
-        """生成工字钢轮廓点"""
+        """Generate I-section profile points"""
         h = self.height
         tw = self.top_width
         bw = self.bottom_width
         wt = self.web_thickness
-        tft = self.flange_thickness  # 上翼缘厚度
-        bft = self.bottom_flange_thickness if self.bottom_flange_thickness else self.flange_thickness  # 下翼缘厚度
+        tft = self.flange_thickness  # Top flange thickness
+        bft = self.bottom_flange_thickness if self.bottom_flange_thickness else self.flange_thickness  # Bottom flange thickness
         
-        # 从左下角开始，逆时针
+        # Start from lower-left corner, counterclockwise
         points = [
-            # 下翼缘
+            # Bottom flange
             (-bw/2, -h/2),
             (bw/2, -h/2),
             (bw/2, -h/2 + bft),
-            # 腹板右侧
+            # Right side of web
             (wt/2, -h/2 + bft),
             (wt/2, h/2 - tft),
-            # 上翼缘
+            # Top flange
             (tw/2, h/2 - tft),
             (tw/2, h/2),
             (-tw/2, h/2),
             (-tw/2, h/2 - tft),
-            # 腹板左侧
+            # Left side of web
             (-wt/2, h/2 - tft),
             (-wt/2, -h/2 + bft),
             (-bw/2, -h/2 + bft),
@@ -116,22 +116,22 @@ class IProfile(SectionProfile):
 
 @dataclass
 class PipeProfile(SectionProfile):
-    """圆管截面（空心圆）"""
-    outer_diameter: float  # 外径（米）
-    wall_thickness: float  # 壁厚（米）
+    """Pipe section (hollow circle)."""
+    outer_diameter: float  # Outer diameter (m)
+    wall_thickness: float  # Wall thickness (m)
     
     def get_profile_points(self, num_segments: int = 16) -> List[Tuple[float, float]]:
         """
-        生成圆管外圆轮廓点
+        Generate outer profile points for a pipe
         
-        注意：Rhino 中空心截面需要分别创建外圆和内圆，然后做布尔运算
-        这里返回的是外圆轮廓，内圆需要单独处理
+        Note: Hollow sections in Rhino require creating outer and inner curves separately, then applying boolean operations.
+        This returns the outer profile only; handle the inner profile separately.
         """
         outer_radius = self.outer_diameter / 2
         
         points = []
         
-        # 只返回外圆轮廓（逆时针）
+        # Return only the outer contour (counterclockwise)
         for i in range(num_segments):
             angle = 2 * math.pi * i / num_segments
             y = outer_radius * math.cos(angle)
@@ -141,12 +141,12 @@ class PipeProfile(SectionProfile):
         return points
     
     def get_inner_profile_points(self, num_segments: int = 16) -> List[Tuple[float, float]]:
-        """获取内圆轮廓点（用于布尔运算）"""
+        """Get inner contour points (for boolean operations)"""
         inner_radius = self.outer_diameter / 2 - self.wall_thickness
         
         points = []
         
-        # 内圆轮廓（逆时针）
+        # Inner contour (counterclockwise)
         for i in range(num_segments):
             angle = 2 * math.pi * i / num_segments
             y = inner_radius * math.cos(angle)
@@ -158,23 +158,23 @@ class PipeProfile(SectionProfile):
 
 @dataclass
 class BoxProfile(SectionProfile):
-    """箱形截面（空心矩形）"""
-    height: float          # 高度（米）
-    width: float           # 宽度（米）
-    flange_thickness: float  # 上下板厚度（米）
-    web_thickness: float     # 左右板厚度（米）
+    """Box section (hollow rectangle)."""
+    height: float          # Height (m)
+    width: float           # Width (m)
+    flange_thickness: float  # Top/bottom plate thickness (m)
+    web_thickness: float     # Left/right plate thickness (m)
     
     def get_profile_points(self, num_segments: int = 4) -> List[Tuple[float, float]]:
         """
-        生成箱形外轮廓点
+        Generate outer contour points for a box
         
-        注意：Rhino 中空心截面需要分别创建外矩形和内矩形，然后做布尔运算
-        这里返回的是外矩形轮廓，内矩形需要单独处理
+        Note: Hollow sections in Rhino require creating outer and inner rectangles separately, then applying boolean operations.
+        This returns the outer rectangle only; handle the inner rectangle separately.
         """
         h = self.height
         w = self.width
         
-        # 外矩形（逆时针）
+        # Outer rectangle (counterclockwise)
         points = [
             (-w/2, -h/2),
             (w/2, -h/2),
@@ -185,13 +185,13 @@ class BoxProfile(SectionProfile):
         return points
     
     def get_inner_profile_points(self, num_segments: int = 4) -> List[Tuple[float, float]]:
-        """获取内矩形轮廓点（用于布尔运算）"""
+        """Get inner rectangle contour points (for boolean operations)"""
         h = self.height
         w = self.width
         ft = self.flange_thickness
         wt = self.web_thickness
         
-        # 内矩形（逆时针）
+        # Inner rectangle (counterclockwise)
         points = [
             (-w/2 + wt, -h/2 + ft),
             (w/2 - wt, -h/2 + ft),
@@ -204,24 +204,24 @@ class BoxProfile(SectionProfile):
 
 @dataclass
 class ChannelProfile(SectionProfile):
-    """槽钢截面（C型）"""
-    height: float          # 高度（米）
-    width: float           # 翼缘宽度（米）
-    flange_thickness: float  # 翼缘厚度（米）
-    web_thickness: float     # 腹板厚度（米）
-    mirror: bool = False     # 是否镜像
+    """Channel section (C-shape)."""
+    height: float          # Height (m)
+    width: float           # Flange width (m)
+    flange_thickness: float  # Flange thickness (m)
+    web_thickness: float     # Web thickness (m)
+    mirror: bool = False     # Whether mirrored
     
     def get_profile_points(self, num_segments: int = 8) -> List[Tuple[float, float]]:
-        """生成槽钢轮廓点"""
+        """Generate channel profile points"""
         h = self.height
         w = self.width
         ft = self.flange_thickness
         wt = self.web_thickness
         
         if not self.mirror:
-            # 标准方向（开口向右）
+            # Standard orientation (opening to the right)
             points = [
-                # 从左下角开始，逆时针
+                # Start from lower-left corner, counterclockwise
                 (-wt/2, -h/2),
                 (w - wt/2, -h/2),
                 (w - wt/2, -h/2 + ft),
@@ -232,7 +232,7 @@ class ChannelProfile(SectionProfile):
                 (-wt/2, h/2),
             ]
         else:
-            # 镜像方向（开口向左）
+            # Mirrored orientation (opening to the left)
             points = [
                 (-w + wt/2, -h/2),
                 (wt/2, -h/2),
@@ -249,24 +249,24 @@ class ChannelProfile(SectionProfile):
 
 @dataclass
 class TeeProfile(SectionProfile):
-    """T型钢截面"""
-    height: float          # 总高度（米）
-    width: float           # 翼缘宽度（米）
-    flange_thickness: float  # 翼缘厚度（米）
-    web_thickness: float     # 腹板厚度（米）
-    mirror: bool = False     # 是否镜像（上下翻转）
+    """Tee section"""
+    height: float          # Total height (m)
+    width: float           # Flange width (m)
+    flange_thickness: float  # Flange thickness (m)
+    web_thickness: float     # Web thickness (m)
+    mirror: bool = False     # Whether mirrored (vertical flip)
     
     def get_profile_points(self, num_segments: int = 6) -> List[Tuple[float, float]]:
-        """生成T型钢轮廓点"""
+        """Generate tee profile points"""
         h = self.height
         w = self.width
         ft = self.flange_thickness
         wt = self.web_thickness
         
         if not self.mirror:
-            # 标准方向（T字正立）
+            # Standard orientation (upright T)
             points = [
-                # 从左下角开始，逆时针
+                # Start from lower-left corner, counterclockwise
                 (-wt/2, -h/2),
                 (wt/2, -h/2),
                 (wt/2, h/2 - ft),
@@ -277,7 +277,7 @@ class TeeProfile(SectionProfile):
                 (-wt/2, h/2 - ft),
             ]
         else:
-            # 镜像方向（T字倒立）
+            # Mirrored orientation (inverted T)
             points = [
                 (-w/2, -h/2),
                 (w/2, -h/2),
@@ -294,20 +294,20 @@ class TeeProfile(SectionProfile):
 
 @dataclass
 class AngleProfile(SectionProfile):
-    """角钢截面（L型）"""
-    height: float          # 竖边高度（米）
-    width: float           # 横边宽度（米）
-    flange_thickness: float  # 横边厚度（米）
-    web_thickness: float     # 竖边厚度（米）
+    """Angle section (L-shape)."""
+    height: float          # Vertical leg height (m)
+    width: float           # Horizontal leg width (m)
+    flange_thickness: float  # Horizontal leg thickness (m)
+    web_thickness: float     # Vertical leg thickness (m)
     
     def get_profile_points(self, num_segments: int = 6) -> List[Tuple[float, float]]:
-        """生成角钢轮廓点"""
+        """Generate angle profile points"""
         h = self.height
         w = self.width
         ft = self.flange_thickness
         wt = self.web_thickness
         
-        # L型，从左下角开始，逆时针
+        # L-shape, start from lower-left corner, counterclockwise
         points = [
             (0, 0),
             (w, 0),
@@ -317,7 +317,7 @@ class AngleProfile(SectionProfile):
             (0, h),
         ]
         
-        # 移动到中心（近似）
+        # Move to approximate centroid
         center_y = (w + wt) / 4
         center_z = (h + ft) / 4
         points = [(y - center_y, z - center_z) for y, z in points]
@@ -329,17 +329,17 @@ def rotate_profile_points(
     points: List[Tuple[float, float]], angle_deg: float
 ) -> List[Tuple[float, float]]:
     """
-    将截面轮廓点绕原点旋转指定角度
+    Rotate section profile points about the origin by a specified angle
 
-    用于应用 SAP2000 的局部坐标轴旋转角度（local_axis_angle），
-    使截面轮廓在 y-z 平面内绕单元轴线旋转。
+    Used to apply SAP2000 local-axis rotation (`local_axis_angle`),
+    rotating the section profile in the y-z plane about the element axis.
 
     Args:
-        points: 截面轮廓点 [(y, z), ...]
-        angle_deg: 旋转角度（度），正值为逆时针
+        points: Section profile points `[(y, z), ...]`
+        angle_deg: Rotation angle in degrees; positive is counterclockwise
 
     Returns:
-        旋转后的轮廓点列表
+        List of rotated profile points
     """
     if abs(angle_deg) < 1e-10:
         return points
@@ -363,52 +363,52 @@ def _transform_points(
     rotation: float
 ) -> List[Tuple[float, float]]:
     """
-    对轮廓点应用旋转和平移变换（SD截面子形状用）
+    Apply rotation and translation to profile points (for SD sub-shapes).
     
     Args:
-        points: 原始轮廓点（相对于形状中心）
-        x_center: 形状中心 X 坐标（SD坐标系）
-        y_center: 形状中心 Y 坐标（SD坐标系）
-        rotation: 逆时针旋转角度 [deg]
+        points: Source profile points (relative to shape center)
+        x_center: Shape center X coordinate (SD coordinate system)
+        y_center: Shape center Y coordinate (SD coordinate system)
+        rotation: Counterclockwise rotation angle [deg]
     
     Returns:
-        变换后的轮廓点
+        Transformed profile points
     """
-    # 先旋转
+    # Rotate first
     if abs(rotation) > 1e-10:
         points = rotate_profile_points(points, rotation)
-    # 再平移
+    # Then translate
     return [(y + x_center, z + y_center) for y, z in points]
 
 
 @dataclass
 class DblAngleProfile(SectionProfile):
-    """双角钢截面"""
-    height: float           # 竖边高度（米）
-    width: float            # 横边宽度（米）
-    flange_thickness: float # 横边厚度（米）
-    web_thickness: float    # 竖边厚度（米）
-    separation: float = 0.0 # 两角钢间距（米）
+    """Double-angle section."""
+    height: float           # Vertical leg height (m)
+    width: float            # Horizontal leg width (m)
+    flange_thickness: float # Horizontal leg thickness (m)
+    web_thickness: float    # Vertical leg thickness (m)
+    separation: float = 0.0 # Separation between angles (m)
     
     def get_profile_points(self, num_segments: int = 12) -> List[Tuple[float, float]]:
-        """生成双角钢轮廓点（两个L型组合）"""
+        """Generate double-angle profile points (two L-shapes)"""
         h = self.height
         w = self.width
         ft = self.flange_thickness
         wt = self.web_thickness
         gap = self.separation / 2
         
-        # 右侧角钢（标准L型）
+        # Right angle (standard L-shape)
         right = [
             (gap, -h/2),
             (gap + wt, -h/2),
             (gap + wt, -h/2 + ft),
             (gap + w, -h/2 + ft),
             (gap + w, -h/2),
-            # 这里简化为外轮廓
+            # Simplified as outer contour
         ]
         
-        # 简化：返回两个独立的角钢轮廓（右侧）
+        # Simplified: return two separate angle contours
         right_points = [
             (gap, -h/2),
             (gap + w, -h/2),
@@ -418,7 +418,7 @@ class DblAngleProfile(SectionProfile):
             (gap, h/2),
         ]
         
-        # 左侧角钢（镜像）
+        # Left angle (mirrored)
         left_points = [
             (-gap, -h/2),
             (-gap, h/2),
@@ -433,20 +433,20 @@ class DblAngleProfile(SectionProfile):
 
 @dataclass
 class SDShapeData:
-    """SD截面中单个子形状的数据"""
-    shape_type: int                              # 形状类型编号
-    shape_name: str                              # 形状名称
-    points: List[Tuple[float, float]]            # 轮廓点
-    inner_points: List[Tuple[float, float]] = None  # 内轮廓点（空心截面）
+    """Data for a single SD-section sub-shape"""
+    shape_type: int                              # Shape type ID
+    shape_name: str                              # Shape name
+    points: List[Tuple[float, float]]            # Profile points
+    inner_points: List[Tuple[float, float]] = None  # Inner profile points (hollow section)
 
 
 @dataclass
 class SDProfile(SectionProfile):
     """
-    Section Designer 自定义截面
+    Section Designer custom section
     
-    由多个子形状组合而成，每个子形状有自己的轮廓点。
-    支持实心和空心子形状。
+    Composed of multiple sub-shapes, each with its own profile points.
+    Supports both solid and hollow sub-shapes.
     """
     shapes: List[SDShapeData] = None
     
@@ -455,56 +455,56 @@ class SDProfile(SectionProfile):
             self.shapes = []
     
     def add_shape(self, shape: SDShapeData):
-        """添加子形状"""
+        """Add a sub-shape"""
         self.shapes.append(shape)
     
     def get_profile_points(self, num_segments: int = 16) -> List[Tuple[float, float]]:
         """
-        获取所有子形状的外轮廓点
+        Get outer profile points from all sub-shapes.
         
-        注意：SD截面可能包含多个不相连的子形状，
-        这里返回第一个子形状的轮廓点（用于简单拉伸），
-        完整渲染应使用 get_all_shapes() 方法。
+        Note: An SD section may contain multiple disconnected sub-shapes.
+        This returns the first sub-shape profile points for simple extrusion,
+        for full rendering use `get_all_shapes()`.
         """
         if not self.shapes:
             return []
-        # 返回第一个形状的轮廓点
+        # Return profile points of the first shape.
         return self.shapes[0].points
     
     def get_all_shapes(self) -> List[SDShapeData]:
-        """获取所有子形状数据（用于完整渲染）"""
+        """Get all sub-shape data (for full rendering)"""
         return self.shapes
 
 
 @dataclass
 class NonPrismaticProfile(SectionProfile):
     """
-    变截面轮廓
+    Nonprismatic profile
     
-    包含起点截面和终点截面的轮廓，用于渐变拉伸。
+    Contains start/end section profiles for tapered extrusion.
     """
-    start_profile: SectionProfile = None   # 起点截面轮廓
-    end_profile: SectionProfile = None     # 终点截面轮廓
-    segments: List[dict] = None            # 段信息列表
+    start_profile: SectionProfile = None   # Start section profile
+    end_profile: SectionProfile = None     # End section profile
+    segments: List[dict] = None            # Segment information list
     
     def __post_init__(self):
         if self.segments is None:
             self.segments = []
     
     def get_profile_points(self, num_segments: int = 16) -> List[Tuple[float, float]]:
-        """返回起点截面轮廓点（默认）"""
+        """Return start-section profile points (default)."""
         if self.start_profile:
             return self.start_profile.get_profile_points(num_segments)
         return []
     
     def get_start_profile_points(self, num_segments: int = 16) -> List[Tuple[float, float]]:
-        """获取起点截面轮廓点"""
+        """Get start-section profile points."""
         if self.start_profile:
             return self.start_profile.get_profile_points(num_segments)
         return []
     
     def get_end_profile_points(self, num_segments: int = 16) -> List[Tuple[float, float]]:
-        """获取终点截面轮廓点"""
+        """Get end-section profile points."""
         if self.end_profile:
             return self.end_profile.get_profile_points(num_segments)
         return []
@@ -512,14 +512,14 @@ class NonPrismaticProfile(SectionProfile):
 
 def create_profile_from_sap_section(section_type: str, params: dict) -> SectionProfile:
     """
-    根据 SAP2000 截面类型和参数创建截面轮廓
+    Create a section profile from SAP2000 section type and parameters
     
     Args:
-        section_type: 截面类型（Circle, Rect, I, Pipe, Box, Channel, Tee, Angle）
-        params: 截面参数字典
+        section_type: Section type (`Circle`, `Rect`, `I`, `Pipe`, `Box`, `Channel`, `Tee`, `Angle`)
+        params: Section parameter dictionary
         
     Returns:
-        SectionProfile 对象
+        `SectionProfile` object
         
     Example:
         profile = create_profile_from_sap_section("Circle", {"diameter": 0.5})
@@ -598,7 +598,7 @@ def create_profile_from_sap_section(section_type: str, params: dict) -> SectionP
         )
     
     elif section_type == "SD":
-        # SD 截面：params 中应包含 "shapes" 列表
+        # SD section: `params` should include a `shapes` list
         profile = SDProfile()
         for shape_data in params.get("shapes", []):
             profile.add_shape(SDShapeData(
@@ -610,7 +610,7 @@ def create_profile_from_sap_section(section_type: str, params: dict) -> SectionP
         return profile
     
     elif section_type == "NONPRISMATIC":
-        # 变截面：params 中包含 start_section 和 end_section
+        # Nonprismatic section: `params` includes `start_section` and `end_section`
         start_sec = params.get("start_section", {})
         end_sec = params.get("end_section", {})
         
@@ -631,5 +631,5 @@ def create_profile_from_sap_section(section_type: str, params: dict) -> SectionP
         )
     
     else:
-        # 默认返回圆形截面
+        # Fallback to a circular section.
         return CircleProfile(diameter=0.1)

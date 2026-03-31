@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-analyze.py - 分析控制函数
+analyze.py - Analysis control functions
 
-SAP2000 Analyze API 的核心函数封装
+Core wrapper functions around the SAP2000 `Analyze` API.
 
 SAP2000 API:
 - Analyze.RunAnalysis
@@ -25,23 +25,23 @@ from PySap2000.com_helper import com_ret, com_data
 
 
 # =============================================================================
-# 核心分析函数
+# Core analysis functions
 # =============================================================================
 
 def run_analysis(model) -> int:
     """
-    运行分析
+    Run analysis
     
-    自动创建分析模型并运行。运行前必须保存模型文件。
+    Automatically creates and runs the analysis model. The model file must be saved first.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Note:
-        运行前必须调用 File.Save() 保存模型
+        Call `File.Save()` before running analysis.
         
     Example:
         model.File.Save("C:/model.sdb")
@@ -52,60 +52,60 @@ def run_analysis(model) -> int:
 
 def create_analysis_model(model) -> int:
     """
-    创建分析模型
+    Create analysis model
     
-    如果分析模型已存在且是最新的，则不执行任何操作。
-    通常不需要手动调用，RunAnalysis 会自动创建。
+    If the analysis model already exists and is up to date, no action is taken.
+    Manual calls are usually unnecessary because `RunAnalysis` creates it automatically.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.Analyze.CreateAnalysisModel()
 
 
 def delete_results(model, case_name: str) -> int:
     """
-    删除指定工况的分析结果
+    Delete analysis results for a specific case
     
     Args:
-        model: SapModel 对象
-        case_name: 工况名称
+        model: SAP2000 SapModel object
+        case_name: Case name
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.Analyze.DeleteResults(case_name, False)
 
 
 def delete_all_results(model) -> int:
     """
-    删除所有工况的分析结果
+    Delete analysis results for all cases
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.Analyze.DeleteResults("", True)
 
 
 # =============================================================================
-# 活动自由度
+# Active degrees of freedom
 # =============================================================================
 
 def get_active_dof(model) -> Optional[ActiveDOF]:
     """
-    获取模型活动自由度
+    Get active model degrees of freedom
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        ActiveDOF 对象，失败返回 None
+        `ActiveDOF` instance, or `None` on failure
         
     Example:
         dof = get_active_dof(model)
@@ -122,20 +122,20 @@ def get_active_dof(model) -> Optional[ActiveDOF]:
 
 def set_active_dof(model, dof: ActiveDOF) -> int:
     """
-    设置模型活动自由度
+    Set active model degrees of freedom
     
     Args:
-        model: SapModel 对象
-        dof: ActiveDOF 对象
+        model: SAP2000 SapModel object
+        dof: `ActiveDOF` instance
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
-        # 设置为2D平面框架
+        # Set to a 2D plane frame
         set_active_dof(model, ActiveDOF.plane_xz())
         
-        # 自定义设置
+        # Custom setting
         dof = ActiveDOF(ux=True, uy=True, uz=True, rx=False, ry=False, rz=False)
         set_active_dof(model, dof)
     """
@@ -144,23 +144,23 @@ def set_active_dof(model, dof: ActiveDOF) -> int:
 
 
 # =============================================================================
-# 工况状态和运行标志
+# Case status and run flags
 # =============================================================================
 
 def get_case_status(model) -> List[CaseStatusInfo]:
     """
-    获取所有工况的分析状态
+    Get analysis status for all cases
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        CaseStatusInfo 列表
+        List of `CaseStatusInfo`
         
     Example:
         statuses = get_case_status(model)
         for s in statuses:
-            print(f"{s.name}: {s.status.name}, 完成: {s.is_finished}")
+            print(f"{s.name}: {s.status.name}, Finished: {s.is_finished}")
     """
     result = model.Analyze.GetCaseStatus(0, [], [])
     num = com_data(result, 0, default=0)
@@ -178,18 +178,18 @@ def get_case_status(model) -> List[CaseStatusInfo]:
 
 def get_run_case_flag(model) -> List[RunCaseFlag]:
     """
-    获取所有工况的运行标志
+    Get run flags for all cases
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        RunCaseFlag 列表
+        List of `RunCaseFlag`
         
     Example:
         flags = get_run_case_flag(model)
         for f in flags:
-            print(f"{f.name}: {'运行' if f.run else '不运行'}")
+            print(f"{f.name}: {'Run' if f.run else 'Do not run'}")
     """
     result = model.Analyze.GetRunCaseFlag(0, [], [])
     num = com_data(result, 0, default=0)
@@ -207,18 +207,18 @@ def get_run_case_flag(model) -> List[RunCaseFlag]:
 
 def set_run_case_flag(model, case_name: str, run: bool) -> int:
     """
-    设置指定工况的运行标志
+    Set run flag for a specific case
     
     Args:
-        model: SapModel 对象
-        case_name: 工况名称
-        run: 是否运行
+        model: SAP2000 SapModel object
+        case_name: Case name
+        run: Whether to run
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
-        # 禁用 MODAL 工况
+        # Disable the MODAL case
         set_run_case_flag(model, "MODAL", False)
     """
     return model.Analyze.SetRunCaseFlag(case_name, run, False)
@@ -226,37 +226,37 @@ def set_run_case_flag(model, case_name: str, run: bool) -> int:
 
 def set_run_case_flag_all(model, run: bool) -> int:
     """
-    设置所有工况的运行标志
+    Set run flag for all cases
     
     Args:
-        model: SapModel 对象
-        run: 是否运行
+        model: SAP2000 SapModel object
+        run: Whether to run
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
-        # 禁用所有工况
+        # Disable all cases
         set_run_case_flag_all(model, False)
-        # 然后只启用需要的
+        # Then enable only required cases
         set_run_case_flag(model, "DEAD", True)
     """
     return model.Analyze.SetRunCaseFlag("", run, True)
 
 
 # =============================================================================
-# 求解器选项
+# Solver options
 # =============================================================================
 
 def get_solver_option(model) -> Optional[SolverOption]:
     """
-    获取求解器选项
+    Get solver options
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        SolverOption 对象，失败返回 None
+        `SolverOption` instance, or `None` on failure
     """
     result = model.Analyze.GetSolverOption_3(0, 0, 0, 0, 0, "")
     solver_type = com_data(result, 0)
@@ -282,14 +282,14 @@ def get_solver_option(model) -> Optional[SolverOption]:
 
 def set_solver_option(model, option: SolverOption) -> int:
     """
-    设置求解器选项
+    Set solver options
     
     Args:
-        model: SapModel 对象
-        option: SolverOption 对象
+        model: SAP2000 SapModel object
+        option: `SolverOption` instance
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         opt = SolverOption(
@@ -309,7 +309,7 @@ def set_solver_option(model, option: SolverOption) -> int:
 
 
 # =============================================================================
-# 几何修改
+# Geometry modification
 # =============================================================================
 
 def modify_undeformed_geometry(
@@ -320,17 +320,17 @@ def modify_undeformed_geometry(
     original: bool = False
 ) -> int:
     """
-    根据工况结果修改未变形几何
+    Modify undeformed geometry based on case results
     
     Args:
-        model: SapModel 对象
-        case_name: 工况名称
-        scale_factor: 缩放系数
-        stage: 阶段号 (用于分阶段施工)
-        original: 是否基于原始几何
+        model: SAP2000 SapModel object
+        case_name: Case name
+        scale_factor: Scale factor
+        stage: Stage number (for staged construction)
+        original: Whether to use original geometry
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.Analyze.ModifyUnDeformedGeometry(
         case_name, scale_factor, stage, original
@@ -346,18 +346,18 @@ def modify_undeformed_geometry_mode_shape(
     original: bool = False
 ) -> int:
     """
-    根据振型修改未变形几何
+    Modify undeformed geometry based on mode shape
     
     Args:
-        model: SapModel 对象
-        case_name: 模态工况名称
-        mode: 振型号
-        max_disp: 最大位移
-        direction: 方向 (1=UX, 2=UY, 3=UZ, 4=RX, 5=RY, 6=RZ)
-        original: 是否基于原始几何
+        model: SAP2000 SapModel object
+        case_name: Modal case name
+        mode: Mode number
+        max_disp: Maximum displacement
+        direction: Direction (`1=UX`, `2=UY`, `3=UZ`, `4=RX`, `5=RY`, `6=RZ`)
+        original: Whether to use original geometry
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.Analyze.ModifyUndeformedGeometryModeShape(
         case_name, mode, max_disp, direction, original
@@ -366,13 +366,13 @@ def modify_undeformed_geometry_mode_shape(
 
 def merge_analysis_results(model, file_name: str) -> int:
     """
-    合并分析结果文件
+    Merge analysis result files
     
     Args:
-        model: SapModel 对象
-        file_name: 结果文件路径
+        model: SAP2000 SapModel object
+        file_name: Result file path
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.Analyze.MergeAnalysisResults(file_name)

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-area_load.py - 面单元荷载
+area_load.py - Area-object loads
 
-包含:
-- 枚举: AreaLoadDir, AreaTempLoadType, AreaStrainComponent, AreaWindPressureType, AreaDistType, AreaLoadItemType
-- 数据类: AreaLoadGravity, AreaLoadUniform, AreaLoadSurfacePressure, AreaLoadTemperature, 
+Includes:
+- Enums: AreaLoadDir, AreaTempLoadType, AreaStrainComponent, AreaWindPressureType, AreaDistType, AreaLoadItemType
+- Dataclasses: AreaLoadGravity, AreaLoadUniform, AreaLoadSurfacePressure, AreaLoadTemperature, 
           AreaLoadPorePressure, AreaLoadStrain, AreaLoadRotate, AreaLoadUniformToFrame, AreaLoadWindPressure
-- 函数: set_area_load_xxx, get_area_load_xxx, delete_area_load_xxx
+- Functions: set_area_load_xxx, get_area_load_xxx, delete_area_load_xxx
 
 SAP2000 API:
 - AreaObj.SetLoadGravity / GetLoadGravity / DeleteLoadGravity
@@ -27,10 +27,10 @@ from enum import IntEnum
 from PySap2000.com_helper import com_ret, com_data
 
 
-# ==================== 枚举 ====================
+# ==================== Enums ====================
 
 class AreaLoadDir(IntEnum):
-    """面单元荷载方向"""
+    """Area object load direction."""
     LOCAL_1 = 1
     LOCAL_2 = 2
     LOCAL_3 = 3
@@ -45,13 +45,13 @@ class AreaLoadDir(IntEnum):
 
 
 class AreaTempLoadType(IntEnum):
-    """面单元温度荷载类型"""
+    """Area object temperature load type."""
     TEMPERATURE = 1
     TEMPERATURE_GRADIENT = 3
 
 
 class AreaStrainComponent(IntEnum):
-    """面单元应变分量"""
+    """Area object strain component."""
     STRAIN_11 = 1
     STRAIN_22 = 2
     STRAIN_12 = 3
@@ -61,29 +61,29 @@ class AreaStrainComponent(IntEnum):
 
 
 class AreaWindPressureType(IntEnum):
-    """面单元风压类型"""
+    """Area object wind pressure type."""
     FROM_CP = 1
     FROM_CODE = 2
 
 
 class AreaDistType(IntEnum):
-    """面单元荷载分布类型"""
+    """Area load distribution type."""
     ONE_WAY = 1
     TWO_WAY = 2
 
 
 class AreaLoadItemType(IntEnum):
-    """荷载应用对象类型"""
-    OBJECT = 0
-    GROUP = 1
-    SELECTED_OBJECTS = 2
+    """Load assignment target type."""
+    OBJECT = 0              # Single object
+    GROUP = 1               # Group
+    SELECTED_OBJECTS = 2    # Selected objects
 
 
-# ==================== 数据类 ====================
+# ==================== Dataclasses ====================
 
 @dataclass
 class AreaLoadGravity:
-    """面单元重力荷载数据"""
+    """Area gravity load data."""
     area_name: str = ""
     load_pattern: str = ""
     x: float = 0.0
@@ -94,7 +94,7 @@ class AreaLoadGravity:
 
 @dataclass
 class AreaLoadUniform:
-    """面单元均布荷载数据"""
+    """Area uniform load data."""
     area_name: str = ""
     load_pattern: str = ""
     value: float = 0.0
@@ -104,7 +104,7 @@ class AreaLoadUniform:
 
 @dataclass
 class AreaLoadSurfacePressure:
-    """面单元表面压力荷载数据"""
+    """Area surface pressure load data."""
     area_name: str = ""
     load_pattern: str = ""
     face: int = -1
@@ -114,7 +114,7 @@ class AreaLoadSurfacePressure:
 
 @dataclass
 class AreaLoadTemperature:
-    """面单元温度荷载数据"""
+    """Area temperature load data."""
     area_name: str = ""
     load_pattern: str = ""
     load_type: AreaTempLoadType = AreaTempLoadType.TEMPERATURE
@@ -124,7 +124,7 @@ class AreaLoadTemperature:
 
 @dataclass
 class AreaLoadPorePressure:
-    """面单元孔隙压力荷载数据"""
+    """Area pore pressure load data."""
     area_name: str = ""
     load_pattern: str = ""
     value: float = 0.0
@@ -133,7 +133,7 @@ class AreaLoadPorePressure:
 
 @dataclass
 class AreaLoadStrain:
-    """面单元应变荷载数据"""
+    """Area strain load data."""
     area_name: str = ""
     load_pattern: str = ""
     component: AreaStrainComponent = AreaStrainComponent.STRAIN_11
@@ -143,7 +143,7 @@ class AreaLoadStrain:
 
 @dataclass
 class AreaLoadRotate:
-    """面单元旋转荷载数据"""
+    """Area rotation load data."""
     area_name: str = ""
     load_pattern: str = ""
     value: float = 0.0
@@ -151,7 +151,7 @@ class AreaLoadRotate:
 
 @dataclass
 class AreaLoadUniformToFrame:
-    """面单元均布荷载传递到框架数据"""
+    """Area uniform load transferred to frame data."""
     area_name: str = ""
     load_pattern: str = ""
     value: float = 0.0
@@ -162,14 +162,14 @@ class AreaLoadUniformToFrame:
 
 @dataclass
 class AreaLoadWindPressure:
-    """面单元风压荷载数据"""
+    """Area wind pressure load data."""
     area_name: str = ""
     load_pattern: str = ""
     wind_pressure_type: AreaWindPressureType = AreaWindPressureType.FROM_CP
     cp: float = 0.0
 
 
-# ==================== 重力荷载函数 ====================
+# ==================== gravity load functions ====================
 
 def set_area_load_gravity(
     model,
@@ -182,7 +182,7 @@ def set_area_load_gravity(
     csys: str = "Global",
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """设置面单元重力荷载"""
+    """Set area object gravity load."""
     return model.AreaObj.SetLoadGravity(
         str(area_name), load_pattern, x, y, z, replace, csys, int(item_type)
     )
@@ -193,7 +193,7 @@ def get_area_load_gravity(
     area_name: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> List[AreaLoadGravity]:
-    """获取面单元重力荷载"""
+    """Get area object gravity load."""
     loads = []
     try:
         result = model.AreaObj.GetLoadGravity(
@@ -227,11 +227,11 @@ def delete_area_load_gravity(
     load_pattern: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """删除面单元重力荷载"""
+    """Delete area object gravity load."""
     return model.AreaObj.DeleteLoadGravity(str(area_name), load_pattern, int(item_type))
 
 
-# ==================== 均布荷载函数 ====================
+# ==================== uniform load functions ====================
 
 def set_area_load_uniform(
     model,
@@ -243,7 +243,7 @@ def set_area_load_uniform(
     csys: str = "Global",
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """设置面单元均布荷载"""
+    """Set area object uniform load."""
     return model.AreaObj.SetLoadUniform(
         str(area_name), load_pattern, value, int(direction), replace, csys, int(item_type)
     )
@@ -254,7 +254,7 @@ def get_area_load_uniform(
     area_name: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> List[AreaLoadUniform]:
-    """获取面单元均布荷载"""
+    """Get area object uniform load."""
     loads = []
     try:
         result = model.AreaObj.GetLoadUniform(
@@ -286,11 +286,11 @@ def delete_area_load_uniform(
     load_pattern: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """删除面单元均布荷载"""
+    """Delete area object uniform load."""
     return model.AreaObj.DeleteLoadUniform(str(area_name), load_pattern, int(item_type))
 
 
-# ==================== 表面压力荷载函数 ====================
+# ==================== surface-pressure load functions ====================
 
 def set_area_load_surface_pressure(
     model,
@@ -302,7 +302,7 @@ def set_area_load_surface_pressure(
     replace: bool = True,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """设置面单元表面压力荷载 (face: -1=底面, -2=顶面)"""
+    """Set area object surface-pressure load (face: -1=bottom face, -2=top face)."""
     return model.AreaObj.SetLoadSurfacePressure(
         str(area_name), load_pattern, face, value, pattern_name, replace, int(item_type)
     )
@@ -313,7 +313,7 @@ def get_area_load_surface_pressure(
     area_name: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> List[AreaLoadSurfacePressure]:
-    """获取面单元表面压力荷载"""
+    """Get area object surface-pressure load."""
     loads = []
     try:
         result = model.AreaObj.GetLoadSurfacePressure(
@@ -345,11 +345,11 @@ def delete_area_load_surface_pressure(
     load_pattern: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """删除面单元表面压力荷载"""
+    """Delete area object surface-pressure load."""
     return model.AreaObj.DeleteLoadSurfacePressure(str(area_name), load_pattern, int(item_type))
 
 
-# ==================== 温度荷载函数 ====================
+# ==================== temperature load functions ====================
 
 def set_area_load_temperature(
     model,
@@ -361,7 +361,7 @@ def set_area_load_temperature(
     replace: bool = True,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """设置面单元温度荷载"""
+    """Set area object temperature load."""
     return model.AreaObj.SetLoadTemperature(
         str(area_name), load_pattern, int(load_type), value, pattern_name, replace, int(item_type)
     )
@@ -372,7 +372,7 @@ def get_area_load_temperature(
     area_name: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> List[AreaLoadTemperature]:
-    """获取面单元温度荷载"""
+    """Get area object temperature load."""
     loads = []
     try:
         result = model.AreaObj.GetLoadTemperature(
@@ -404,11 +404,11 @@ def delete_area_load_temperature(
     load_pattern: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """删除面单元温度荷载"""
+    """Delete area object temperature load."""
     return model.AreaObj.DeleteLoadTemperature(str(area_name), load_pattern, int(item_type))
 
 
-# ==================== 孔隙压力荷载函数 ====================
+# ==================== pore-pressure load functions ====================
 
 def set_area_load_pore_pressure(
     model,
@@ -419,7 +419,7 @@ def set_area_load_pore_pressure(
     replace: bool = True,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """设置面单元孔隙压力荷载"""
+    """Set area object pore-pressure load."""
     return model.AreaObj.SetLoadPorePressure(
         str(area_name), load_pattern, value, pattern_name, replace, int(item_type)
     )
@@ -430,7 +430,7 @@ def get_area_load_pore_pressure(
     area_name: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> List[AreaLoadPorePressure]:
-    """获取面单元孔隙压力荷载"""
+    """Get area object pore-pressure load."""
     loads = []
     try:
         result = model.AreaObj.GetLoadPorePressure(
@@ -460,11 +460,11 @@ def delete_area_load_pore_pressure(
     load_pattern: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """删除面单元孔隙压力荷载"""
+    """Delete area object pore-pressure load."""
     return model.AreaObj.DeleteLoadPorePressure(str(area_name), load_pattern, int(item_type))
 
 
-# ==================== 应变荷载函数 ====================
+# ==================== strain load functions ====================
 
 def set_area_load_strain(
     model,
@@ -476,7 +476,7 @@ def set_area_load_strain(
     pattern_name: str = "",
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """设置面单元应变荷载"""
+    """Set area object strain load."""
     return model.AreaObj.SetLoadStrain(
         str(area_name), load_pattern, int(component), value, replace, pattern_name, int(item_type)
     )
@@ -487,7 +487,7 @@ def get_area_load_strain(
     area_name: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> List[AreaLoadStrain]:
-    """获取面单元应变荷载"""
+    """Get area object strain load."""
     loads = []
     try:
         result = model.AreaObj.GetLoadStrain(
@@ -520,11 +520,11 @@ def delete_area_load_strain(
     component: AreaStrainComponent,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """删除面单元应变荷载"""
+    """Delete area object strain load."""
     return model.AreaObj.DeleteLoadStrain(str(area_name), load_pattern, int(component), int(item_type))
 
 
-# ==================== 旋转荷载函数 ====================
+# ==================== rotation load functions ====================
 
 def set_area_load_rotate(
     model,
@@ -534,7 +534,7 @@ def set_area_load_rotate(
     replace: bool = True,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """设置面单元旋转荷载 (value: 旋转速度 rad/s)"""
+    """Set area rotation load (`value`: rotation speed in rad/s)."""
     return model.AreaObj.SetLoadRotate(
         str(area_name), load_pattern, value, replace, int(item_type)
     )
@@ -545,7 +545,7 @@ def get_area_load_rotate(
     area_name: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> List[AreaLoadRotate]:
-    """获取面单元旋转荷载"""
+    """Get area object rotation load."""
     loads = []
     try:
         result = model.AreaObj.GetLoadRotate(
@@ -573,11 +573,11 @@ def delete_area_load_rotate(
     load_pattern: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """删除面单元旋转荷载"""
+    """Delete area object rotation load."""
     return model.AreaObj.DeleteLoadRotate(str(area_name), load_pattern, int(item_type))
 
 
-# ==================== 均布荷载传递到框架函数 ====================
+# ==================== uniform load transferred to frame functions ====================
 
 def set_area_load_uniform_to_frame(
     model,
@@ -590,7 +590,7 @@ def set_area_load_uniform_to_frame(
     csys: str = "Global",
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """设置面单元均布荷载传递到框架"""
+    """Set area object uniform load transferred to frame."""
     return model.AreaObj.SetLoadUniformToFrame(
         str(area_name), load_pattern, value, int(direction), int(dist_type),
         replace, csys, int(item_type)
@@ -602,7 +602,7 @@ def get_area_load_uniform_to_frame(
     area_name: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> List[AreaLoadUniformToFrame]:
-    """获取面单元均布荷载传递到框架"""
+    """Get area object uniform load transferred to frame."""
     loads = []
     try:
         result = model.AreaObj.GetLoadUniformToFrame(
@@ -636,11 +636,11 @@ def delete_area_load_uniform_to_frame(
     load_pattern: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """删除面单元均布荷载传递到框架"""
+    """Delete area object uniform load transferred to frame."""
     return model.AreaObj.DeleteLoadUniformToFrame(str(area_name), load_pattern, int(item_type))
 
 
-# ==================== 风压荷载函数 ====================
+# ==================== wind-pressure load functions ====================
 
 def set_area_load_wind_pressure(
     model,
@@ -650,7 +650,7 @@ def set_area_load_wind_pressure(
     cp: float = 0.0,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """设置面单元风压荷载"""
+    """Set area object wind-pressure load."""
     return model.AreaObj.SetLoadWindPressure_1(
         str(area_name), load_pattern, int(wind_pressure_type), cp, int(item_type)
     )
@@ -661,7 +661,7 @@ def get_area_load_wind_pressure(
     area_name: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> List[AreaLoadWindPressure]:
-    """获取面单元风压荷载"""
+    """Get area object wind-pressure load."""
     loads = []
     try:
         result = model.AreaObj.GetLoadWindPressure_1(
@@ -691,5 +691,5 @@ def delete_area_load_wind_pressure(
     load_pattern: str,
     item_type: AreaLoadItemType = AreaLoadItemType.OBJECT
 ) -> int:
-    """删除面单元风压荷载"""
+    """Delete area object wind-pressure load."""
     return model.AreaObj.DeleteLoadWindPressure(str(area_name), load_pattern, int(item_type))

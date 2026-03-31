@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-local_axes.py - 连接单元局部坐标轴相关函数
+local_axes.py - Link local-axis helpers.
 
-用于设置连接单元的局部坐标轴方向
+Provides functions to assign and query link local-axis orientation.
 
 SAP2000 API:
 - LinkObj.SetLocalAxes(Name, Ang, ItemType)
 - LinkObj.GetLocalAxes(Name, Ang, Advanced)
-- LinkObj.SetLocalAxesAdvanced(Name, Active, AxVectOpt, AxCSys, AxDir[], AxPt[], AxVect[], 
+- LinkObj.SetLocalAxesAdvanced(Name, Active, AxVectOpt, AxCSys, AxDir[], AxPt[], AxVect[],
                                 Plane2, PlVectOpt, PlCSys, PlDir[], PlPt[], PlVect[], ItemType)
 - LinkObj.GetLocalAxesAdvanced(Name, Active, AxVectOpt, AxCSys, AxDir[], AxPt[], AxVect[],
                                 Plane2, PlVectOpt, PlCSys, PlDir[], PlPt[], PlVect[])
@@ -27,19 +27,19 @@ def set_link_local_axes(
     item_type: LinkItemType = LinkItemType.OBJECT
 ) -> int:
     """
-    设置连接单元局部轴角度
-    
-    局部2和3轴绕正局部1轴旋转的角度。
-    正角度从局部+1轴方向看为逆时针。
+    Set the local-axis rotation angle of a link object.
+
+    The local 2 and 3 axes rotate about the positive local 1 axis. A positive
+    angle is counterclockwise when viewed looking in the positive local-1 direction.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        angle: 旋转角度 [deg]
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        link_name: Link object name
+        angle: Rotation angle [deg]
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
         set_link_local_axes(model, "1", 30)
@@ -52,19 +52,19 @@ def get_link_local_axes(
     link_name: str
 ) -> Optional[LinkLocalAxesData]:
     """
-    获取连接单元局部轴角度
+    Get the local-axis rotation angle of a link object.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
+        model: SAP2000 SapModel object
+        link_name: Link object name
     
     Returns:
-        LinkLocalAxesData 对象，失败返回 None
+        `LinkLocalAxesData`, or `None` if the query fails.
     
     Example:
         axes = get_link_local_axes(model, "1")
         if axes:
-            print(f"局部轴角度: {axes.angle}°")
+            print(f"Local-axis angle: {axes.angle} deg")
     """
     try:
         result = model.LinkObj.GetLocalAxes(str(link_name), 0.0, False)
@@ -99,27 +99,28 @@ def set_link_local_axes_advanced(
     item_type: LinkItemType = LinkItemType.OBJECT
 ) -> int:
     """
-    设置连接单元高级局部轴
+    Set advanced local-axis options for a link object.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        active: 是否激活高级局部轴
-        ax_vect_opt: 轴向量选项 (1=坐标方向, 2=两节点, 3=用户向量)
-        ax_csys: 轴坐标系
-        ax_dir: 轴方向数组 [primary, secondary]
-        ax_pt: 轴参考点数组 [pt1, pt2]
-        ax_vect: 轴向量 [x, y, z]
-        plane2: 平面2定义 (12 或 13)
-        pl_vect_opt: 平面向量选项
-        pl_csys: 平面坐标系
-        pl_dir: 平面方向数组 [primary, secondary]
-        pl_pt: 平面参考点数组 [pt1, pt2]
-        pl_vect: 平面向量 [x, y, z]
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        link_name: Link object name
+        active: Whether advanced local axes are enabled
+        ax_vect_opt: Axis vector option (`1`=coordinate direction,
+            `2`=two points, `3`=user vector)
+        ax_csys: Axis coordinate system
+        ax_dir: Axis direction array `[primary, secondary]`
+        ax_pt: Axis reference point array `[pt1, pt2]`
+        ax_vect: Axis vector `[x, y, z]`
+        plane2: Plane-2 definition (`12` or `13`)
+        pl_vect_opt: Plane vector option
+        pl_csys: Plane coordinate system
+        pl_dir: Plane direction array `[primary, secondary]`
+        pl_pt: Plane reference point array `[pt1, pt2]`
+        pl_vect: Plane vector `[x, y, z]`
+        item_type: Target scope for the operation
         
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
         set_link_local_axes_advanced(model, "1", True, ax_vect_opt=3, ax_vect=[1, 0, 0])
@@ -148,19 +149,19 @@ def get_link_local_axes_advanced(
     link_name: str
 ) -> Optional[LinkLocalAxesAdvancedData]:
     """
-    获取连接单元高级局部轴设置
+    Get advanced local-axis settings for a link object.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
+        model: SAP2000 SapModel object
+        link_name: Link object name
     
     Returns:
-        LinkLocalAxesAdvancedData 对象，失败返回 None
+        `LinkLocalAxesAdvancedData`, or `None` if the query fails.
     
     Example:
         axes = get_link_local_axes_advanced(model, "1")
         if axes and axes.active:
-            print(f"使用高级局部轴，轴向量选项: {axes.ax_vect_opt}")
+            print(f"Advanced local axes enabled, axis vector option: {axes.ax_vect_opt}")
     """
     try:
         result = model.LinkObj.GetLocalAxesAdvanced(
@@ -195,22 +196,22 @@ def get_link_transformation_matrix(
     is_global: bool = True
 ) -> Optional[List[float]]:
     """
-    获取连接单元变换矩阵
-    
-    返回 3x3 变换矩阵（9个值），用于局部坐标和全局坐标转换。
+    Get the transformation matrix of a link object.
+
+    Returns a 3x3 matrix with 9 values for converting between local and global coordinates.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        is_global: True=全局坐标系, False=当前坐标系
+        model: SAP2000 SapModel object
+        link_name: Link object name
+        is_global: `True` for the global coordinate system, `False` for the current system
     
     Returns:
-        9个浮点数的列表 (3x3矩阵按行排列)，失败返回 None
+        List of 9 floats in row-major order, or `None` if the query fails.
     
     Example:
         matrix = get_link_transformation_matrix(model, "1")
         if matrix:
-            print(f"局部1轴方向: {matrix[0:3]}")
+            print(f"Local-1 axis direction: {matrix[0:3]}")
     """
     try:
         result = model.LinkObj.GetTransformationMatrix(str(link_name), [], is_global)

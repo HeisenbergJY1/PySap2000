@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-load_combination.py - 荷载组合
+load_combination.py - Load combinations.
 
-SAP2000 RespCombo API 封装
+Wraps the SAP2000 `RespCombo` API.
 
 SAP2000 API:
-- RespCombo.Add - 添加组合
-- RespCombo.AddDesignDefaultCombos - 添加设计默认组合
-- RespCombo.ChangeName - 修改名称
-- RespCombo.Count - 组合数量
-- RespCombo.CountCase - 组合中工况数量
-- RespCombo.Delete - 删除组合
-- RespCombo.DeleteCase - 删除组合中的工况
-- RespCombo.GetCaseList_1 - 获取工况列表
-- RespCombo.GetNameList - 获取名称列表
-- RespCombo.GetNote - 获取备注
-- RespCombo.GetTypeOAPI - 获取组合类型
-- RespCombo.SetCaseList_1 - 设置工况列表
-- RespCombo.SetNote - 设置备注
-- RespCombo.SetTypeOAPI - 设置组合类型
+- `RespCombo.Add` - add a combination
+- `RespCombo.AddDesignDefaultCombos` - add default design combinations
+- `RespCombo.ChangeName` - rename a combination
+- `RespCombo.Count` - get the number of combinations
+- `RespCombo.CountCase` - get the number of cases in a combination
+- `RespCombo.Delete` - delete a combination
+- `RespCombo.DeleteCase` - delete a case from a combination
+- `RespCombo.GetCaseList_1` - get the case list
+- `RespCombo.GetNameList` - get the name list
+- `RespCombo.GetNote` - get the note
+- `RespCombo.GetTypeOAPI` - get the combination type
+- `RespCombo.SetCaseList_1` - set the case list
+- `RespCombo.SetNote` - set the note
+- `RespCombo.SetTypeOAPI` - set the combination type
 """
 
 from typing import List, Tuple
@@ -29,42 +29,42 @@ from PySap2000.com_helper import com_ret, com_data
 
 class ComboCaseType(IntEnum):
     """
-    组合中工况类型
-    
-    SAP2000 API: eCNameType
+    Case type used within a combination.
+
+    SAP2000 API: `eCNameType`
     """
-    LOAD_CASE = 0       # 荷载工况
-    LOAD_COMBO = 1      # 荷载组合
+    LOAD_CASE = 0       # Load case
+    LOAD_COMBO = 1      # Load combination
 
 
 class ComboType(IntEnum):
     """
-    组合类型
-    
-    SAP2000 API: eComboType
+    Combination type.
+
+    SAP2000 API: `eComboType`
     """
-    LINEAR_ADD = 0      # 线性叠加
-    ENVELOPE = 1        # 包络
-    ABS_ADD = 2         # 绝对值叠加
-    SRSS = 3            # 平方和开方
-    RANGE = 4           # 范围
+    LINEAR_ADD = 0      # Linear add
+    ENVELOPE = 1        # Envelope
+    ABS_ADD = 2         # Absolute add
+    SRSS = 3            # Square root of sum of squares
+    RANGE = 4           # Range
 
 
 # =============================================================================
-# 组合管理函数
+# Combination management
 # =============================================================================
 
 def add_combo(model, name: str, combo_type: ComboType = ComboType.LINEAR_ADD) -> int:
     """
-    添加荷载组合
+    Add a load combination.
     
     Args:
-        model: SapModel 对象
-        name: 组合名称
-        combo_type: 组合类型
+        model: SAP2000 SapModel object
+        name: Combination name
+        combo_type: Combination type
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.RespCombo.Add(name, int(combo_type))
 
@@ -77,17 +77,17 @@ def add_design_default_combos(
     design_cold_formed: bool = True
 ) -> int:
     """
-    添加设计默认组合
+    Add default design combinations.
     
     Args:
-        model: SapModel 对象
-        design_steel: 是否添加钢结构设计组合
-        design_concrete: 是否添加混凝土设计组合
-        design_aluminum: 是否添加铝结构设计组合
-        design_cold_formed: 是否添加冷弯型钢设计组合
+        model: SAP2000 SapModel object
+        design_steel: Whether to add steel design combinations
+        design_concrete: Whether to add concrete design combinations
+        design_aluminum: Whether to add aluminum design combinations
+        design_cold_formed: Whether to add cold-formed steel design combinations
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.RespCombo.AddDesignDefaultCombos(
         design_steel, design_concrete, design_aluminum, design_cold_formed
@@ -96,28 +96,28 @@ def add_design_default_combos(
 
 def change_combo_name(model, old_name: str, new_name: str) -> int:
     """
-    修改组合名称
+    Rename a combination.
     
     Args:
-        model: SapModel 对象
-        old_name: 原名称
-        new_name: 新名称
+        model: SAP2000 SapModel object
+        old_name: Existing name
+        new_name: New name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.RespCombo.ChangeName(old_name, new_name)
 
 
 def get_combo_count(model) -> int:
     """
-    获取组合数量
+    Get the number of combinations.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        组合数量
+        Combination count.
     """
     result = model.RespCombo.Count()
     count = com_data(result, 0)
@@ -126,14 +126,14 @@ def get_combo_count(model) -> int:
 
 def get_combo_case_count(model, name: str) -> int:
     """
-    获取组合中工况数量
+    Get the number of cases in a combination.
     
     Args:
-        model: SapModel 对象
-        name: 组合名称
+        model: SAP2000 SapModel object
+        name: Combination name
         
     Returns:
-        工况数量
+        Case count.
     """
     result = model.RespCombo.CountCase(name)
     count = com_data(result, 0)
@@ -142,43 +142,43 @@ def get_combo_case_count(model, name: str) -> int:
 
 def delete_combo(model, name: str) -> int:
     """
-    删除组合
+    Delete a combination.
     
     Args:
-        model: SapModel 对象
-        name: 组合名称
+        model: SAP2000 SapModel object
+        name: Combination name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.RespCombo.Delete(name)
 
 
 def delete_combo_case(model, name: str, case_type: ComboCaseType, case_name: str) -> int:
     """
-    从组合中删除工况
+    Remove a case from a combination.
     
     Args:
-        model: SapModel 对象
-        name: 组合名称
-        case_type: 工况类型 (LOAD_CASE 或 LOAD_COMBO)
-        case_name: 要删除的工况/组合名称
+        model: SAP2000 SapModel object
+        name: Combination name
+        case_type: Case type (`LOAD_CASE` or `LOAD_COMBO`)
+        case_name: Case or combination name to remove
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.RespCombo.DeleteCase(name, int(case_type), case_name)
 
 
 def get_combo_name_list(model) -> List[str]:
     """
-    获取所有组合名称列表
+    Get the list of all combination names.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        组合名称列表
+        List of combination names.
     """
     result = model.RespCombo.GetNameList(0, [])
     names = com_data(result, 1)
@@ -188,22 +188,22 @@ def get_combo_name_list(model) -> List[str]:
 
 
 # =============================================================================
-# 工况列表函数
+# Case-list helpers
 # =============================================================================
 
 def get_combo_case_list(model, name: str) -> Tuple[List[ComboCaseType], List[str], List[float]]:
     """
-    获取组合中的工况列表
+    Get the case list in a combination.
     
     Args:
-        model: SapModel 对象
-        name: 组合名称
+        model: SAP2000 SapModel object
+        name: Combination name
         
     Returns:
-        (case_types, case_names, scale_factors) 元组
-        - case_types: 工况类型列表
-        - case_names: 工况名称列表
-        - scale_factors: 比例系数列表
+        Tuple `(case_types, case_names, scale_factors)`.
+        - `case_types`: list of case types
+        - `case_names`: list of case names
+        - `scale_factors`: list of scale factors
     """
     result = model.RespCombo.GetCaseList_1(name, 0, [], [], [])
     num = com_data(result, 0, 0)
@@ -228,35 +228,35 @@ def set_combo_case_list(
     scale_factor: float
 ) -> int:
     """
-    向组合添加工况
+    Add a case to a combination.
     
     Args:
-        model: SapModel 对象
-        name: 组合名称
-        case_type: 工况类型 (LOAD_CASE 或 LOAD_COMBO)
-        case_name: 工况/组合名称
-        scale_factor: 比例系数
+        model: SAP2000 SapModel object
+        name: Combination name
+        case_type: Case type (`LOAD_CASE` or `LOAD_COMBO`)
+        case_name: Case or combination name
+        scale_factor: Scale factor
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.RespCombo.SetCaseList_1(name, int(case_type), case_name, 0, scale_factor)
 
 
 # =============================================================================
-# 备注函数
+# Note helpers
 # =============================================================================
 
 def get_combo_note(model, name: str) -> str:
     """
-    获取组合备注
+    Get the note attached to a combination.
     
     Args:
-        model: SapModel 对象
-        name: 组合名称
+        model: SAP2000 SapModel object
+        name: Combination name
         
     Returns:
-        备注文本
+        Note text.
     """
     result = model.RespCombo.GetNote(name, "")
     note = com_data(result, 0)
@@ -265,33 +265,33 @@ def get_combo_note(model, name: str) -> str:
 
 def set_combo_note(model, name: str, note: str) -> int:
     """
-    设置组合备注
+    Set the note of a combination.
     
     Args:
-        model: SapModel 对象
-        name: 组合名称
-        note: 备注文本
+        model: SAP2000 SapModel object
+        name: Combination name
+        note: Note text
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.RespCombo.SetNote(name, note)
 
 
 # =============================================================================
-# 类型函数
+# Type helpers
 # =============================================================================
 
 def get_combo_type(model, name: str) -> ComboType:
     """
-    获取组合类型
+    Get the type of a combination.
     
     Args:
-        model: SapModel 对象
-        name: 组合名称
+        model: SAP2000 SapModel object
+        name: Combination name
         
     Returns:
-        组合类型
+        `ComboType`.
     """
     result = model.RespCombo.GetTypeOAPI(name, 0)
     type_val = com_data(result, 0)
@@ -302,14 +302,14 @@ def get_combo_type(model, name: str) -> ComboType:
 
 def set_combo_type(model, name: str, combo_type: ComboType) -> int:
     """
-    设置组合类型
+    Set the type of a combination.
     
     Args:
-        model: SapModel 对象
-        name: 组合名称
-        combo_type: 组合类型
+        model: SAP2000 SapModel object
+        name: Combination name
+        combo_type: Combination type
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.RespCombo.SetTypeOAPI(name, int(combo_type))

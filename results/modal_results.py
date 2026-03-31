@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-modal_results.py - 模态分析结果函数
+modal_results.py - Modal analysis result helpers.
 
-SAP2000 Results API 的模态分析结果函数封装
+Wraps modal-analysis result functions from the SAP2000 Results API.
 
 SAP2000 API:
-- Results.ModalPeriod - 模态周期
-- Results.ModeShape - 振型
-- Results.ModalParticipatingMassRatios - 模态参与质量比
-- Results.ModalLoadParticipationRatios - 模态荷载参与比
-- Results.ModalParticipationFactors - 模态参与因子
+- `Results.ModalPeriod` - modal periods
+- `Results.ModeShape` - mode shapes
+- `Results.ModalParticipatingMassRatios` - modal participating mass ratios
+- `Results.ModalLoadParticipationRatios` - modal load participation ratios
+- `Results.ModalParticipationFactors` - modal participation factors
 """
 
 from typing import List
@@ -23,15 +23,15 @@ from PySap2000.com_helper import com_ret, com_data
 
 def get_modal_period(model) -> List[ModalPeriodResult]:
     """
-    获取模态周期结果
-    
-    返回所有选中模态工况的周期、频率和特征值。
+    Get modal period results.
+
+    Returns period, frequency, and eigenvalue data for all selected modal cases.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        ModalPeriodResult 列表
+        List of `ModalPeriodResult`.
         
     Example:
         from results import deselect_all_cases_and_combos, set_case_selected_for_output
@@ -81,15 +81,15 @@ def get_mode_shape(
     item_type: ItemTypeElm = ItemTypeElm.GROUP_ELM
 ) -> List[ModeShapeResult]:
     """
-    获取振型结果
+    Get mode shape results.
     
     Args:
-        model: SapModel 对象
-        name: 点对象名、点元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Point object name, point element name, or group name
+        item_type: Element scope
             
     Returns:
-        ModeShapeResult 列表
+        List of `ModeShapeResult`.
         
     Example:
         from results import deselect_all_cases_and_combos, set_case_selected_for_output
@@ -97,7 +97,7 @@ def get_mode_shape(
         deselect_all_cases_and_combos(model)
         set_case_selected_for_output(model, "MODAL")
         
-        # 获取所有点的振型
+        # Get mode shapes for all points
         results = get_mode_shape(model, "ALL", ItemTypeElm.GROUP_ELM)
     """
     result = model.Results.ModeShape(
@@ -143,15 +143,15 @@ def get_mode_shape(
 
 def get_modal_participating_mass_ratios(model) -> List[ModalMassRatioResult]:
     """
-    获取模态参与质量比
-    
-    返回各振型的参与质量比和累计参与质量比。
+    Get modal participating mass ratios.
+
+    Returns participating mass ratios and cumulative ratios for each mode.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        ModalMassRatioResult 列表
+        List of `ModalMassRatioResult`.
         
     Example:
         results = get_modal_participating_mass_ratios(model)
@@ -214,15 +214,15 @@ def get_modal_participating_mass_ratios(model) -> List[ModalMassRatioResult]:
 
 def get_modal_load_participation_ratios(model) -> List[ModalLoadParticipationRatioResult]:
     """
-    获取模态荷载参与比
-    
-    返回各荷载模式的静态和动态参与比。
+    Get modal load participation ratios.
+
+    Returns static and dynamic participation ratios for each load pattern.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        ModalLoadParticipationRatioResult 列表
+        List of `ModalLoadParticipationRatioResult`.
     """
     result = model.Results.ModalLoadParticipationRatios(
         0, [], [], [], [], []
@@ -253,15 +253,15 @@ def get_modal_load_participation_ratios(model) -> List[ModalLoadParticipationRat
 
 def get_modal_participation_factors(model) -> List[ModalParticipationFactorResult]:
     """
-    获取模态参与因子
-    
-    返回各振型的参与因子、模态质量和模态刚度。
+    Get modal participation factors.
+
+    Returns participation factors, modal mass, and modal stiffness for each mode.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        ModalParticipationFactorResult 列表
+        List of `ModalParticipationFactorResult`.
     """
     result = model.Results.ModalParticipationFactors(
         0, [], [], [],

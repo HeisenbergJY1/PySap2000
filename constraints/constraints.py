@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-constraints.py - 约束定义函数
+constraints.py - Constraint definition helpers.
 
-API 路径: SapModel.ConstraintDef
+API path: `SapModel.ConstraintDef`
 """
 
 from typing import List, Optional, Tuple
@@ -11,15 +11,15 @@ from PySap2000.com_helper import com_ret, com_data
 
 
 # =============================================================================
-# 通用函数
+# Common helpers
 # =============================================================================
 
 def get_constraint_count(model) -> int:
     """
-    获取约束数量
+    Get the number of constraints.
     
     Returns:
-        约束数量
+        Constraint count.
     """
     result = model.ConstraintDef.Count()
     return com_data(result, 0, result)
@@ -27,10 +27,10 @@ def get_constraint_count(model) -> int:
 
 def get_constraint_name_list(model) -> List[str]:
     """
-    获取所有约束名称列表
+    Get the list of all constraint names.
     
     Returns:
-        约束名称列表
+        List of constraint names.
     """
     result = model.ConstraintDef.GetNameList(0, [])
     ret = com_ret(result)
@@ -43,13 +43,13 @@ def get_constraint_name_list(model) -> List[str]:
 
 def get_constraint_type(model, name: str) -> Optional[ConstraintType]:
     """
-    获取约束类型
+    Get the constraint type.
     
     Args:
-        name: 约束名称
+        name: Constraint name
         
     Returns:
-        ConstraintType 枚举，失败返回 None
+        `ConstraintType`, or `None` if the query fails.
     """
     result = model.ConstraintDef.GetConstraintType(name, 0)
     ret = com_ret(result)
@@ -60,10 +60,10 @@ def get_constraint_type(model, name: str) -> Optional[ConstraintType]:
 
 def change_constraint_name(model, old_name: str, new_name: str) -> bool:
     """
-    修改约束名称
+    Rename a constraint.
     
     Returns:
-        成功返回 True
+        `True` if successful.
     """
     result = model.ConstraintDef.ChangeName(old_name, new_name)
     return com_ret(result) == 0
@@ -71,17 +71,17 @@ def change_constraint_name(model, old_name: str, new_name: str) -> bool:
 
 def delete_constraint(model, name: str) -> bool:
     """
-    删除约束
+    Delete a constraint.
     
     Returns:
-        成功返回 True
+        `True` if successful.
     """
     result = model.ConstraintDef.Delete(name)
     return com_ret(result) == 0
 
 
 # =============================================================================
-# Diaphragm 刚性隔板
+# Diaphragm constraints
 # =============================================================================
 
 def get_diaphragm(
@@ -89,15 +89,15 @@ def get_diaphragm(
     name: str
 ) -> Optional[Tuple[ConstraintAxis, str]]:
     """
-    获取刚性隔板约束定义
+    Get a diaphragm constraint definition.
     
     Args:
-        name: 约束名称
+        name: Constraint name
         
     Returns:
-        (axis, csys) 元组，失败返回 None
-        - axis: 垂直于隔板平面的轴
-        - csys: 坐标系名称
+        Tuple `(axis, csys)`, or `None` if the query fails.
+        - `axis`: axis normal to the diaphragm plane
+        - `csys`: coordinate system name
     """
     result = model.ConstraintDef.GetDiaphragm(name, 0, "")
     ret = com_ret(result)
@@ -113,22 +113,22 @@ def set_diaphragm(
     csys: str = "Global"
 ) -> bool:
     """
-    设置刚性隔板约束
+    Set a diaphragm constraint.
     
     Args:
-        name: 约束名称
-        axis: 垂直于隔板平面的轴 (默认自动)
-        csys: 坐标系名称
+        name: Constraint name
+        axis: Axis normal to the diaphragm plane, default is automatic
+        csys: Coordinate system name
         
     Returns:
-        成功返回 True
+        `True` if successful.
     """
     result = model.ConstraintDef.SetDiaphragm(name, int(axis), csys)
     return com_ret(result) == 0
 
 
 # =============================================================================
-# Body 刚体约束
+# Body constraints
 # =============================================================================
 
 def get_body(
@@ -136,15 +136,15 @@ def get_body(
     name: str
 ) -> Optional[Tuple[List[bool], str]]:
     """
-    获取刚体约束定义
+    Get a body constraint definition.
     
     Args:
-        name: 约束名称
+        name: Constraint name
         
     Returns:
-        (dof_values, csys) 元组，失败返回 None
-        - dof_values: [UX, UY, UZ, RX, RY, RZ] 布尔列表
-        - csys: 坐标系名称
+        Tuple `(dof_values, csys)`, or `None` if the query fails.
+        - `dof_values`: boolean list `[UX, UY, UZ, RX, RY, RZ]`
+        - `csys`: coordinate system name
     """
     result = model.ConstraintDef.GetBody(name, [], "")
     ret = com_ret(result)
@@ -161,15 +161,15 @@ def set_body(
     csys: str = "Global"
 ) -> bool:
     """
-    设置刚体约束
+    Set a body constraint.
     
     Args:
-        name: 约束名称
-        dof: [UX, UY, UZ, RX, RY, RZ] 布尔列表，默认全 True
-        csys: 坐标系名称
+        name: Constraint name
+        dof: Boolean list `[UX, UY, UZ, RX, RY, RZ]`, defaults to all `True`
+        csys: Coordinate system name
         
     Returns:
-        成功返回 True
+        `True` if successful.
     """
     if dof is None:
         dof = [True] * 6
@@ -178,7 +178,7 @@ def set_body(
 
 
 # =============================================================================
-# Equal 等位移约束
+# Equal constraints
 # =============================================================================
 
 def get_equal(
@@ -186,20 +186,20 @@ def get_equal(
     name: str
 ) -> Optional[Tuple[List[bool], str]]:
     """
-    获取等位移约束定义
+    Get an equal-displacement constraint definition.
     
     Args:
-        name: 约束名称
+        name: Constraint name
         
     Returns:
-        (dof_values, csys) 元组，失败返回 None
-        - dof_values: [UX, UY, UZ, RX, RY, RZ] 布尔列表
-        - csys: 坐标系名称
+        Tuple `(dof_values, csys)`, or `None` if the query fails.
+        - `dof_values`: boolean list `[UX, UY, UZ, RX, RY, RZ]`
+        - `csys`: coordinate system name
     """
     result = model.ConstraintDef.GetEqual(name, (False,)*6, "")
     values = com_data(result, 0)
     csys = com_data(result, 1)
-    # 某些版本 ret=1 但数据有效，只要 Value 非空就返回
+    # Some SAP2000 versions return `ret=1` even when the data is valid.
     if values and len(values) >= 6:
         return (list(values), csys if csys else "Global")
     return None
@@ -212,15 +212,15 @@ def set_equal(
     csys: str = "Global"
 ) -> bool:
     """
-    设置等位移约束
+    Set an equal-displacement constraint.
     
     Args:
-        name: 约束名称
-        dof: [UX, UY, UZ, RX, RY, RZ] 布尔列表，默认全 True
-        csys: 坐标系名称
+        name: Constraint name
+        dof: Boolean list `[UX, UY, UZ, RX, RY, RZ]`, defaults to all `True`
+        csys: Coordinate system name
         
     Returns:
-        成功返回 True
+        `True` if successful.
     """
     if dof is None:
         dof = [True] * 6
@@ -229,7 +229,7 @@ def set_equal(
 
 
 # =============================================================================
-# Local 局部约束
+# Local constraints
 # =============================================================================
 
 def get_local(
@@ -237,16 +237,17 @@ def get_local(
     name: str
 ) -> Optional[List[bool]]:
     """
-    获取局部约束定义
+    Get a local constraint definition.
     
     Args:
-        name: 约束名称
+        name: Constraint name
         
     Returns:
-        [U1, U2, U3, R1, R2, R3] 布尔列表，失败返回 None
+        Boolean list `[U1, U2, U3, R1, R2, R3]`, or `None` if the query fails.
         
     Note:
-        Local 约束使用节点局部坐标系，无需指定坐标系
+        Local constraints use the joint local coordinate system and do not
+        require an explicit coordinate system.
     """
     result = model.ConstraintDef.GetLocal(name, [])
     ret = com_ret(result)
@@ -262,17 +263,17 @@ def set_local(
     dof: List[bool] = None
 ) -> bool:
     """
-    设置局部约束
+    Set a local constraint.
     
     Args:
-        name: 约束名称
-        dof: [U1, U2, U3, R1, R2, R3] 布尔列表，默认全 True
+        name: Constraint name
+        dof: Boolean list `[U1, U2, U3, R1, R2, R3]`, defaults to all `True`
         
     Returns:
-        成功返回 True
+        `True` if successful.
         
     Note:
-        Local 约束使用节点局部坐标系
+        Local constraints use the joint local coordinate system.
     """
     if dof is None:
         dof = [True] * 6
@@ -281,7 +282,7 @@ def set_local(
 
 
 # =============================================================================
-# Beam 梁约束
+# Beam constraints
 # =============================================================================
 
 def get_beam(
@@ -289,15 +290,15 @@ def get_beam(
     name: str
 ) -> Optional[Tuple[ConstraintAxis, str]]:
     """
-    获取梁约束定义
+    Get a beam constraint definition.
     
     Args:
-        name: 约束名称
+        name: Constraint name
         
     Returns:
-        (axis, csys) 元组，失败返回 None
-        - axis: 平行于梁轴的方向
-        - csys: 坐标系名称
+        Tuple `(axis, csys)`, or `None` if the query fails.
+        - `axis`: direction parallel to the beam axis
+        - `csys`: coordinate system name
     """
     result = model.ConstraintDef.GetBeam(name, 0, "")
     ret = com_ret(result)
@@ -313,22 +314,22 @@ def set_beam(
     csys: str = "Global"
 ) -> bool:
     """
-    设置梁约束
+    Set a beam constraint.
     
     Args:
-        name: 约束名称
-        axis: 平行于梁轴的方向 (默认自动)
-        csys: 坐标系名称
+        name: Constraint name
+        axis: Direction parallel to the beam axis, default is automatic
+        csys: Coordinate system name
         
     Returns:
-        成功返回 True
+        `True` if successful.
     """
     result = model.ConstraintDef.SetBeam(name, int(axis), csys)
     return com_ret(result) == 0
 
 
 # =============================================================================
-# Plate 板约束
+# Plate constraints
 # =============================================================================
 
 def get_plate(
@@ -336,15 +337,15 @@ def get_plate(
     name: str
 ) -> Optional[Tuple[ConstraintAxis, str]]:
     """
-    获取板约束定义
+    Get a plate constraint definition.
     
     Args:
-        name: 约束名称
+        name: Constraint name
         
     Returns:
-        (axis, csys) 元组，失败返回 None
-        - axis: 垂直于板平面的轴
-        - csys: 坐标系名称
+        Tuple `(axis, csys)`, or `None` if the query fails.
+        - `axis`: axis normal to the plate plane
+        - `csys`: coordinate system name
     """
     result = model.ConstraintDef.GetPlate(name, 0, "")
     ret = com_ret(result)
@@ -360,22 +361,22 @@ def set_plate(
     csys: str = "Global"
 ) -> bool:
     """
-    设置板约束
+    Set a plate constraint.
     
     Args:
-        name: 约束名称
-        axis: 垂直于板平面的轴 (默认自动)
-        csys: 坐标系名称
+        name: Constraint name
+        axis: Axis normal to the plate plane, default is automatic
+        csys: Coordinate system name
         
     Returns:
-        成功返回 True
+        `True` if successful.
     """
     result = model.ConstraintDef.SetPlate(name, int(axis), csys)
     return com_ret(result) == 0
 
 
 # =============================================================================
-# Rod 杆约束
+# Rod constraints
 # =============================================================================
 
 def get_rod(
@@ -383,15 +384,15 @@ def get_rod(
     name: str
 ) -> Optional[Tuple[ConstraintAxis, str]]:
     """
-    获取杆约束定义
+    Get a rod constraint definition.
     
     Args:
-        name: 约束名称
+        name: Constraint name
         
     Returns:
-        (axis, csys) 元组，失败返回 None
-        - axis: 平行于杆轴的方向
-        - csys: 坐标系名称
+        Tuple `(axis, csys)`, or `None` if the query fails.
+        - `axis`: direction parallel to the rod axis
+        - `csys`: coordinate system name
     """
     result = model.ConstraintDef.GetRod(name, 0, "")
     ret = com_ret(result)
@@ -407,22 +408,22 @@ def set_rod(
     csys: str = "Global"
 ) -> bool:
     """
-    设置杆约束
+    Set a rod constraint.
     
     Args:
-        name: 约束名称
-        axis: 平行于杆轴的方向 (默认自动)
-        csys: 坐标系名称
+        name: Constraint name
+        axis: Direction parallel to the rod axis, default is automatic
+        csys: Coordinate system name
         
     Returns:
-        成功返回 True
+        `True` if successful.
     """
     result = model.ConstraintDef.SetRod(name, int(axis), csys)
     return com_ret(result) == 0
 
 
 # =============================================================================
-# Weld 焊接约束
+# Weld constraints
 # =============================================================================
 
 def get_weld(
@@ -430,16 +431,16 @@ def get_weld(
     name: str
 ) -> Optional[Tuple[List[bool], float, str]]:
     """
-    获取焊接约束定义
+    Get a weld constraint definition.
     
     Args:
-        name: 约束名称
+        name: Constraint name
         
     Returns:
-        (dof_values, tolerance, csys) 元组，失败返回 None
-        - dof_values: [UX, UY, UZ, RX, RY, RZ] 布尔列表
-        - tolerance: 焊接容差
-        - csys: 坐标系名称
+        Tuple `(dof_values, tolerance, csys)`, or `None` if the query fails.
+        - `dof_values`: boolean list `[UX, UY, UZ, RX, RY, RZ]`
+        - `tolerance`: weld tolerance
+        - `csys`: coordinate system name
     """
     result = model.ConstraintDef.GetWeld(name, [], 0.0, "")
     ret = com_ret(result)
@@ -457,16 +458,16 @@ def set_weld(
     csys: str = "Global"
 ) -> bool:
     """
-    设置焊接约束
+    Set a weld constraint.
     
     Args:
-        name: 约束名称
-        dof: [UX, UY, UZ, RX, RY, RZ] 布尔列表，默认全 True
-        tolerance: 焊接容差
-        csys: 坐标系名称
+        name: Constraint name
+        dof: Boolean list `[UX, UY, UZ, RX, RY, RZ]`, defaults to all `True`
+        tolerance: Weld tolerance
+        csys: Coordinate system name
         
     Returns:
-        成功返回 True
+        `True` if successful.
     """
     if dof is None:
         dof = [True] * 6
@@ -475,7 +476,7 @@ def set_weld(
 
 
 # =============================================================================
-# Line 线约束
+# Line constraints
 # =============================================================================
 
 def get_line(
@@ -483,15 +484,15 @@ def get_line(
     name: str
 ) -> Optional[Tuple[List[bool], str]]:
     """
-    获取线约束定义
+    Get a line constraint definition.
     
     Args:
-        name: 约束名称
+        name: Constraint name
         
     Returns:
-        (dof_values, csys) 元组，失败返回 None
-        - dof_values: [UX, UY, UZ, RX, RY, RZ] 布尔列表
-        - csys: 坐标系名称
+        Tuple `(dof_values, csys)`, or `None` if the query fails.
+        - `dof_values`: boolean list `[UX, UY, UZ, RX, RY, RZ]`
+        - `csys`: coordinate system name
     """
     result = model.ConstraintDef.GetLine(name, [], "")
     ret = com_ret(result)
@@ -508,15 +509,15 @@ def set_line(
     csys: str = "Global"
 ) -> bool:
     """
-    设置线约束
+    Set a line constraint.
     
     Args:
-        name: 约束名称
-        dof: [UX, UY, UZ, RX, RY, RZ] 布尔列表，默认全 True
-        csys: 坐标系名称
+        name: Constraint name
+        dof: Boolean list `[UX, UY, UZ, RX, RY, RZ]`, defaults to all `True`
+        csys: Coordinate system name
         
     Returns:
-        成功返回 True
+        `True` if successful.
     """
     if dof is None:
         dof = [True] * 6
@@ -525,15 +526,15 @@ def set_line(
 
 
 # =============================================================================
-# 特殊函数
+# Special helpers
 # =============================================================================
 
 def get_special_rigid_diaphragm_list(model) -> List[str]:
     """
-    获取特殊刚性隔板列表
+    Get the list of special rigid diaphragms.
     
     Returns:
-        刚性隔板约束名称列表
+        List of rigid diaphragm constraint names.
     """
     result = model.ConstraintDef.GetSpecialRigidDiaphragmList(0, [])
     ret = com_ret(result)

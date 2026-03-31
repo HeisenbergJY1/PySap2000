@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-cable_load.py - 索单元荷载
+cable_load.py - Cable-object loads
 
-包含:
-- 枚举: CableLoadDirection, CableLoadItemType
-- 数据类: CableLoadDistributedData, CableLoadTemperatureData, CableLoadStrainData,
+Includes:
+- Enums: CableLoadDirection, CableLoadItemType
+- Dataclasses: CableLoadDistributedData, CableLoadTemperatureData, CableLoadStrainData,
           CableLoadDeformationData, CableLoadGravityData, CableLoadTargetForceData
-- 函数: set_cable_load_xxx, get_cable_load_xxx, delete_cable_load_xxx
+- Functions: set_cable_load_xxx, get_cable_load_xxx, delete_cable_load_xxx
 
 SAP2000 API:
 - CableObj.SetLoadDistributed / GetLoadDistributed / DeleteLoadDistributed
@@ -24,46 +24,46 @@ from enum import IntEnum
 from PySap2000.com_helper import com_ret, com_data
 
 
-# ==================== 枚举 ====================
+# ==================== Enums ====================
 
 class CableLoadDirection(IntEnum):
-    """索单元荷载方向"""
-    LOCAL_1 = 1                 # 局部1轴 (仅 CSys=Local)
-    LOCAL_2 = 2                 # 局部2轴 (仅 CSys=Local)
-    LOCAL_3 = 3                 # 局部3轴 (仅 CSys=Local)
-    GLOBAL_X = 4                # 全局X方向
-    GLOBAL_Y = 5                # 全局Y方向
-    GLOBAL_Z = 6                # 全局Z方向
-    PROJECTED_GLOBAL_X = 7      # 投影全局X方向
-    PROJECTED_GLOBAL_Y = 8      # 投影全局Y方向
-    PROJECTED_GLOBAL_Z = 9      # 投影全局Z方向
-    GRAVITY = 10                # 重力方向 (负全局Z)
-    PROJECTED_GRAVITY = 11      # 投影重力方向
+    """Cable object load direction."""
+    LOCAL_1 = 1                 # Local-1 axis (only CSys=Local)
+    LOCAL_2 = 2                 # Local-2 axis (only CSys=Local)
+    LOCAL_3 = 3                 # Local-3 axis (only CSys=Local)
+    GLOBAL_X = 4                # Global-X direction
+    GLOBAL_Y = 5                # Global-Y direction
+    GLOBAL_Z = 6                # Global-Z direction
+    PROJECTED_GLOBAL_X = 7      # Projected global-X direction
+    PROJECTED_GLOBAL_Y = 8      # Projected global-Y direction
+    PROJECTED_GLOBAL_Z = 9      # Projected global-Z direction
+    GRAVITY = 10                # Gravity direction (negative global Z)
+    PROJECTED_GRAVITY = 11      # Projected gravity direction
 
 
 class CableLoadItemType(IntEnum):
-    """荷载应用对象类型"""
-    OBJECT = 0              # 单个对象
-    GROUP = 1               # 组
-    SELECTED_OBJECTS = 2    # 选中对象
+    """Load assignment target type."""
+    OBJECT = 0              # Single object
+    GROUP = 1               # Group
+    SELECTED_OBJECTS = 2    # Selected objects
 
 
-# ==================== 数据类 ====================
+# ==================== Dataclasses ====================
 
 @dataclass
 class CableLoadDistributedData:
-    """索单元分布荷载数据"""
+    """Cable distributed load data."""
     cable_name: str = ""
     load_pattern: str = ""
     load_type: int = 1      # 1=Force, 2=Moment
-    direction: int = 10     # 默认重力方向
+    direction: int = 10     # Default gravity direction
     value: float = 0.0
     csys: str = "Global"
 
 
 @dataclass
 class CableLoadTemperatureData:
-    """索单元温度荷载数据"""
+    """Cable temperature load data."""
     cable_name: str = ""
     load_pattern: str = ""
     load_type: int = 1      # 1=Temperature, 2=Temperature Gradient
@@ -73,7 +73,7 @@ class CableLoadTemperatureData:
 
 @dataclass
 class CableLoadStrainData:
-    """索单元应变荷载数据"""
+    """Cable strain load data."""
     cable_name: str = ""
     load_pattern: str = ""
     strain_type: int = 1    # 1=Axial
@@ -83,15 +83,15 @@ class CableLoadStrainData:
 
 @dataclass
 class CableLoadDeformationData:
-    """索单元变形荷载数据"""
+    """Cable deformation load data."""
     cable_name: str = ""
     load_pattern: str = ""
-    value: float = 0.0      # 轴向变形 [L]
+    value: float = 0.0      # axial deformation [L]
 
 
 @dataclass
 class CableLoadGravityData:
-    """索单元重力荷载数据"""
+    """Cable gravity-load data."""
     cable_name: str = ""
     load_pattern: str = ""
     x: float = 0.0
@@ -102,14 +102,14 @@ class CableLoadGravityData:
 
 @dataclass
 class CableLoadTargetForceData:
-    """索单元目标力荷载数据"""
+    """Cable target-force load data."""
     cable_name: str = ""
     load_pattern: str = ""
-    p: float = 0.0          # 目标轴力 [F]
-    rd: float = 0.5         # 相对距离 (0-1)
+    p: float = 0.0          # Target axial force [F]
+    rd: float = 0.5         # relative distance (0-1)
 
 
-# ==================== 分布荷载函数 ====================
+# ==================== Distributed load functions ====================
 
 def set_cable_load_distributed(
     model,
@@ -123,21 +123,21 @@ def set_cable_load_distributed(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
-    设置索单元分布荷载
+    Set cable object distributed loads.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        load_pattern: 荷载模式名称
-        value: 荷载值 [F/L]
-        load_type: 荷载类型 (1=Force, 2=Moment)
-        direction: 荷载方向
-        csys: 坐标系名称
-        replace: True=替换现有荷载, False=叠加
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        load_pattern: Load pattern name
+        value: Load value [F/L]
+        load_type: Load type (1=Force, 2=Moment)
+        direction: Load direction
+        csys: Coordinate system name
+        replace: `True` replaces existing loads, `False` adds to existing loads
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
         set_cable_load_distributed(model, "1", "DEAD", 10)
@@ -154,15 +154,15 @@ def get_cable_load_distributed(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> List[CableLoadDistributedData]:
     """
-    获取索单元分布荷载
+    Get cable object distributed loads.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        item_type: Operation scope
     
     Returns:
-        CableLoadDistributedData 对象列表
+        List of CableLoadDistributedData
     """
     loads = []
     try:
@@ -198,21 +198,21 @@ def delete_cable_load_distributed(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
-    删除索单元分布荷载
+    Delete cable object distributed loads.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        load_pattern: 荷载模式名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        load_pattern: Load pattern name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.CableObj.DeleteLoadDistributed(str(cable_name), load_pattern, int(item_type))
 
 
-# ==================== 温度荷载函数 ====================
+# ==================== temperature load functions ====================
 
 def set_cable_load_temperature(
     model,
@@ -224,22 +224,22 @@ def set_cable_load_temperature(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
-    设置索单元温度荷载
-    
+    Set cable object temperature load.
+
     SAP2000 API: CableObj.SetLoadTemperature(Name, LoadPat, Val, PatternName, Replace, ItemType)
-    注意: Cable 温度荷载没有 load_type 参数（与 Frame 不同）
-    
+    Note: Cable temperature load has no `load_type` parameter (unlike frame loads).
+
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        load_pattern: 荷载模式名称
-        value: 温度变化值 [T]
-        pattern_name: 联合模式名称（空白则均匀分布）
-        replace: True=替换现有荷载, False=叠加
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        load_pattern: Load pattern name
+        value: Temperature change value [T]
+        pattern_name: Pattern name (blank means uniform distribution)
+        replace: `True` replaces existing loads, `False` adds to existing loads
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.CableObj.SetLoadTemperature(
         str(cable_name), load_pattern, value, pattern_name, replace, int(item_type)
@@ -252,15 +252,15 @@ def get_cable_load_temperature(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> List[CableLoadTemperatureData]:
     """
-    获取索单元温度荷载
+    Get cable object temperature load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        item_type: Operation scope
     
     Returns:
-        CableLoadTemperatureData 对象列表
+        List of CableLoadTemperatureData
     """
     loads = []
     try:
@@ -294,21 +294,21 @@ def delete_cable_load_temperature(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
-    删除索单元温度荷载
+    Delete cable object temperature load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        load_pattern: 荷载模式名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        load_pattern: Load pattern name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.CableObj.DeleteLoadTemperature(str(cable_name), load_pattern, int(item_type))
 
 
-# ==================== 应变荷载函数 ====================
+# ==================== strain load functions ====================
 
 def set_cable_load_strain(
     model,
@@ -321,20 +321,20 @@ def set_cable_load_strain(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
-    设置索单元应变荷载
+    Set cable object strain load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        load_pattern: 荷载模式名称
-        value: 应变值
-        strain_type: 应变类型 (1=Axial)
-        pattern_name: 模式名称
-        replace: True=替换现有荷载, False=叠加
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        load_pattern: Load pattern name
+        value: Strain value
+        strain_type: Strain type (1=Axial)
+        pattern_name: Pattern name
+        replace: `True` replaces existing loads, `False` adds to existing loads
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.CableObj.SetLoadStrain(
         str(cable_name), load_pattern, strain_type, value, pattern_name, replace, int(item_type)
@@ -347,15 +347,15 @@ def get_cable_load_strain(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> List[CableLoadStrainData]:
     """
-    获取索单元应变荷载
+    Get cable object strain load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        item_type: Operation scope
     
     Returns:
-        CableLoadStrainData 对象列表
+        List of CableLoadStrainData
     """
     loads = []
     try:
@@ -389,22 +389,22 @@ def delete_cable_load_strain(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
-    删除索单元应变荷载
+    Delete cable object strain load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        load_pattern: 荷载模式名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        load_pattern: Load pattern name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.CableObj.DeleteLoadStrain(str(cable_name), load_pattern, int(item_type))
 
 
 
-# ==================== 变形荷载函数 ====================
+# ==================== deformation load functions ====================
 
 def set_cable_load_deformation(
     model,
@@ -415,18 +415,18 @@ def set_cable_load_deformation(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
-    设置索单元变形荷载
+    Set cable object deformation load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        load_pattern: 荷载模式名称
-        value: 轴向变形值 [L]
-        replace: True=替换现有荷载, False=叠加
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        load_pattern: Load pattern name
+        value: Axial deformation value [L]
+        replace: `True` replaces existing loads, `False` adds to existing loads
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.CableObj.SetLoadDeformation(
         str(cable_name), load_pattern, value, replace, int(item_type)
@@ -439,15 +439,15 @@ def get_cable_load_deformation(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> List[CableLoadDeformationData]:
     """
-    获取索单元变形荷载
+    Get cable object deformation load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        item_type: Operation scope
     
     Returns:
-        CableLoadDeformationData 对象列表
+        List of CableLoadDeformationData
     """
     loads = []
     try:
@@ -477,21 +477,21 @@ def delete_cable_load_deformation(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
-    删除索单元变形荷载
+    Delete cable object deformation load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        load_pattern: 荷载模式名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        load_pattern: Load pattern name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.CableObj.DeleteLoadDeformation(str(cable_name), load_pattern, int(item_type))
 
 
-# ==================== 重力荷载函数 ====================
+# ==================== gravity load functions ====================
 
 def set_cable_load_gravity(
     model,
@@ -505,21 +505,21 @@ def set_cable_load_gravity(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
-    设置索单元重力荷载
+    Set cable object gravity load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        load_pattern: 荷载模式名称
-        x: X方向重力系数
-        y: Y方向重力系数
-        z: Z方向重力系数 (默认-1)
-        replace: True=替换现有荷载, False=叠加
-        csys: 坐标系名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        load_pattern: Load pattern name
+        x: X-direction gravity factor
+        y: Y-direction gravity factor
+        z: Z-direction gravity factor (default -1)
+        replace: `True` replaces existing loads, `False` adds to existing loads
+        csys: Coordinate system name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.CableObj.SetLoadGravity(
         str(cable_name), load_pattern, x, y, z, replace, csys, int(item_type)
@@ -532,15 +532,15 @@ def get_cable_load_gravity(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> List[CableLoadGravityData]:
     """
-    获取索单元重力荷载
+    Get cable object gravity load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        item_type: Operation scope
     
     Returns:
-        CableLoadGravityData 对象列表
+        List of CableLoadGravityData
     """
     loads = []
     try:
@@ -576,21 +576,21 @@ def delete_cable_load_gravity(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
-    删除索单元重力荷载
+    Delete cable object gravity load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        load_pattern: 荷载模式名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        load_pattern: Load pattern name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.CableObj.DeleteLoadGravity(str(cable_name), load_pattern, int(item_type))
 
 
-# ==================== 目标力荷载函数 ====================
+# ==================== target-force load functions ====================
 
 def set_cable_load_target_force(
     model,
@@ -601,21 +601,21 @@ def set_cable_load_target_force(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
-    设置索单元目标力荷载
+    Set cable object target-force load.
     
     SAP2000 API: CableObj.SetLoadTargetForce(Name, LoadPat, P, RD, ItemType)
-    注意: Cable 目标力没有 replace 参数
+    Note: Cable target force has no `replace` parameter.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        load_pattern: 荷载模式名称
-        p: 目标轴力 [F]
-        rd: 相对距离 (0-1)
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        load_pattern: Load pattern name
+        p: Target axial force [F]
+        rd: relative distance (0-1)
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.CableObj.SetLoadTargetForce(
         str(cable_name), load_pattern, p, rd, int(item_type)
@@ -628,15 +628,15 @@ def get_cable_load_target_force(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> List[CableLoadTargetForceData]:
     """
-    获取索单元目标力荷载
+    Get cable object target-force load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        item_type: Operation scope
     
     Returns:
-        CableLoadTargetForceData 对象列表
+        List of CableLoadTargetForceData
     """
     loads = []
     try:
@@ -668,15 +668,15 @@ def delete_cable_load_target_force(
     item_type: CableLoadItemType = CableLoadItemType.OBJECT
 ) -> int:
     """
-    删除索单元目标力荷载
+    Delete cable object target-force load.
     
     Args:
-        model: SapModel 对象
-        cable_name: 索单元名称
-        load_pattern: 荷载模式名称
-        item_type: 操作范围
+        model: SapModel object
+        cable_name: Cable object name
+        load_pattern: Load pattern name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.CableObj.DeleteLoadTargetForce(str(cable_name), load_pattern, int(item_type))

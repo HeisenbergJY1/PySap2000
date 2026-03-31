@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-local_axes.py - 杆件局部坐标轴相关函数
+local_axes.py - Frame local-axis helpers.
 
-用于设置杆件的局部坐标轴方向
+Helpers for assigning and querying frame local-axis orientation.
 
 SAP2000 API:
 - FrameObj.SetLocalAxes(Name, Ang, ItemType)
@@ -23,25 +23,25 @@ def set_frame_local_axes(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置杆件局部轴角度
-    
-    局部2和3轴绕正局部1轴旋转的角度。
-    正角度从局部+1轴方向看为逆时针。
+    Set the local-axis rotation angle of a frame.
+
+    The local 2 and 3 axes rotate about the positive local 1 axis.
+    Positive angles are counterclockwise when looking in the +1 direction.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        angle: 旋转角度 [deg]
-        item_type: 操作范围
+        model: `SapModel` object
+        frame_name: Frame name
+        angle: Rotation angle in degrees
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
-        # 旋转局部轴 30 度
+        # Rotate local axes by 30 degrees
         set_frame_local_axes(model, "1", 30)
         
-        # 旋转局部轴 90 度 (常用于斜撑)
+        # Rotate local axes by 90 degrees
         set_frame_local_axes(model, "B1", 90)
     """
     return model.FrameObj.SetLocalAxes(str(frame_name), angle, int(item_type))
@@ -52,19 +52,19 @@ def get_frame_local_axes(
     frame_name: str
 ) -> Optional[FrameLocalAxesData]:
     """
-    获取杆件局部轴角度
+    Return the frame local-axis rotation angle.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: `SapModel` object
+        frame_name: Frame name
     
     Returns:
-        FrameLocalAxesData 对象，失败返回 None
+        `FrameLocalAxesData`, or `None` on failure
     
     Example:
         axes = get_frame_local_axes(model, "1")
         if axes:
-            print(f"局部轴角度: {axes.angle}°")
+            print(f"Local axis angle: {axes.angle}°")
     """
     try:
         result = model.FrameObj.GetLocalAxes(str(frame_name))
@@ -93,25 +93,25 @@ def set_frame_local_axes_advanced(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置杆件高级局部轴
+    Assign advanced local-axis settings to a frame.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        active: 是否激活高级局部轴
-        plane2: 12=1-2平面, 13=1-3平面
-        pl_vect_opt: 平面参考向量选项 (1=坐标方向, 2=两节点, 3=用户向量)
-        pl_csys: 坐标系名称
-        pl_dir: 方向数组 [primary, secondary]
-        pl_pt: 参考点数组 [pt1, pt2]
-        pl_vect: 用户向量 [x, y, z]
-        item_type: 操作范围
+        model: `SapModel` object
+        frame_name: Frame name
+        active: Whether advanced local axes are active
+        plane2: `12` for the 1-2 plane, `13` for the 1-3 plane
+        pl_vect_opt: Plane reference option (`1` coord dir, `2` two points, `3` user vector)
+        pl_csys: Coordinate system name
+        pl_dir: Direction array `[primary, secondary]`
+        pl_pt: Reference point array `[pt1, pt2]`
+        pl_vect: User vector `[x, y, z]`
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
-        # 使用坐标方向定义1-2平面
+        # Define the 1-2 plane by coordinate directions
         set_frame_local_axes_advanced(model, "3", True, 12, 1, "Global", [2, 3])
     """
     if pl_dir is None:
@@ -132,19 +132,19 @@ def get_frame_local_axes_advanced(
     frame_name: str
 ) -> Optional[FrameLocalAxesAdvancedData]:
     """
-    获取杆件高级局部轴设置
+    Return advanced local-axis settings for a frame.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: `SapModel` object
+        frame_name: Frame name
     
     Returns:
-        FrameLocalAxesAdvancedData 对象，失败返回 None
+        `FrameLocalAxesAdvancedData`, or `None` on failure
     
     Example:
         data = get_frame_local_axes_advanced(model, "3")
         if data and data.active:
-            print(f"平面: {data.plane2}, 选项: {data.pl_vect_opt}")
+            print(f"Plane: {data.plane2}, Option: {data.pl_vect_opt}")
     """
     try:
         result = model.FrameObj.GetLocalAxesAdvanced(
@@ -179,25 +179,26 @@ def get_frame_transformation_matrix(
     is_global: bool = True
 ) -> Optional[List[float]]:
     """
-    获取杆件变换矩阵
-    
-    返回 3x3 变换矩阵（9个值），用于局部坐标和全局坐标转换。
+    Return the frame transformation matrix.
+
+    The matrix is a 3x3 matrix (9 values) used to transform between local and
+    global coordinates.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        is_global: True=全局坐标系, False=当前坐标系
+        model: `SapModel` object
+        frame_name: Frame name
+        is_global: `True` for global coordinates, `False` for the current system
     
     Returns:
-        9个浮点数的列表 (3x3矩阵按行排列)，失败返回 None
+        List of 9 floats (row-major 3x3 matrix), or `None` on failure
     
     Example:
         matrix = get_frame_transformation_matrix(model, "1")
         if matrix:
-            # matrix[0:3] = 局部1轴在全局坐标系中的方向
-            # matrix[3:6] = 局部2轴在全局坐标系中的方向
-            # matrix[6:9] = 局部3轴在全局坐标系中的方向
-            print(f"局部1轴方向: {matrix[0:3]}")
+            # matrix[0:3] = direction of local axis 1 in global coordinates
+            # matrix[3:6] = direction of local axis 2 in global coordinates
+            # matrix[6:9] = direction of local axis 3 in global coordinates
+            print(f"Local axis 1 direction: {matrix[0:3]}")
     """
     try:
         result = model.FrameObj.GetTransformationMatrix(

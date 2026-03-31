@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-design/concrete.py - 混凝土框架设计函数
+design/concrete.py - Concrete frame design helpers
 
-SAP2000 DesignConcrete API 的 Python 封装。
-API 路径: SapModel.DesignConcrete
+Python wrapper for the SAP2000 `DesignConcrete` API.
+API path: `SapModel.DesignConcrete`
 """
 
 from typing import List, Union
@@ -20,31 +20,31 @@ from PySap2000.com_helper import com_ret, com_data
 
 
 # ============================================================================
-# 规范设置
+# Code selection
 # ============================================================================
 
 def get_concrete_code(model) -> str:
-    """获取当前混凝土框架设计规范
+    """Get the active concrete frame design code
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        规范名称字符串
+        Code name string
     """
     result = model.DesignConcrete.GetCode("")
     return com_data(result, 0, "")
 
 
 def set_concrete_code(model, code: Union[ConcreteDesignCode, str]) -> int:
-    """设置混凝土框架设计规范
+    """Set the concrete frame design code
 
     Args:
-        model: SapModel 对象
-        code: 规范枚举或规范名称字符串
+        model: SAP2000 SapModel object
+        code: Code enum or code name string
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     if isinstance(code, ConcreteDesignCode):
         code_name = CONCRETE_CODE_NAMES.get(code, "ACI 318-14")
@@ -55,62 +55,62 @@ def set_concrete_code(model, code: Union[ConcreteDesignCode, str]) -> int:
 
 
 # ============================================================================
-# 设计执行
+# Run design
 # ============================================================================
 
 def start_concrete_design(model) -> int:
-    """开始混凝土框架设计
+    """Run concrete frame design
 
-    注意：需要先运行分析，且模型中存在混凝土框架对象。
+    Requires analysis to be run and concrete frame objects in the model.
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignConcrete.StartDesign()
     return com_ret(ret)
 
 
 def delete_concrete_results(model) -> int:
-    """删除所有混凝土框架设计结果
+    """Delete all concrete frame design results
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignConcrete.DeleteResults()
     return com_ret(ret)
 
 
 def get_concrete_results_available(model) -> bool:
-    """检查混凝土框架设计结果是否可用
+    """Whether concrete frame design results are available
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        True 表示结果可用
+        `True` if results are available
     """
     result = model.DesignConcrete.GetResultsAvailable()
     return bool(com_data(result, 0, result))
 
 
 # ============================================================================
-# 设计组合
+# Load combinations
 # ============================================================================
 
 def get_concrete_combo_strength(model) -> List[str]:
-    """获取用于强度设计的荷载组合
+    """Load combinations used for strength design
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        组合名称列表
+        List of load combination names
     """
     result = model.DesignConcrete.GetComboStrength(0, [])
     names = com_data(result, 1)
@@ -120,59 +120,59 @@ def get_concrete_combo_strength(model) -> List[str]:
 
 
 def set_concrete_combo_strength(model, name: str, selected: bool = True) -> int:
-    """设置荷载组合是否用于强度设计
+    """Select a load combination for strength design
 
     Args:
-        model: SapModel 对象
-        name: 荷载组合名称
-        selected: True 选中，False 取消选中
+        model: SAP2000 SapModel object
+        name: Load combination name
+        selected: `True` to select, `False` to deselect
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignConcrete.SetComboStrength(name, selected)
     return com_ret(ret)
 
 
 def get_concrete_combo_auto_generate(model) -> bool:
-    """获取是否自动生成设计组合
+    """Whether design combinations are auto-generated
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        True 表示自动生成
+        `True` if auto-generated
     """
     result = model.DesignConcrete.GetComboAutoGenerate(False)
     return bool(com_data(result, 0, False))
 
 
 def set_concrete_combo_auto_generate(model, auto_generate: bool = True) -> int:
-    """设置是否自动生成设计组合
+    """Enable or disable auto-generation of design combinations
 
     Args:
-        model: SapModel 对象
-        auto_generate: True 自动生成
+        model: SAP2000 SapModel object
+        auto_generate: `True` to auto-generate
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignConcrete.SetComboAutoGenerate(auto_generate)
     return com_ret(ret)
 
 
 # ============================================================================
-# 设计组
+# DesignGroup
 # ============================================================================
 
 def get_concrete_design_group(model) -> List[str]:
-    """获取选中用于混凝土设计的组
+    """Groups selected for concrete design
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        组名称列表
+        List of group names
     """
     result = model.DesignConcrete.GetGroup(0, [])
     names = com_data(result, 1)
@@ -182,33 +182,33 @@ def get_concrete_design_group(model) -> List[str]:
 
 
 def set_concrete_design_group(model, name: str, selected: bool = True) -> int:
-    """设置组是否用于混凝土设计
+    """Select or deselect a group for concrete design
 
     Args:
-        model: SapModel 对象
-        name: 组名称
-        selected: True 选中，False 取消选中
+        model: SAP2000 SapModel object
+        name: Group name
+        selected: `True` to select, `False` to deselect
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignConcrete.SetGroup(name, selected)
     return com_ret(ret)
 
 
 # ============================================================================
-# 设计截面
+# Design section
 # ============================================================================
 
 def get_concrete_design_section(model, name: str) -> str:
-    """获取框架对象的设计截面
+    """Get the design section assigned to a frame
 
     Args:
-        model: SapModel 对象
-        name: 框架对象名称
+        model: SAP2000 SapModel object
+        name: Frame object name
 
     Returns:
-        设计截面名称
+        Design section name
     """
     result = model.DesignConcrete.GetDesignSection(name, "")
     return com_data(result, 0, "")
@@ -221,51 +221,51 @@ def set_concrete_design_section(
     last_analysis: bool = False,
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
-    """设置框架对象的设计截面
+    """Set the design section for frame objects
 
     Args:
-        model: SapModel 对象
-        name: 对象名称
-        prop_name: 截面名称
-        last_analysis: True 使用最后分析截面
-        item_type: 对象选择类型
+        model: SAP2000 SapModel object
+        name: Object name
+        prop_name: Section property name
+        last_analysis: Use last analysis section if `True`
+        item_type: Object selection mode
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignConcrete.SetDesignSection(name, prop_name, last_analysis, int(item_type))
     return com_ret(ret)
 
 
 # ============================================================================
-# 覆盖重置
+# Overwrites
 # ============================================================================
 
 def reset_concrete_overwrites(model) -> int:
-    """重置所有混凝土设计覆盖为默认值
+    """Reset all concrete design overwrites to defaults
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignConcrete.ResetOverwrites()
     return com_ret(ret)
 
 
 # ============================================================================
-# 验证
+# Verification
 # ============================================================================
 
 def verify_concrete_passed(model) -> VerifyPassedResult:
-    """验证混凝土设计是否通过
+    """Verify concrete design acceptance
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        验证结果
+        Verification result
     """
     result = model.DesignConcrete.VerifyPassed(0, 0, 0, [])
     total_count = com_data(result, 0, 0)
@@ -283,13 +283,13 @@ def verify_concrete_passed(model) -> VerifyPassedResult:
 
 
 def verify_concrete_sections(model) -> List[str]:
-    """验证分析截面与设计截面是否一致
+    """Verify analysis vs. design section assignments
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        截面不一致的框架对象名称列表
+        Frame names with mismatched sections
     """
     result = model.DesignConcrete.VerifySections(0, [])
     names = com_data(result, 1)
@@ -299,7 +299,7 @@ def verify_concrete_sections(model) -> List[str]:
 
 
 # ============================================================================
-# 汇总结果
+# Summary results
 # ============================================================================
 
 def get_concrete_summary_results_beam(
@@ -307,15 +307,15 @@ def get_concrete_summary_results_beam(
     name: str,
     item_type: ItemType = ItemType.OBJECT
 ) -> List[ConcreteBeamResult]:
-    """获取混凝土梁设计汇总结果
+    """Get concrete beam summary results
 
     Args:
-        model: SapModel 对象
-        name: 对象名称、组名称或忽略（取决于 item_type）
-        item_type: 对象选择类型
+        model: SAP2000 SapModel object
+        name: Object name, group name, or ignored depending on `item_type`
+        item_type: Object selection mode
 
     Returns:
-        梁设计结果列表
+        List of beam design results
     """
     result = model.DesignConcrete.GetSummaryResultsBeam(
         name, 0, [], [], [], [], [], [], [], [], [], [], [], [], [], int(item_type)
@@ -367,15 +367,15 @@ def get_concrete_summary_results_column(
     name: str,
     item_type: ItemType = ItemType.OBJECT
 ) -> List[ConcreteColumnResult]:
-    """获取混凝土柱设计汇总结果
+    """Get concrete column summary results
 
     Args:
-        model: SapModel 对象
-        name: 对象名称、组名称或忽略（取决于 item_type）
-        item_type: 对象选择类型
+        model: SAP2000 SapModel object
+        name: Object name, group name, or ignored depending on `item_type`
+        item_type: Object selection mode
 
     Returns:
-        柱设计结果列表
+        List of column design results
     """
     result = model.DesignConcrete.GetSummaryResultsColumn(
         name, 0, [], [], [], [], [], [], [], [], [], [], [], [], int(item_type)
@@ -429,17 +429,17 @@ def get_concrete_summary_results_joint(
     name: str,
     item_type: ItemType = ItemType.OBJECT
 ) -> List[ConcreteJointResult]:
-    """获取混凝土节点设计汇总结果
+    """Get concrete joint summary results
 
-    注意：节点设计仅部分规范支持。
+    Joint design is supported only for some codes.
 
     Args:
-        model: SapModel 对象
-        name: 对象名称、组名称或忽略（取决于 item_type）
-        item_type: 对象选择类型
+        model: SAP2000 SapModel object
+        name: Object name, group name, or ignored depending on `item_type`
+        item_type: Object selection mode
 
     Returns:
-        节点设计结果列表
+        List of joint design results
     """
     result = model.DesignConcrete.GetSummaryResultsJoint(
         name, 0, [], [], [], [], [], [], [], [], [], [], [], int(item_type)

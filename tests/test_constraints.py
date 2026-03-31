@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""约束相关测试"""
+"""Tests for constraints."""
 
 import pytest
 from PySap2000.constraints import (
@@ -21,7 +21,7 @@ pytestmark = pytest.mark.constraints
 
 
 class TestConstraintCreate:
-    """约束创建测试"""
+    """Create constraints."""
 
     def test_create_diaphragm(self, model):
         ret = set_diaphragm(model, "TestDiaph", ConstraintAxis.Z)
@@ -34,13 +34,13 @@ class TestConstraintCreate:
     def test_create_equal(self, model):
         ret = set_equal(model, "TestEqual")
         assert ret is True
-        # 验证约束确实存在
+        # Constraint should exist
         names = get_constraint_name_list(model)
         assert "TestEqual" in names
 
 
 class TestConstraintQuery:
-    """约束查询测试"""
+    """Query constraints."""
 
     def test_get_count(self, model):
         count = get_constraint_count(model)
@@ -68,27 +68,27 @@ class TestConstraintQuery:
         assert info is not None
 
     def test_get_equal(self, model):
-        # 先确认约束存在
+        # Ensure constraint exists
         names = get_constraint_name_list(model)
         assert "TestEqual" in names
         ct = get_constraint_type(model, "TestEqual")
         assert ct == ConstraintType.EQUAL
-        # 获取详情
+        # Fetch details
         info = get_equal(model, "TestEqual")
         assert info is not None
 
 
 class TestConstraintUpdate:
-    """约束更新测试"""
+    """Update constraints."""
 
     def test_rename_constraint(self, model):
         ret = change_constraint_name(model, "TestEqual", "TestEqual2")
         assert ret is True
-        # 改回来
+        # Rename back
         change_constraint_name(model, "TestEqual2", "TestEqual")
 
     def test_delete_constraint(self, model):
-        # 创建一个临时约束再删除
+        # Create a temporary constraint then delete it
         set_diaphragm(model, "TempDiaph")
         ret = delete_constraint(model, "TempDiaph")
         assert ret is True

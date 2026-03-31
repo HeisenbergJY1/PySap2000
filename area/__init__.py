@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-area - Area 对象类型定义和独立函数模块
+area - Area object types and standalone helper functions.
 
-对应 SAP2000 的 AreaObj 相关设置 (不包含荷载)
+Provides wrappers around SAP2000 `AreaObj` settings, excluding load assignment.
 
-荷载相关内容请使用 loads/area_load.py
+For load-related APIs, use `loads/area_load.py`.
 
-用法:
+Usage:
     from area import AREA_API_CATEGORIES
-    print(AREA_API_CATEGORIES["弹簧"]["functions"])
+    print(AREA_API_CATEGORIES["spring"]["functions"])
 """
 
-# ==================== 枚举类型 ====================
+# ==================== Enums ====================
 from .enums import (
     ItemType,
     AreaType,
@@ -25,7 +25,7 @@ from .enums import (
     PlaneRefVectorOption,
 )
 
-# ==================== 数据类 ====================
+# ==================== Data Classes ====================
 from .data_classes import (
     AreaSpringData,
     AreaAutoMeshData,
@@ -37,7 +37,7 @@ from .data_classes import (
     AreaMassData,
 )
 
-# ==================== 弹簧函数 ====================
+# ==================== Spring Functions ====================
 from .spring import (
     set_area_spring,
     get_area_spring,
@@ -45,7 +45,7 @@ from .spring import (
     has_area_spring,
 )
 
-# ==================== 局部坐标轴函数 ====================
+# ==================== Local-Axis Functions ====================
 from .local_axes import (
     set_area_local_axes,
     get_area_local_axes,
@@ -54,7 +54,7 @@ from .local_axes import (
     get_area_transformation_matrix,
 )
 
-# ==================== 修改器函数 ====================
+# ==================== Modifier Functions ====================
 from .modifier import (
     set_area_modifiers,
     set_area_modifiers_tuple,
@@ -63,7 +63,7 @@ from .modifier import (
     delete_area_modifiers,
 )
 
-# ==================== 质量函数 ====================
+# ==================== Mass Functions ====================
 from .mass import (
     set_area_mass,
     get_area_mass,
@@ -72,28 +72,28 @@ from .mass import (
     has_area_mass,
 )
 
-# ==================== 厚度函数 ====================
+# ==================== Thickness Functions ====================
 from .thickness import (
     set_area_thickness,
     get_area_thickness,
     has_area_thickness,
 )
 
-# ==================== 偏移函数 ====================
+# ==================== Offset Functions ====================
 from .offset import (
     set_area_offset,
     get_area_offset,
     has_area_offset,
 )
 
-# ==================== 自动网格函数 ====================
+# ==================== Auto-Mesh Functions ====================
 from .auto_mesh import (
     set_area_auto_mesh,
     get_area_auto_mesh,
     is_area_meshed,
 )
 
-# ==================== 边缘约束函数 ====================
+# ==================== Edge-Constraint Functions ====================
 from .edge_constraint import (
     set_area_edge_constraint,
     get_area_edge_constraint,
@@ -102,7 +102,7 @@ from .edge_constraint import (
     has_area_edge_constraint,
 )
 
-# ==================== 选择函数 ====================
+# ==================== Selection Functions ====================
 from .selection import (
     set_area_selected,
     get_area_selected,
@@ -113,7 +113,7 @@ from .selection import (
     is_area_selected,
 )
 
-# ==================== 组分配函数 ====================
+# ==================== Group-Assignment Functions ====================
 from .group import (
     set_area_group,
     add_area_to_group,
@@ -124,7 +124,7 @@ from .group import (
     remove_areas_from_group,
 )
 
-# ==================== 属性分配函数 ====================
+# ==================== Property-Assignment Functions ====================
 from .property import (
     set_area_property,
     get_area_property,
@@ -136,11 +136,11 @@ from .property import (
 )
 
 
-# ==================== API 分类索引 (供 AI Agent 发现功能) ====================
+# ==================== API Category Index ====================
 
 AREA_API_CATEGORIES = {
-    "弹簧": {
-        "description": "设置面单元的弹簧支撑",
+    "spring": {
+        "description": "Assign spring supports to area objects",
         "functions": [
             "set_area_spring",
             "get_area_spring",
@@ -148,8 +148,8 @@ AREA_API_CATEGORIES = {
             "has_area_spring",
         ]
     },
-    "局部坐标轴": {
-        "description": "设置面单元的局部坐标轴方向",
+    "local_axes": {
+        "description": "Assign local-axis orientation to area objects",
         "functions": [
             "set_area_local_axes",
             "get_area_local_axes",
@@ -158,8 +158,8 @@ AREA_API_CATEGORIES = {
             "get_area_transformation_matrix",
         ]
     },
-    "截面修改器": {
-        "description": "设置面单元的截面属性修改器（刚度折减等）",
+    "modifiers": {
+        "description": "Assign area property modifiers such as stiffness reduction factors",
         "functions": [
             "set_area_modifiers",
             "set_area_modifiers_tuple",
@@ -168,8 +168,8 @@ AREA_API_CATEGORIES = {
             "delete_area_modifiers",
         ]
     },
-    "质量": {
-        "description": "设置面单元的附加质量",
+    "mass": {
+        "description": "Assign additional mass to area objects",
         "functions": [
             "set_area_mass",
             "get_area_mass",
@@ -178,32 +178,32 @@ AREA_API_CATEGORIES = {
             "has_area_mass",
         ]
     },
-    "厚度": {
-        "description": "设置面单元的厚度覆盖",
+    "thickness": {
+        "description": "Assign thickness overrides to area objects",
         "functions": [
             "set_area_thickness",
             "get_area_thickness",
             "has_area_thickness",
         ]
     },
-    "偏移": {
-        "description": "设置面单元的偏移",
+    "offset": {
+        "description": "Assign offsets to area objects",
         "functions": [
             "set_area_offset",
             "get_area_offset",
             "has_area_offset",
         ]
     },
-    "自动网格": {
-        "description": "设置面单元的自动网格划分",
+    "auto_mesh": {
+        "description": "Configure automatic meshing for area objects",
         "functions": [
             "set_area_auto_mesh",
             "get_area_auto_mesh",
             "is_area_meshed",
         ]
     },
-    "边缘约束": {
-        "description": "设置面单元的边缘约束",
+    "edge_constraint": {
+        "description": "Configure edge constraints for area objects",
         "functions": [
             "set_area_edge_constraint",
             "get_area_edge_constraint",
@@ -212,8 +212,8 @@ AREA_API_CATEGORIES = {
             "has_area_edge_constraint",
         ]
     },
-    "选择": {
-        "description": "设置面单元的选择状态",
+    "selection": {
+        "description": "Set the selection state of area objects",
         "functions": [
             "set_area_selected",
             "get_area_selected",
@@ -224,8 +224,8 @@ AREA_API_CATEGORIES = {
             "is_area_selected",
         ]
     },
-    "组分配": {
-        "description": "设置面单元的组分配",
+    "group_assignment": {
+        "description": "Assign area objects to groups",
         "functions": [
             "set_area_group",
             "add_area_to_group",
@@ -236,8 +236,8 @@ AREA_API_CATEGORIES = {
             "remove_areas_from_group",
         ]
     },
-    "属性分配": {
-        "description": "设置面单元的截面属性和材料",
+    "property_assignment": {
+        "description": "Assign section properties and materials to area objects",
         "functions": [
             "set_area_property",
             "get_area_property",
@@ -251,10 +251,10 @@ AREA_API_CATEGORIES = {
 }
 
 
-# ==================== 导出列表 ====================
+# ==================== Exports ====================
 
 __all__ = [
-    # 枚举类型
+    # Enums
     'ItemType',
     'AreaType',
     'AreaMeshType',
@@ -266,7 +266,7 @@ __all__ = [
     'AreaFace',
     'PlaneRefVectorOption',
     
-    # 数据类
+    # Data classes
     'AreaSpringData',
     'AreaAutoMeshData',
     'AreaLocalAxesData',
@@ -276,56 +276,56 @@ __all__ = [
     'AreaModifierData',
     'AreaMassData',
     
-    # 弹簧函数
+    # Spring functions
     'set_area_spring',
     'get_area_spring',
     'delete_area_spring',
     'has_area_spring',
     
-    # 局部坐标轴函数
+    # Local-axis functions
     'set_area_local_axes',
     'get_area_local_axes',
     'set_area_local_axes_advanced',
     'get_area_local_axes_advanced',
     'get_area_transformation_matrix',
     
-    # 修改器函数
+    # Modifier functions
     'set_area_modifiers',
     'set_area_modifiers_tuple',
     'get_area_modifiers',
     'get_area_modifiers_tuple',
     'delete_area_modifiers',
     
-    # 质量函数
+    # Mass functions
     'set_area_mass',
     'get_area_mass',
     'get_area_mass_data',
     'delete_area_mass',
     'has_area_mass',
     
-    # 厚度函数
+    # Thickness functions
     'set_area_thickness',
     'get_area_thickness',
     'has_area_thickness',
     
-    # 偏移函数
+    # Offset functions
     'set_area_offset',
     'get_area_offset',
     'has_area_offset',
     
-    # 自动网格函数
+    # Auto-mesh functions
     'set_area_auto_mesh',
     'get_area_auto_mesh',
     'is_area_meshed',
     
-    # 边缘约束函数
+    # Edge-constraint functions
     'set_area_edge_constraint',
     'get_area_edge_constraint',
     'enable_area_edge_constraint',
     'disable_area_edge_constraint',
     'has_area_edge_constraint',
     
-    # 选择函数
+    # Selection functions
     'set_area_selected',
     'get_area_selected',
     'select_area',
@@ -334,7 +334,7 @@ __all__ = [
     'deselect_areas',
     'is_area_selected',
     
-    # 组分配函数
+    # Group-assignment functions
     'set_area_group',
     'add_area_to_group',
     'remove_area_from_group',
@@ -343,7 +343,7 @@ __all__ = [
     'add_areas_to_group',
     'remove_areas_from_group',
     
-    # 属性分配函数
+    # Property-assignment functions
     'set_area_property',
     'get_area_property',
     'get_area_property_type',
@@ -352,6 +352,6 @@ __all__ = [
     'set_area_material_temperature',
     'get_area_material_temperature',
     
-    # API 分类索引
+    # API category index
     'AREA_API_CATEGORIES',
 ]

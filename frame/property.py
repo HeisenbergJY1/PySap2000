@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-property.py - 杆件属性分配函数
-对应 SAP2000 的 FrameObj.SetSection / GetSection
+property.py - Frame property-assignment helpers.
 
-本模块用于分配属性到杆件（怎么用），而非定义属性（是什么）。
-属性定义请使用 properties 模块。
+Wraps SAP2000 `FrameObj.SetSection` and `FrameObj.GetSection`.
+
+This module assigns existing properties to frame objects. Property definition
+itself belongs to the `section` package.
 
 Usage:
     from frame import set_frame_section, get_frame_section
-    
-    # 分配截面到杆件
+
+    # Assign a section to a frame
     set_frame_section(model, "1", "W14X22")
-    
-    # 获取杆件的截面
+
+    # Get the currently assigned section
     section_name = get_frame_section(model, "1")
 """
 
@@ -31,30 +32,32 @@ def set_frame_section(
     var_rel_start_loc: float = 0.0,
 ) -> int:
     """
-    设置杆件的截面属性
+    Assign a section property to a frame object.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        section_name: 截面名称 (必须已在 PropFrame 中定义)
-        item_type: 项目类型
-            - OBJECT (0): 单个对象
-            - GROUP (1): 组内所有对象
-            - SELECTED (2): 所有选中对象
-        var_total_length: 变截面假定总长度，0 表示与杆件等长（仅变截面有效）
-        var_rel_start_loc: 变截面起点到杆件 I 端的相对距离（仅 var_total_length > 0 时有效）
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        section_name: Section property name, which must already exist in `PropFrame`
+        item_type: Target scope
+            - `OBJECT (0)`: single object
+            - `GROUP (1)`: all objects in a group
+            - `SELECTED_OBJECTS (2)`: all selected objects
+        var_total_length: Assumed total length for nonprismatic variation.
+            Use `0` to match the frame length.
+        var_rel_start_loc: Relative distance from the I-end to the nonprismatic
+            start location. Only used when `var_total_length > 0`.
     
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     
     Example:
-        # 设置杆件 "1" 的截面为 "W14X22"
+        # Set frame "1" to use section "W14X22"
         set_frame_section(model, "1", "W14X22")
         
-        # 设置组 "Beams" 内所有杆件的截面
+        # Set the section for every frame in group "Beams"
         set_frame_section(model, "Beams", "W14X22", ItemType.GROUP)
         
-        # 分配变截面，指定总长度和起始位置
+        # Assign a nonprismatic section with total length and start location
         set_frame_section(model, "8", "NP1", var_total_length=360, var_rel_start_loc=0.1)
     """
     return model.FrameObj.SetSection(
@@ -68,18 +71,18 @@ def set_frame_section(
 
 def get_frame_section(model, frame_name: str) -> str:
     """
-    获取杆件的截面属性名称
+    Get the assigned section property name of a frame.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        截面名称
+        Section property name.
     
     Example:
         section = get_frame_section(model, "1")
-        print(f"杆件 1 的截面: {section}")
+        print(f"Section of frame 1: {section}")
     """
     result = model.FrameObj.GetSection(str(frame_name))
     return com_data(result, 0, "") or ""
@@ -87,21 +90,21 @@ def get_frame_section(model, frame_name: str) -> str:
 
 def get_frame_section_info(model, frame_name: str) -> Tuple[str, str]:
     """
-    获取杆件的截面信息（包括自动选择截面）
+    Get section assignment details for a frame, including auto-select data.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        (section_name, auto_select_list) 元组
-        - section_name: 当前截面名称
-        - auto_select_list: 自动选择列表名称（如果有）
+        Tuple `(section_name, auto_select_list)`.
+        - `section_name`: current assigned section
+        - `auto_select_list`: auto-select list name, if present
     
     Example:
         section, auto_list = get_frame_section_info(model, "1")
         if auto_list:
-            print(f"使用自动选择: {auto_list}")
+            print(f"Auto-select list in use: {auto_list}")
     """
     result = model.FrameObj.GetSection(str(frame_name))
     return (com_data(result, 0, "") or "", com_data(result, 1, "") or "")
@@ -114,24 +117,23 @@ def set_frame_material_overwrite(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置杆件的材料覆盖
-    
-    覆盖截面属性中定义的材料。
+    Override the material assigned through the frame section property.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        material_name: 材料名称，空字符串表示使用截面属性中的材料
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        material_name: Material name. Use an empty string to fall back to the
+            material defined by the section property.
+        item_type: Target scope
     
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     
     Example:
-        # 覆盖杆件 "1" 的材料为 "A992Fy50"
+        # Override the material of frame "1" with "A992Fy50"
         set_frame_material_overwrite(model, "1", "A992Fy50")
         
-        # 清除材料覆盖，使用截面属性中的材料
+        # Clear the override and use the section material
         set_frame_material_overwrite(model, "1", "")
     """
     return model.FrameObj.SetMaterialOverwrite(
@@ -143,25 +145,25 @@ def set_frame_material_overwrite(
 
 def get_frame_material_overwrite(model, frame_name: str) -> str:
     """
-    获取杆件的材料覆盖
+    Get the material override assigned to a frame.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        材料名称，空字符串表示未覆盖
+        Material name, or an empty string if no override is assigned.
     
     Example:
         mat = get_frame_material_overwrite(model, "1")
         if mat:
-            print(f"材料覆盖: {mat}")
+            print(f"Material override: {mat}")
         else:
-            print("使用截面属性中的材料")
+            print("Using the section material")
     """
     result = model.FrameObj.GetMaterialOverwrite(str(frame_name))
     material = com_data(result, 0, "") or ""
-    # 'None' 字符串表示无覆盖，返回空字符串
+    # SAP2000 may return the literal string "None" to indicate no override.
     if material == "None":
         return ""
     return material
@@ -175,20 +177,20 @@ def set_frame_material_temperature(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置杆件的材料温度
+    Set the material temperature assigned to a frame.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        temperature: 温度值 [T]
-        pattern_name: 荷载模式名称，空字符串表示无模式
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        temperature: Temperature value [T]
+        pattern_name: Load pattern name. Use an empty string for no pattern.
+        item_type: Target scope
     
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     
     Example:
-        # 设置杆件 "1" 的材料温度为 20°C
+        # Set the material temperature of frame "1" to 20 C
         set_frame_material_temperature(model, "1", 20.0)
     """
     return model.FrameObj.SetMatTemp(
@@ -201,18 +203,18 @@ def set_frame_material_temperature(
 
 def get_frame_material_temperature(model, frame_name: str) -> Tuple[float, str]:
     """
-    获取杆件的材料温度
+    Get the material temperature assigned to a frame.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        (temperature, pattern_name) 元组
+        Tuple `(temperature, pattern_name)`.
     
     Example:
         temp, pattern = get_frame_material_temperature(model, "1")
-        print(f"温度: {temp}, 模式: {pattern}")
+        print(f"Temperature: {temp}, pattern: {pattern}")
     """
     result = model.FrameObj.GetMatTemp(str(frame_name))
     return (com_data(result, 0, 0.0), com_data(result, 1, "") or "")
@@ -223,31 +225,33 @@ def get_frame_section_nonprismatic(
     frame_name: str,
 ) -> FrameSectionNonPrismaticData:
     """
-    获取杆件的变截面属性数据
-    
-    对应 FrameObj.GetSectionNonPrismatic API。
-    仅当杆件分配了变截面属性时有效，否则返回错误。
+    Get nonprismatic section assignment data for a frame.
+
+    Wraps the `FrameObj.GetSectionNonPrismatic` API. This is only valid when
+    the frame has a nonprismatic section assignment.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        FrameSectionNonPrismaticData 数据类
+        `FrameSectionNonPrismaticData` instance.
     
     Raises:
-        ValueError: 杆件未分配变截面属性
+        ValueError: The frame does not have a nonprismatic section assignment.
     
     Example:
         data = get_frame_section_nonprismatic(model, "876")
-        print(f"变截面: {data.prop_name}, 总长: {data.total_length}")
+        print(f"Nonprismatic property: {data.prop_name}, total length: {data.total_length}")
     """
     result = model.FrameObj.GetSectionNonPrismatic(
         str(frame_name), "", 0.0, 0.0
     )
     ret = com_ret(result)
     if ret != 0:
-        raise ValueError(f"杆件 {frame_name} 未分配变截面属性或获取失败")
+        raise ValueError(
+            f"Frame {frame_name} has no nonprismatic section assignment or the query failed"
+        )
     return FrameSectionNonPrismaticData(
         frame_name=frame_name,
         prop_name=com_data(result, 0, "") or "",

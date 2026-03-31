@@ -1,30 +1,31 @@
 # -*- coding: utf-8 -*-
 """
-select - 全局选择操作模块
+selection - Global selection operations.
 
-用于 SAP2000 中的批量选择操作 (SelectObj API)
+Provides batch selection helpers for SAP2000 through the `SelectObj` API.
 
-注意: 这是全局选择操作模块，用于批量选择对象。
-单个对象的选择状态请使用:
-- types_for_frames/frame_selection.py
-- types_for_links/link_selection.py
-- types_for_areas/area_selection.py
-- types_for_points/point_selection.py
+Note:
+    This package handles global selection operations across many objects.
+    For per-object selection state, use each module's `selection.py`:
+    - `frame/selection.py`
+    - `link/selection.py`
+    - `area/selection.py`
+    - `point/` (via `Point.set_selected`)
 
 SAP2000 API:
-- SelectObj.All - 选择/取消选择所有对象
-- SelectObj.ClearSelection - 清除选择
-- SelectObj.InvertSelection - 反转选择
-- SelectObj.PreviousSelection - 恢复上一次选择
-- SelectObj.GetSelected - 获取已选择对象列表
-- SelectObj.Group - 按组选择
-- SelectObj.Constraint - 按约束选择
-- SelectObj.CoordinateRange - 按坐标范围选择
-- SelectObj.PlaneXY/XZ/YZ - 按平面选择
-- SelectObj.LinesParallelToCoordAxis - 选择平行于坐标轴的线
-- SelectObj.LinesParallelToLine - 选择平行于指定线的线
-- SelectObj.PropertyFrame/Area/Link/... - 按属性选择
-- SelectObj.SupportedPoints - 选择有支座的节点
+- `SelectObj.All` - Select or deselect all objects
+- `SelectObj.ClearSelection` - Clear the current selection
+- `SelectObj.InvertSelection` - Invert the current selection
+- `SelectObj.PreviousSelection` - Restore the previous selection
+- `SelectObj.GetSelected` - Get the selected object list
+- `SelectObj.Group` - Select by group
+- `SelectObj.Constraint` - Select by constraint
+- `SelectObj.CoordinateRange` - Select by coordinate range
+- `SelectObj.PlaneXY/XZ/YZ` - Select by plane
+- `SelectObj.LinesParallelToCoordAxis` - Select lines parallel to an axis
+- `SelectObj.LinesParallelToLine` - Select lines parallel to a reference line
+- `SelectObj.PropertyFrame/Area/Link/...` - Select by property
+- `SelectObj.SupportedPoints` - Select supported points
 
 Usage:
     from PySap2000.selection import (
@@ -33,23 +34,23 @@ Usage:
         select_by_coordinate_range
     )
     
-    # 选择所有对象
+    # Select all objects
     select_all(model)
     
-    # 获取已选择对象
+    # Get selected objects
     selected = get_selected(model)
     for obj_type, obj_name in selected:
         print(f"{obj_type}: {obj_name}")
     
-    # 按组选择
+    # Select by group
     select_by_group(model, "Beams")
     
-    # 按坐标范围选择
+    # Select by coordinate range
     select_by_coordinate_range(model, 0, 10, 0, 10, 0, 5)
 """
 
 from .select import (
-    # 基础选择操作
+    # Basic selection operations
     select_all,
     deselect_all,
     clear_selection,
@@ -61,13 +62,13 @@ from .select import (
     get_selected_by_type,
     get_selected_objects,
     
-    # 按组/约束选择
+    # Group / constraint selection
     select_by_group,
     deselect_by_group,
     select_by_constraint,
     deselect_by_constraint,
     
-    # 按几何位置选择
+    # Geometric selection
     select_by_coordinate_range,
     select_by_plane_xy,
     select_by_plane_xz,
@@ -75,7 +76,7 @@ from .select import (
     select_lines_parallel_to_coord_axis,
     select_lines_parallel_to_line,
     
-    # 按属性选择
+    # Property-based selection
     select_by_property_frame,
     select_by_property_area,
     select_by_property_cable,
@@ -85,14 +86,14 @@ from .select import (
     select_by_property_solid,
     select_by_property_material,
     
-    # 按支座选择
+    # Support-based selection
     select_supported_points,
 )
 
 from .enums import SelectObjectType
 
 __all__ = [
-    # 基础选择操作
+    # Basic selection operations
     "select_all",
     "deselect_all",
     "clear_selection",
@@ -104,13 +105,13 @@ __all__ = [
     "get_selected_by_type",
     "get_selected_objects",
     
-    # 按组/约束选择
+    # Group / constraint selection
     "select_by_group",
     "deselect_by_group",
     "select_by_constraint",
     "deselect_by_constraint",
     
-    # 按几何位置选择
+    # Geometric selection
     "select_by_coordinate_range",
     "select_by_plane_xy",
     "select_by_plane_xz",
@@ -118,7 +119,7 @@ __all__ = [
     "select_lines_parallel_to_coord_axis",
     "select_lines_parallel_to_line",
     
-    # 按属性选择
+    # Property-based selection
     "select_by_property_frame",
     "select_by_property_area",
     "select_by_property_cable",
@@ -128,17 +129,17 @@ __all__ = [
     "select_by_property_solid",
     "select_by_property_material",
     
-    # 按支座选择
+    # Support-based selection
     "select_supported_points",
     
-    # 枚举
+    # Enums
     "SelectObjectType",
 ]
 
-# AI Agent 友好的 API 分类
+# API categories for discoverability
 SELECT_API_CATEGORIES = {
     "basic_selection": {
-        "description": "基础选择操作",
+        "description": "Basic selection operations",
         "functions": [
             "select_all",
             "deselect_all", 
@@ -153,7 +154,7 @@ SELECT_API_CATEGORIES = {
         ],
     },
     "group_constraint_selection": {
-        "description": "按组/约束选择",
+        "description": "Selection by group or constraint",
         "functions": [
             "select_by_group",
             "deselect_by_group",
@@ -162,7 +163,7 @@ SELECT_API_CATEGORIES = {
         ],
     },
     "geometry_selection": {
-        "description": "按几何位置选择",
+        "description": "Selection by geometric location",
         "functions": [
             "select_by_coordinate_range",
             "select_by_plane_xy",
@@ -173,7 +174,7 @@ SELECT_API_CATEGORIES = {
         ],
     },
     "property_selection": {
-        "description": "按属性选择",
+        "description": "Selection by property",
         "functions": [
             "select_by_property_frame",
             "select_by_property_area",
@@ -186,11 +187,11 @@ SELECT_API_CATEGORIES = {
         ],
     },
     "support_selection": {
-        "description": "按支座选择",
+        "description": "Selection by support condition",
         "functions": ["select_supported_points"],
     },
     "enums": {
-        "description": "选择相关枚举",
+        "description": "Selection-related enums",
         "items": ["SelectObjectType"],
     },
 }

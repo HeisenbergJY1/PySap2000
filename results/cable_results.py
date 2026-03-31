@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-cable_results.py - Cable 结果数据对象
-对应 SAP2000 的 Results.CableForce
+cable_results.py - Cable result data objects.
+
+Wraps SAP2000 `Results.CableForce`.
 """
 
 from dataclasses import dataclass
@@ -10,26 +11,26 @@ from typing import List, Dict, Any
 
 @dataclass
 class CableForce:
-    """Cable 内力结果"""
+    """Cable internal force result."""
     cable: str = ""
     station: float = 0.0
     load_case: str = ""
-    tension: float = 0.0        # 索力
-    sag: float = 0.0            # 垂度
-    length: float = 0.0         # 长度
+    tension: float = 0.0        # Cable force
+    sag: float = 0.0            # Sag
+    length: float = 0.0         # Length
 
 
 @dataclass 
 class CableDeformation:
-    """Cable 变形结果"""
+    """Cable deformation result."""
     cable: str = ""
     load_case: str = ""
-    axial_deform: float = 0.0   # 轴向变形
-    sag: float = 0.0            # 垂度
+    axial_deform: float = 0.0   # Axial deformation
+    sag: float = 0.0            # Sag
 
 
 class CableResults:
-    """Cable 结果查询类"""
+    """Cable result query helper."""
     
     def __init__(self, model):
         self._model = model
@@ -42,7 +43,7 @@ class CableResults:
             self._model.Results.Setup.SetComboSelectedForOutput(load_combo)
     
     def get_forces(self, cable: str, load_case: str = "", load_combo: str = "") -> List[CableForce]:
-        """获取 Cable 内力"""
+        """Get internal forces for a cable."""
         self._setup_output(load_case, load_combo)
         result = self._model.Results.CableForce(cable, ItemTypeElm=0)
         
@@ -58,7 +59,7 @@ class CableResults:
         return forces
     
     def get_max_tension(self, load_case: str = "", load_combo: str = "") -> Dict[str, Any]:
-        """获取最大索力"""
+        """Get the maximum cable force."""
         self._setup_output(load_case, load_combo)
         cables = self.get_name_list(self._model)
         
@@ -80,6 +81,6 @@ class CableResults:
     
     @staticmethod
     def get_name_list(model) -> List[str]:
-        """获取所有 Cable 名称列表"""
+        """Get the names of all cable objects."""
         result = model.CableObj.GetNameList()
         return list(result[1]) if result[0] > 0 else []

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-edit_point.py - 点编辑
+edit_point.py - Point editing
 
-SAP2000 EditPoint API 封装
+Wrappers for the SAP2000 `EditPoint` API.
 
 SAP2000 API:
-- EditPoint.Align - 对齐
-- EditPoint.Connect - 连接
-- EditPoint.Disconnect - 断开
-- EditPoint.Merge - 合并
-- EditPoint.ChangeCoordinates_1 - 修改坐标
+- `EditPoint.Align` - Align
+- `EditPoint.Connect` - Connect
+- `EditPoint.Disconnect` - Disconnect
+- `EditPoint.Merge` - Merge
+- `EditPoint.ChangeCoordinates_1` - Change coordinates
 """
 
 from typing import List
@@ -22,60 +22,60 @@ def align_point(
     csys: str = "Global"
 ) -> int:
     """
-    对齐选中的点
+    Align selected points
     
     Args:
-        model: SapModel 对象
-        axis: 对齐轴
-            1 = X轴
-            2 = Y轴
-            3 = Z轴
-        ordinate: 对齐坐标值
-        csys: 坐标系名称
+        model: SAP2000 SapModel object
+        axis: Alignment axis
+            `1` = X axis
+            `2` = Y axis
+            `3` = Z axis
+        ordinate: Target coordinate value
+        csys: Coordinate system name
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditPoint.Align(axis, ordinate, csys)
 
 
 def connect_point(model) -> int:
     """
-    连接选中的点（创建框架）
+    Connect selected points (creates frames)
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditPoint.Connect()
 
 
 def disconnect_point(model, name: str) -> int:
     """
-    断开点连接
+    Disconnect point connections
     
     Args:
-        model: SapModel 对象
-        name: 点名称
+        model: SAP2000 SapModel object
+        name: Point name
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditPoint.Disconnect(name)
 
 
 def merge_point(model, tolerance: float = 0.001) -> int:
     """
-    合并选中的点
+    Merge selected points
     
     Args:
-        model: SapModel 对象
-        tolerance: 合并容差
+        model: SAP2000 SapModel object
+        tolerance: Merge tolerance
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditPoint.Merge(tolerance)
 
@@ -89,17 +89,17 @@ def change_point_coordinates(
     csys: str = "Global"
 ) -> int:
     """
-    修改点坐标
+    Change point coordinates
     
     Args:
-        model: SapModel 对象
-        name: 点名称
-        x: X坐标
-        y: Y坐标
-        z: Z坐标
-        csys: 坐标系名称
+        model: SAP2000 SapModel object
+        name: Point name
+        x: X coordinate
+        y: Y coordinate
+        z: Z coordinate
+        csys: Coordinate system name
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditPoint.ChangeCoordinates_1(name, x, y, z, csys)

@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-property.py - Cable 属性分配函数
-对应 SAP2000 的 CableObj.SetProperty / GetProperty
+property.py - Cable property-assignment helpers.
 
-本模块用于分配属性到 Cable（怎么用），而非定义属性（是什么）。
-属性定义请使用 properties 模块。
+Wraps `CableObj.SetProperty` / `GetProperty`.
 
-包含:
-- 截面分配: set/get_cable_section
-- 材料覆盖: set/get_cable_material_overwrite
-- 材料温度: set/get_cable_material_temp
+This module assigns properties to cable objects; it does not define the
+properties themselves.
+
+Includes:
+- Section assignment: `set/get_cable_section`
+- Material override: `set/get_cable_material_overwrite`
+- Material temperature: `set/get_cable_material_temp`
 
 Usage:
     from cable import set_cable_section, get_cable_section
     
-    # 分配截面到 Cable
+    # Assign a section to a cable
     set_cable_section(model, "1", "Cable1")
     
-    # 获取 Cable 的截面
+    # Get the cable section
     section_name = get_cable_section(model, "1")
 """
 
@@ -27,7 +28,7 @@ from PySap2000.com_helper import com_ret, com_data
 
 
 # =============================================================================
-# 截面分配
+# Section assignment
 # =============================================================================
 
 def set_cable_section(
@@ -37,25 +38,25 @@ def set_cable_section(
     item_type: CableItemType = CableItemType.OBJECT
 ) -> int:
     """
-    设置 Cable 的截面属性
+    Assign a section property to a cable.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
-        section_name: 截面名称 (必须已在 PropCable 中定义)
-        item_type: 项目类型
-            - OBJECT (0): 单个对象
-            - GROUP (1): 组内所有对象
-            - SELECTED_OBJECTS (2): 所有选中对象
+        model: `SapModel` object
+        cable_name: Cable name
+        section_name: Section name (must already exist in `PropCable`)
+        item_type: Item scope
+            - `OBJECT (0)`: single object
+            - `GROUP (1)`: all objects in a group
+            - `SELECTED_OBJECTS (2)`: all selected objects
     
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     
     Example:
-        # 设置 Cable "1" 的截面为 "Cable1"
+        # Set cable "1" to section "Cable1"
         set_cable_section(model, "1", "Cable1")
         
-        # 设置组 "Cables" 内所有 Cable 的截面
+        # Set the section for all cables in group "Cables"
         set_cable_section(model, "Cables", "Cable1", CableItemType.GROUP)
     """
     return model.CableObj.SetProperty(
@@ -67,14 +68,14 @@ def set_cable_section(
 
 def get_cable_section(model, cable_name: str) -> str:
     """
-    获取 Cable 的截面属性名称
+    Return the assigned section name for a cable.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
+        model: `SapModel` object
+        cable_name: Cable name
     
     Returns:
-        截面名称
+        Section name
     """
     result = model.CableObj.GetProperty(str(cable_name))
     return com_data(result, 0, "") or ""
@@ -83,13 +84,13 @@ def get_cable_section(model, cable_name: str) -> str:
 
 def get_cable_section_list(model) -> list:
     """
-    获取所有 Cable 截面名称列表
+    Return the list of all cable section names.
     
     Args:
-        model: SapModel 对象
+        model: `SapModel` object
     
     Returns:
-        截面名称列表
+        List of section names
     
     Example:
         sections = get_cable_section_list(model)
@@ -105,7 +106,7 @@ def get_cable_section_list(model) -> list:
 
 
 # =============================================================================
-# 材料覆盖
+# Material overwrite
 # =============================================================================
 
 def set_cable_material_overwrite(
@@ -115,24 +116,24 @@ def set_cable_material_overwrite(
     item_type: CableItemType = CableItemType.OBJECT
 ) -> int:
     """
-    设置 Cable 的材料覆盖
-    
-    覆盖截面属性中定义的材料。
+    Assign a material overwrite to a cable.
+
+    This overrides the material defined in the assigned section property.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
-        material_name: 材料名称，空字符串表示使用截面属性中的材料
-        item_type: 项目类型
+        model: `SapModel` object
+        cable_name: Cable name
+        material_name: Material name; empty string restores the section material
+        item_type: Item scope
     
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     
     Example:
-        # 覆盖 Cable "1" 的材料为 "A416Gr270"
+        # Override the material on cable "1"
         set_cable_material_overwrite(model, "1", "A416Gr270")
         
-        # 清除材料覆盖，使用截面属性中的材料
+        # Clear the overwrite and use the section material
         set_cable_material_overwrite(model, "1", "")
     """
     return model.CableObj.SetMaterialOverwrite(
@@ -144,28 +145,28 @@ def set_cable_material_overwrite(
 
 def get_cable_material_overwrite(model, cable_name: str) -> str:
     """
-    获取 Cable 的材料覆盖
+    Return the material overwrite assigned to a cable.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
+        model: `SapModel` object
+        cable_name: Cable name
     
     Returns:
-        材料名称，空字符串表示未覆盖
+        Material name, or an empty string if no overwrite is assigned
     
     Example:
         mat = get_cable_material_overwrite(model, "1")
         if mat:
-            print(f"材料覆盖: {mat}")
+            print(f"Material overwrite: {mat}")
         else:
-            print("使用截面属性中的材料")
+            print("Using the material defined by the section")
     """
     result = model.CableObj.GetMaterialOverwrite(str(cable_name))
     return com_data(result, 0, "") or ""
 
 
 # =============================================================================
-# 材料温度
+# Material temperature
 # =============================================================================
 
 def set_cable_material_temp(
@@ -176,20 +177,20 @@ def set_cable_material_temp(
     item_type: CableItemType = CableItemType.OBJECT
 ) -> int:
     """
-    设置 Cable 的材料温度
+    Set the material temperature for a cable.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
-        temperature: 温度值 [T]
-        pattern_name: 荷载模式名称，空字符串表示无模式
-        item_type: 项目类型
+        model: `SapModel` object
+        cable_name: Cable name
+        temperature: Temperature value [T]
+        pattern_name: Load pattern name; empty string means no pattern
+        item_type: Item scope
     
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     
     Example:
-        # 设置 Cable "1" 的材料温度为 20°C
+        # Set the material temperature of cable "1" to 20 degrees
         set_cable_material_temp(model, "1", 20.0)
     """
     return model.CableObj.SetMatTemp(
@@ -202,18 +203,18 @@ def set_cable_material_temp(
 
 def get_cable_material_temp(model, cable_name: str) -> Tuple[float, str]:
     """
-    获取 Cable 的材料温度
+    Return the material temperature assigned to a cable.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
+        model: `SapModel` object
+        cable_name: Cable name
     
     Returns:
-        (temperature, pattern_name) 元组
+        Tuple `(temperature, pattern_name)`
     
     Example:
         temp, pattern = get_cable_material_temp(model, "1")
-        print(f"温度: {temp}, 模式: {pattern}")
+        print(f"Temperature: {temp}, Pattern: {pattern}")
     """
     result = model.CableObj.GetMatTemp(str(cable_name))
     temp = com_data(result, 0)

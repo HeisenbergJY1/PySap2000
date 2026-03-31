@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-generator.py - 计算书 Word 文档生成器
+generator.py - Word document generator for calculation reports.
 
-使用 pandas + python-docx + matplotlib 生成包含结构计算表格和图表的 Word 文档。
+Uses `pandas`, `python-docx`, and `matplotlib` to generate Word documents
+that contain structural report tables and charts.
 
 Usage:
     from report import ReportGenerator
 
     rg = ReportGenerator(model)
-    rg.generate("计算书.docx", frame_names=["56", "57", "59"])
+    rg.generate("calculation_report.docx", frame_names=["56", "57", "59"])
 """
 
 import os
@@ -34,14 +35,14 @@ from .data_collector import (
     SteelDesignResultRow,
 )
 
-# Word XML 命名空间
+# Word XML namespace
 _W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 
 
-# ==================== Word 表格工具函数 ====================
+# ==================== Word table helpers ====================
 
 def _set_cell_text(cell, text: str, bold: bool = False, size: float = 9):
-    """设置单元格文本并居中"""
+    """Set cell text and center it."""
     cell.text = ""
     p = cell.paragraphs[0]
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -52,15 +53,15 @@ def _set_cell_text(cell, text: str, bold: bool = False, size: float = 9):
     pPr.append(spacing)
     run = p.add_run(str(text))
     run.font.size = Pt(size)
-    run.font.name = "宋体"
-    run._element.rPr.rFonts.set(qn("w:eastAsia"), "宋体")
+    run.font.name = "SimSun"
+    run._element.rPr.rFonts.set(qn("w:eastAsia"), "SimSun")
     run.bold = bold
     tcPr = cell._tc.get_or_add_tcPr()
     tcPr.append(parse_xml(f'<w:vAlign {nsdecls("w")} w:val="center"/>'))
 
 
 def _set_table_borders(table):
-    """设置表格全边框"""
+    """Apply borders to the whole table."""
     borders_xml = (
         f'<w:tblBorders {nsdecls("w")}>'
         '  <w:top w:val="single" w:sz="4" w:space="0" w:color="000000"/>'
@@ -77,25 +78,25 @@ def _set_table_borders(table):
 
 
 def _shade_header_row(row):
-    """给表头行添加灰色底纹"""
+    """Shade the header row gray."""
     for cell in row.cells:
         shading = parse_xml(f'<w:shd {nsdecls("w")} w:fill="D9D9D9" w:val="clear"/>')
         cell._tc.get_or_add_tcPr().append(shading)
 
 
 def _add_title(doc: Document, text: str):
-    """添加居中加粗标题"""
+    """Add a centered bold title."""
     title = doc.add_paragraph()
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = title.add_run(text)
     run.font.size = Pt(12)
-    run.font.name = "宋体"
-    run._element.rPr.rFonts.set(qn("w:eastAsia"), "宋体")
+    run.font.name = "SimSun"
+    run._element.rPr.rFonts.set(qn("w:eastAsia"), "SimSun")
     run.bold = True
 
 
 def _df_to_table(doc: Document, df: pd.DataFrame, headers: List[str]):
-    """将 DataFrame 写入 Word 表格"""
+    """Write a DataFrame into a Word table."""
     num_rows = len(df) + 1
     num_cols = len(headers)
     table = doc.add_table(rows=num_rows, cols=num_cols)
@@ -112,41 +113,41 @@ def _df_to_table(doc: Document, df: pd.DataFrame, headers: List[str]):
     return table
 
 
-# ==================== DataFrame 构建 ====================
+# ==================== DataFrame builders ====================
 
 def _build_element_info_df(data: List[FrameElementInfo]) -> pd.DataFrame:
-    """将单元信息列表转为 DataFrame"""
+    """Convert element info rows to a DataFrame."""
     rows = []
     for info in data:
         rows.append({
-            "序号": info.no,
-            "截面名称": info.section_name,
-            "长度": f"{info.length:.3f}",
-            "绕2轴\n无支撑\n长度系数": f"{info.unbraced_ratio_major:.3f}",
-            "绕3轴\n无支撑\n长度系数": f"{info.unbraced_ratio_minor:.3f}",
-            "绕2轴\n计算长\n度系数": f"{info.mue_major:.3f}",
-            "绕3轴\n计算长\n度系数": f"{info.mue_minor:.3f}",
-            "i节点释放": info.release_i,
-            "j节点释放": info.release_j,
+            "No.": info.no,
+            "Section": info.section_name,
+            "Length": f"{info.length:.3f}",
+            "Unbraced\nLength Ratio\n(L2)": f"{info.unbraced_ratio_major:.3f}",
+            "Unbraced\nLength Ratio\n(L3)": f"{info.unbraced_ratio_minor:.3f}",
+            "Effective\nLength Factor\n(mu2)": f"{info.mue_major:.3f}",
+            "Effective\nLength Factor\n(mu3)": f"{info.mue_minor:.3f}",
+            "I-End Release": info.release_i,
+            "J-End Release": info.release_j,
         })
     return pd.DataFrame(rows)
 
 
 def _fmt(val: float) -> str:
-    """格式化数值，0 显示为 - 表示不适用"""
+    """Format values, showing `-` when `0` means not applicable."""
     if val == 0.0:
         return "—"
     return f"{val:.3f}"
 
 
 def _build_steel_design_df(data: List[SteelDesignResultRow]) -> pd.DataFrame:
-    """将钢结构设计结果列表转为 DataFrame"""
+    """Convert steel design result rows to a DataFrame."""
     rows = []
     for r in data:
         rows.append({
-            "序号": r.index,
-            "单元号": r.frame_name,
-            "应力比": f"{r.ratio:.3f}",
+            "No.": r.index,
+            "Frame": r.frame_name,
+            "Stress Ratio": f"{r.ratio:.3f}",
             "N(kN)": f"{r.n:.3f}",
             "M3(kN·m)": f"{r.m3:.3f}",
             "M2(kN·m)": f"{r.m2:.3f}",
@@ -154,21 +155,21 @@ def _build_steel_design_df(data: List[SteelDesignResultRow]) -> pd.DataFrame:
             "φ2": _fmt(r.phi2),
             "φb3": _fmt(r.phi_b3),
             "φb2": _fmt(r.phi_b2),
-            "绕3轴\n长细比": _fmt(r.slenderness_major),
-            "绕3轴\n长细比 ": _fmt(r.slenderness_minor),
-            "超限信息": r.exceeded,
+            "Slenderness\nMajor": _fmt(r.slenderness_major),
+            "Slenderness\nMinor": _fmt(r.slenderness_minor),
+            "Exceeded": r.exceeded,
         })
     return pd.DataFrame(rows)
 
 
-# ==================== 图表生成 ====================
+# ==================== Chart generation ====================
 
 def _generate_bar_chart(design_data: List[SteelDesignResultRow]) -> str:
     """
-    生成杆件应力比分布柱状图 (图 5.1)
+    Generate a bar chart of frame stress ratios (Figure 5.1).
 
     Returns:
-        临时图片文件路径
+        Temporary image file path.
     """
     plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei", "Arial"]
     plt.rcParams["axes.unicode_minus"] = False
@@ -178,8 +179,8 @@ def _generate_bar_chart(design_data: List[SteelDesignResultRow]) -> str:
 
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.bar(range(len(names)), ratios, color="blue", edgecolor="blue", width=0.7)
-    ax.set_xlabel("杆件", fontsize=12)
-    ax.set_ylabel("应力比", fontsize=12)
+    ax.set_xlabel("Frames", fontsize=12)
+    ax.set_ylabel("Stress Ratio", fontsize=12)
     ax.set_xticks([])
     ax.grid(axis="both", linestyle="--", alpha=0.4, color="gray")
     ax.set_xlim(-0.5, len(names) - 0.5)
@@ -195,9 +196,9 @@ def _generate_bar_chart(design_data: List[SteelDesignResultRow]) -> str:
 
 def _generate_pie_chart(design_data: List[SteelDesignResultRow]) -> str:
     """
-    生成杆件应力比占比分布饼图 (图 5.2)
+    Generate a pie chart of stress-ratio distribution (Figure 5.2).
 
-    区间: <=0.5, 0.5~0.7, 0.7~0.9, 0.9~1.0, >1.0
+    Ranges: `<=0.5`, `0.5~0.7`, `0.7~0.9`, `0.9~1.0`, `>1.0`
     """
     plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei", "Arial"]
     plt.rcParams["axes.unicode_minus"] = False
@@ -244,7 +245,7 @@ def _generate_pie_chart(design_data: List[SteelDesignResultRow]) -> str:
 
 
 def _add_chart_with_caption(doc: Document, image_path: str, caption: str, width: float = 5.5):
-    """插入图片并添加居中标题"""
+    """Insert an image and add a centered caption."""
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run()
@@ -254,24 +255,24 @@ def _add_chart_with_caption(doc: Document, image_path: str, caption: str, width:
     cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
     r = cap.add_run(caption)
     r.font.size = Pt(12)
-    r.font.name = "宋体"
-    r._element.rPr.rFonts.set(qn("w:eastAsia"), "宋体")
+    r.font.name = "SimSun"
+    r._element.rPr.rFonts.set(qn("w:eastAsia"), "SimSun")
 
 
-# ==================== 主生成器 ====================
+# ==================== Main generator ====================
 
 class ReportGenerator:
     """
-    计算书生成器
+    Calculation report generator.
 
-    从 SAP2000 模型采集数据，生成 Word 格式计算书。
+    Collects data from a SAP2000 model and generates a Word report.
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Usage:
         rg = ReportGenerator(model)
-        rg.generate("计算书.docx", frame_names=["56", "57", "59"])
+        rg.generate("calculation_report.docx", frame_names=["56", "57", "59"])
     """
 
     def __init__(self, model):
@@ -288,19 +289,19 @@ class ReportGenerator:
         include_charts: bool = True,
     ) -> str:
         """
-        生成计算书 Word 文档
+        Generate a Word calculation report.
 
         Args:
-            output_path: 输出文件路径 (.docx)
-            frame_names: 杆件名称列表，None 则使用模型中所有杆件
-            element_table_number: 单元信息表编号
-            design_table_number: 设计结果表编号
-            include_element_info: 是否包含单元信息表
-            include_design_results: 是否包含设计结果表
-            include_charts: 是否包含应力比图表
+            output_path: Output `.docx` path
+            frame_names: Frame names; uses all model frames when `None`
+            element_table_number: Element information table number
+            design_table_number: Design result table number
+            include_element_info: Whether to include the element info table
+            include_design_results: Whether to include the design result table
+            include_charts: Whether to include stress ratio charts
 
         Returns:
-            输出文件的绝对路径
+            Absolute output file path.
         """
         from structure_core.frame import Frame
 
@@ -309,18 +310,18 @@ class ReportGenerator:
 
         doc = Document()
 
-        # 设置默认字体
+        # Set default font.
         style = doc.styles["Normal"]
-        style.font.name = "宋体"
+        style.font.name = "SimSun"
         style.font.size = Pt(10.5)
-        style._element.rPr.rFonts.set(qn("w:eastAsia"), "宋体")
+        style._element.rPr.rFonts.set(qn("w:eastAsia"), "SimSun")
 
         design_data = None
 
         if include_element_info:
             element_data = collect_frame_element_info(self._model, frame_names)
             df = _build_element_info_df(element_data)
-            _add_title(doc, f"表 {element_table_number} 单元信息")
+            _add_title(doc, f"Table {element_table_number} Element Information")
             _df_to_table(doc, df, list(df.columns))
             doc.add_paragraph()
 
@@ -329,33 +330,33 @@ class ReportGenerator:
 
         if include_design_results and design_data:
             df = _build_steel_design_df(design_data)
-            _add_title(doc, f"表 {design_table_number} 钢结构设计结果")
+            _add_title(doc, f"Table {design_table_number} Steel Design Results")
             _df_to_table(doc, df, list(df.columns))
             doc.add_paragraph()
 
-        # 图表
+        # Charts
         if include_charts and design_data:
             tmp_files = []
             try:
-                # 图 5.1 柱状图
+                # Figure 5.1 bar chart
                 bar_path = _generate_bar_chart(design_data)
                 tmp_files.append(bar_path)
                 _add_chart_with_caption(
                     doc, bar_path,
-                    f"图 {design_table_number} 杆件应力比分布图"
+                    f"Figure {design_table_number} Stress Ratio Distribution"
                 )
                 doc.add_paragraph()
 
-                # 图 5.2 饼图
+                # Figure 5.2 pie chart
                 pie_path = _generate_pie_chart(design_data)
                 tmp_files.append(pie_path)
                 _add_chart_with_caption(
                     doc, pie_path,
-                    f"图 {design_table_number.split('.')[0]}.2 杆件应力比占比分布图",
+                    f"Figure {design_table_number.split('.')[0]}.2 Stress Ratio Share Distribution",
                     width=4.0,
                 )
             finally:
-                # 清理临时文件
+                # Clean up temporary files.
                 for f in tmp_files:
                     try:
                         os.unlink(f)
@@ -371,7 +372,7 @@ class ReportGenerator:
         frame_names: List[str] = None,
         table_number: str = "2.5",
     ) -> str:
-        """仅生成单元信息表"""
+        """Generate only the element information table."""
         return self.generate(
             output_path,
             frame_names=frame_names,
@@ -387,7 +388,7 @@ class ReportGenerator:
         frame_names: List[str] = None,
         table_number: str = "5.1",
     ) -> str:
-        """仅生成钢结构设计结果表"""
+        """Generate only the steel design result table."""
         return self.generate(
             output_path,
             frame_names=frame_names,

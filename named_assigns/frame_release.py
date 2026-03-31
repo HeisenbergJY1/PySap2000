@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-frame_release.py - 命名杆件端部释放
+frame_release.py - Named frame end releases
 
-对应 SAP2000 的 NamedAssign.ReleaseFrame API
+Wraps SAP2000 `NamedAssign.ReleaseFrame`.
 
-创建可复用的杆件端部释放定义，可被多个杆件引用。
+Creates reusable frame end-release definitions that can be referenced by multiple frame objects.
 
 SAP2000 API:
 - NamedAssign.ReleaseFrame.ChangeName
@@ -14,17 +14,17 @@ SAP2000 API:
 - NamedAssign.ReleaseFrame.GetReleases
 - NamedAssign.ReleaseFrame.SetReleases
 
-释放数组 (6个布尔值):
-- [0] U1: 局部1方向平动
-- [1] U2: 局部2方向平动
-- [2] U3: 局部3方向平动
-- [3] R1: 绕局部1轴转动
-- [4] R2: 绕局部2轴转动
-- [5] R3: 绕局部3轴转动
+Release arrays (6 booleans):
+- [0] U1: Translation along local-1
+- [1] U2: Translation along local-2
+- [2] U3: Translation along local-3
+- [3] R1: Rotation about local-1
+- [4] R2: Rotation about local-2
+- [5] R3: Rotation about local-3
 
-部分固定弹簧值:
-- U1, U2, U3: [F/L] 力/长度
-- R1, R2, R3: [FL/rad] 力矩/弧度
+Partial-fixity spring values:
+- U1, U2, U3: [F/L] force / length
+- R1, R2, R3: [FL/rad] moment / radian
 """
 
 from dataclasses import dataclass, field
@@ -35,14 +35,14 @@ from PySap2000.com_helper import com_ret, com_data
 @dataclass
 class NamedFrameRelease:
     """
-    命名杆件端部释放
+    Named frame end release
     
     Attributes:
-        name: 释放定义名称
-        ii: I端释放 [U1, U2, U3, R1, R2, R3]
-        jj: J端释放 [U1, U2, U3, R1, R2, R3]
-        start_value: I端部分固定弹簧值 [U1, U2, U3, R1, R2, R3]
-        end_value: J端部分固定弹簧值 [U1, U2, U3, R1, R2, R3]
+        name: Release definition name
+        ii: I-end releases `[U1, U2, U3, R1, R2, R3]`
+        jj: J-end releases `[U1, U2, U3, R1, R2, R3]`
+        start_value: I-end partial-fixity spring values `[U1, U2, U3, R1, R2, R3]`
+        end_value: J-end partial-fixity spring values `[U1, U2, U3, R1, R2, R3]`
     """
     name: str = ""
     ii: List[bool] = field(default_factory=lambda: [False] * 6)
@@ -52,7 +52,7 @@ class NamedFrameRelease:
     
     _object_type: ClassVar[str] = "NamedAssign.ReleaseFrame"
     
-    # 便捷属性 - I端
+    # Convenience properties - I end
     @property
     def i_u1(self) -> bool:
         return self.ii[0]
@@ -101,7 +101,7 @@ class NamedFrameRelease:
     def i_r3(self, value: bool):
         self.ii[5] = value
     
-    # 便捷属性 - J端
+    # Convenience properties - J end
     @property
     def j_u1(self) -> bool:
         return self.jj[0]
@@ -151,29 +151,29 @@ class NamedFrameRelease:
         self.jj[5] = value
     
     def set_pinned_i(self):
-        """设置I端为铰接 (释放R2, R3)"""
+        """Set the I end to pinned (`R2`, `R3` released)"""
         self.ii[4] = True  # R2
         self.ii[5] = True  # R3
     
     def set_pinned_j(self):
-        """设置J端为铰接 (释放R2, R3)"""
+        """Set the J end to pinned (`R2`, `R3` released)"""
         self.jj[4] = True  # R2
         self.jj[5] = True  # R3
     
     def set_pinned_both(self):
-        """设置两端为铰接"""
+        """Set both ends to pinned"""
         self.set_pinned_i()
         self.set_pinned_j()
     
     def _create(self, model) -> int:
         """
-        创建或更新命名端部释放
+        Create or update a named end release
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.com_helper import com_ret
         return com_ret(model.NamedAssign.ReleaseFrame.SetReleases(
@@ -182,13 +182,13 @@ class NamedFrameRelease:
     
     def _get(self, model) -> int:
         """
-        从模型获取端部释放数据
+        Load end-release data from the model
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.NamedAssign.ReleaseFrame.GetReleases(
             self.name,
@@ -217,27 +217,27 @@ class NamedFrameRelease:
     
     def _delete(self, model) -> int:
         """
-        删除命名端部释放
+        Delete the named end release
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.com_helper import com_ret
         return com_ret(model.NamedAssign.ReleaseFrame.Delete(self.name))
     
     def change_name(self, model, new_name: str) -> int:
         """
-        重命名端部释放
+        Rename the end release
         
         Args:
-            model: SapModel 对象
-            new_name: 新名称
+            model: SAP2000 SapModel object
+            new_name: New name
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.com_helper import com_ret
         ret = com_ret(model.NamedAssign.ReleaseFrame.ChangeName(self.name, new_name))
@@ -247,12 +247,12 @@ class NamedFrameRelease:
     
     @staticmethod
     def get_count(model) -> int:
-        """获取端部释放数量"""
+        """Get the number of end-release definitions"""
         return model.NamedAssign.ReleaseFrame.Count()
     
     @staticmethod
     def get_name_list(model) -> List[str]:
-        """获取所有端部释放名称"""
+        """Get all end-release names"""
         result = model.NamedAssign.ReleaseFrame.GetNameList(0, [])
         names = com_data(result, 1)
         if names:
@@ -261,7 +261,7 @@ class NamedFrameRelease:
     
     @classmethod
     def get_by_name(cls, model, name: str) -> Optional["NamedFrameRelease"]:
-        """按名称获取端部释放"""
+        """Get an end release by name"""
         release = cls(name=name)
         ret = release._get(model)
         if ret == 0:
@@ -270,7 +270,7 @@ class NamedFrameRelease:
     
     @classmethod
     def get_all(cls, model) -> List["NamedFrameRelease"]:
-        """获取所有端部释放"""
+        """Get all end releases"""
         names = cls.get_name_list(model)
         result = []
         for name in names:
@@ -281,21 +281,21 @@ class NamedFrameRelease:
     
     @classmethod
     def create_pinned_i(cls, name: str) -> "NamedFrameRelease":
-        """创建I端铰接的释放定义"""
+        """Create a release definition pinned at the I end"""
         release = cls(name=name)
         release.set_pinned_i()
         return release
     
     @classmethod
     def create_pinned_j(cls, name: str) -> "NamedFrameRelease":
-        """创建J端铰接的释放定义"""
+        """Create a release definition pinned at the J end"""
         release = cls(name=name)
         release.set_pinned_j()
         return release
     
     @classmethod
     def create_pinned_both(cls, name: str) -> "NamedFrameRelease":
-        """创建两端铰接的释放定义"""
+        """Create a release definition pinned at both ends"""
         release = cls(name=name)
         release.set_pinned_both()
         return release

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-mass.py - Cable 质量指派
+mass.py - Cable mass-assignment helpers.
 
 SAP2000 API:
 - CableObj.SetMass(Name, MassOverL, Replace, ItemType)
@@ -21,17 +21,17 @@ def set_cable_mass(
     item_type: CableItemType = CableItemType.OBJECT
 ) -> int:
     """
-    设置 Cable 附加质量
+    Set additional mass for a cable object.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
-        mass_per_length: 单位长度质量 [M/L]
-        replace: True=替换现有质量, False=叠加
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        cable_name: Cable object name
+        mass_per_length: Mass per unit length [M/L]
+        replace: `True` to replace existing mass, `False` to add to it
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
         set_cable_mass(model, "1", 0.001)
@@ -41,14 +41,14 @@ def set_cable_mass(
 
 def get_cable_mass(model, cable_name: str) -> Optional[float]:
     """
-    获取 Cable 附加质量
+    Get the additional mass assigned to a cable object.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
+        model: SAP2000 SapModel object
+        cable_name: Cable object name
     
     Returns:
-        单位长度质量 [M/L]，失败返回 None
+        Mass per unit length [M/L], or `None` if the query fails.
     
     Example:
         mass = get_cable_mass(model, "1")
@@ -67,14 +67,14 @@ def delete_cable_mass(
     item_type: CableItemType = CableItemType.OBJECT
 ) -> int:
     """
-    删除 Cable 附加质量
+    Delete the additional mass assigned to a cable object.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        cable_name: Cable object name
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.CableObj.DeleteMass(str(cable_name), int(item_type))

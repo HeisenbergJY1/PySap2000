@@ -1,57 +1,56 @@
 # -*- coding: utf-8 -*-
 """
-design/enums.py - 设计模块枚举
+design/enums.py - Design module enums
 
-结构设计相关枚举类型（钢结构、混凝土、铝结构、冷弯薄壁钢）。
+Enums for steel, concrete, aluminum, and cold-formed design.
 """
 
 from enum import IntEnum
 
 
 # ============================================================================
-# 通用枚举
+# Shared enums
 # ============================================================================
 
 class ItemType(IntEnum):
-    """对象选择类型
+    """Object selection mode
     
-    用于指定设计结果的对象范围。
+    Scopes which objects are included in design result queries.
     """
-    OBJECT = 0          # 单个对象
-    GROUP = 1           # 组
-    SELECTED_OBJECTS = 2  # 选中的对象
+    OBJECT = 0          # Single object
+    GROUP = 1           # Group
+    SELECTED_OBJECTS = 2  # Selected objects
 
 
 class RatioType(IntEnum):
-    """钢结构/铝结构/冷弯设计应力比类型
+    """Stress or strength ratio type (steel / aluminum / cold-formed)
     
-    控制应力比或承载力比的类型。
-    注意：铝结构和冷弯只有 1, 3, 4 三种类型。
+    Selects which ratio is reported as controlling.
+    Aluminum and cold-formed design only use types 1, 3, and 4.
     """
-    NONE = 0                    # 无/未知
-    PMM = 1                     # 轴力-弯矩组合
-    MAJOR_SHEAR = 2             # 主剪力（仅钢结构）
-    MINOR_SHEAR = 3             # 次剪力（钢结构）/ 主剪力（铝/冷弯）
-    MAJOR_BEAM_COLUMN = 4       # 主轴梁柱承载力比（钢结构）/ 次剪力（铝/冷弯）
-    MINOR_BEAM_COLUMN = 5       # 次轴梁柱承载力比（仅钢结构）
-    OTHER = 6                   # 其他（仅钢结构）
+    NONE = 0                    # None / unknown
+    PMM = 1                     # Axial-flexural (PMM)
+    MAJOR_SHEAR = 2             # Major-axis shear (steel only)
+    MINOR_SHEAR = 3             # Minor shear (steel) or major shear (aluminum / cold-formed)
+    MAJOR_BEAM_COLUMN = 4       # Major beam-column (steel) or minor shear (aluminum / cold-formed)
+    MINOR_BEAM_COLUMN = 5       # Minor beam-column (steel only)
+    OTHER = 6                   # Other (steel only)
 
 
 class ColumnDesignOption(IntEnum):
-    """混凝土柱设计选项"""
-    CHECK = 1       # 验算
-    DESIGN = 2      # 设计
+    """Concrete column design mode"""
+    CHECK = 1       # Check
+    DESIGN = 2      # Design
 
 
 # ============================================================================
-# 钢结构设计枚举
+# Steel design enums
 # ============================================================================
 
 class SteelDesignCode(IntEnum):
-    """钢结构设计规范
-    
-    SAP2000 支持的钢结构设计规范代码。
-    注意：API 使用字符串名称，此枚举用于类型安全和代码提示。
+    """Steel design code identifiers.
+
+    String names are used by the SAP2000 COM API; this enum aids typing and discovery.
     """
     AASHTO_LRFD_2007 = 1
     AISC_ASD89 = 2
@@ -78,7 +77,7 @@ class SteelDesignCode(IntEnum):
     SP_16_13330_2011 = 23
 
 
-# 规范代码名称映射（API 使用字符串）
+# Code name strings used by the API
 STEEL_CODE_NAMES = {
     SteelDesignCode.AASHTO_LRFD_2007: "AASHTO LRFD 2007",
     SteelDesignCode.AISC_ASD89: "AISC-ASD89",
@@ -105,16 +104,16 @@ STEEL_CODE_NAMES = {
     SteelDesignCode.SP_16_13330_2011: "SP 16.13330.2011",
 }
 
-# 反向映射：字符串名称 -> 枚举
+# Reverse lookup: name string to enum
 STEEL_CODE_FROM_NAME = {v: k for k, v in STEEL_CODE_NAMES.items()}
 
 
 # ============================================================================
-# 混凝土设计枚举
+# Concrete design enums
 # ============================================================================
 
 class ConcreteDesignCode(IntEnum):
-    """混凝土框架设计规范"""
+    """Concrete frame design code."""
     AASHTO_LRFD_2014 = 1
     AASHTO_LRFD_2012 = 2
     AASHTO_CONCRETE_07 = 3
@@ -166,7 +165,7 @@ CONCRETE_CODE_FROM_NAME = {v: k for k, v in CONCRETE_CODE_NAMES.items()}
 
 
 class ConcreteShellDesignCode(IntEnum):
-    """混凝土壳设计规范"""
+    """Concrete shell design code."""
     ACI_350_20 = 1
     EUROCODE_2_2004 = 2
 
@@ -180,11 +179,11 @@ CONCRETE_SHELL_CODE_FROM_NAME = {v: k for k, v in CONCRETE_SHELL_CODE_NAMES.item
 
 
 # ============================================================================
-# 铝结构设计枚举
+# Aluminum design enums
 # ============================================================================
 
 class AluminumDesignCode(IntEnum):
-    """铝结构设计规范"""
+    """Aluminum design code."""
     AA_ASD_2000 = 1
     AA_LRFD_2000 = 2
 
@@ -198,11 +197,11 @@ ALUMINUM_CODE_FROM_NAME = {v: k for k, v in ALUMINUM_CODE_NAMES.items()}
 
 
 # ============================================================================
-# 冷弯薄壁钢设计枚举
+# Cold-formed steel design enums
 # ============================================================================
 
 class ColdFormedDesignCode(IntEnum):
-    """冷弯薄壁钢设计规范"""
+    """Cold-formed steel design code."""
     AISI_ASD96 = 1
     AISI_LRFD96 = 2
 

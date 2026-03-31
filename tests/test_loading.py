@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""荷载模式和工况相关测试"""
+"""Tests for load patterns and load cases."""
 
 import pytest
 from PySap2000.loading import (
@@ -11,7 +11,7 @@ pytestmark = pytest.mark.loading
 
 
 class TestLoadPatternCreate:
-    """荷载模式创建测试"""
+    """Create load patterns."""
 
     def test_create_dead_pattern(self, app):
         lp = LoadPattern(
@@ -33,7 +33,7 @@ class TestLoadPatternCreate:
 
 
 class TestLoadPatternQuery:
-    """荷载模式查询测试"""
+    """Query load patterns."""
 
     def test_get_name_list(self, model):
         names = LoadPattern.get_name_list(model)
@@ -47,7 +47,7 @@ class TestLoadPatternQuery:
     def test_get_by_name(self, model):
         lp = LoadPattern.get_by_name(model, "Dead")
         if lp is None:
-            # 默认模型可能用不同名称
+            # Default template may use a different pattern name
             names = LoadPattern.get_name_list(model)
             assert len(names) > 0
             lp = LoadPattern.get_by_name(model, names[0])
@@ -61,7 +61,7 @@ class TestLoadPatternQuery:
 
 
 class TestLoadPatternUpdate:
-    """荷载模式更新测试"""
+    """Update load patterns."""
 
     def test_set_self_weight_multiplier(self, model):
         lp = LoadPattern(name="MyDead")
@@ -79,12 +79,12 @@ class TestLoadPatternUpdate:
         lp = LoadPattern(name="MyLive")
         ret = lp.change_name(model, "MyLive2")
         assert ret == 0
-        # 改回来
+        # Rename back
         lp.change_name(model, "MyLive")
 
 
 class TestLoadCaseQuery:
-    """荷载工况查询测试"""
+    """Query load cases."""
 
     def test_get_name_list(self, model):
         names = LoadCase.get_name_list(model)

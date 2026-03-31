@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""索单元相关测试"""
+"""Tests for cable objects."""
 
 import pytest
 from PySap2000.structure_core import Cable, Point
@@ -10,13 +10,13 @@ pytestmark = pytest.mark.cable
 
 @pytest.fixture(scope="module")
 def cable_points(app):
-    """创建 cable 专用的节点（距离足够大，满足索的几何要求）"""
+    """Joints dedicated to cable tests (spacing meets cable geometry)."""
     app.create_object(Point(no=101, x=0, y=0, z=5000))
     app.create_object(Point(no=102, x=10000, y=0, z=5000))
 
 
 class TestCableSection:
-    """索截面测试"""
+    """Cable sections."""
 
     def test_create_cable_section(self, app):
         ret = app.create_object(CableSection(name="CAB1", material="Q355", area=500.0))
@@ -24,7 +24,7 @@ class TestCableSection:
 
 
 class TestCableCreate:
-    """索单元创建测试"""
+    """Create cables."""
 
     def test_create_cable(self, app, cable_points):
         ret = app.create_object(Cable(no="C1", start_point="101", end_point="102", section="CAB1"))
@@ -32,7 +32,7 @@ class TestCableCreate:
 
 
 class TestCableQuery:
-    """索单元查询测试"""
+    """Query cables."""
 
     def test_get_cable(self, app):
         c = app.get_object(Cable(no="C1"))
@@ -61,7 +61,7 @@ class TestCableQuery:
 
 
 class TestCableUpdate:
-    """索单元更新测试"""
+    """Update cables."""
 
     def test_update_cable_section(self, app):
         ret = app.update_object(Cable(no="C1", section="CAB1"))

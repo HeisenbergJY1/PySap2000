@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-cable - Cable 对象扩展功能
+cable - Extended helpers for cable objects.
 
-包含:
-- enums: CableType, CableDefinitionType
-- property: 截面分配、材料覆盖、材料温度
-- modifier: 修改系数
-- mass: 附加质量
-- output_station: 输出站点
-- group: 组指派
-- selection: 选择状态
+Includes:
+- `enums`: cable enums
+- `property`: section assignment, material overwrite, material temperature
+- `modifier`: cable modifiers
+- `mass`: additional mass
+- `output_station`: output-station settings
+- `group`: group assignment
+- `selection`: selection state
 
-荷载相关内容在 loads/cable_load.py
+Load-related helpers live in `loads/cable_load.py`.
 """
 
 from .enums import CableType, CableDefinitionType
@@ -59,19 +59,19 @@ from .selection import (
 )
 
 
-# ==================== API 分类索引 (供 AI Agent 发现功能) ====================
+# ==================== API Category Index ====================
 
 CABLE_API_CATEGORIES = {
-    "截面属性": {
-        "description": "设置 Cable 的截面属性分配",
+    "section_properties": {
+        "description": "Configure section-property assignments for cables",
         "functions": [
             "set_cable_section",
             "get_cable_section",
             "get_cable_section_list",
         ]
     },
-    "材料": {
-        "description": "设置 Cable 的材料覆盖和温度",
+    "material": {
+        "description": "Configure cable material overwrites and temperatures",
         "functions": [
             "set_cable_material_overwrite",
             "get_cable_material_overwrite",
@@ -79,38 +79,38 @@ CABLE_API_CATEGORIES = {
             "get_cable_material_temp",
         ]
     },
-    "修改系数": {
-        "description": "设置 Cable 的修改系数",
+    "modifiers": {
+        "description": "Configure cable modifiers",
         "functions": [
             "set_cable_modifiers",
             "get_cable_modifiers",
             "delete_cable_modifiers",
         ]
     },
-    "质量": {
-        "description": "设置 Cable 的附加质量",
+    "mass": {
+        "description": "Configure additional cable mass",
         "functions": [
             "set_cable_mass",
             "get_cable_mass",
             "delete_cable_mass",
         ]
     },
-    "输出站点": {
-        "description": "设置 Cable 的输出站点",
+    "output_stations": {
+        "description": "Configure cable output stations",
         "functions": [
             "set_cable_output_stations",
             "get_cable_output_stations",
         ]
     },
-    "组": {
-        "description": "设置 Cable 的组分配",
+    "groups": {
+        "description": "Configure cable group assignments",
         "functions": [
             "set_cable_group",
             "get_cable_groups",
         ]
     },
-    "选择": {
-        "description": "设置 Cable 的选择状态",
+    "selection": {
+        "description": "Configure cable selection state",
         "functions": [
             "set_cable_selected",
             "get_cable_selected",
@@ -121,15 +121,15 @@ CABLE_API_CATEGORIES = {
 
 
 __all__ = [
-    # 枚举
+    # Enums
     'CableType',
     'CableDefinitionType',
     'CableItemType',
     'CableOutputStationType',
-    # 数据类
+    # Data classes
     'CableModifiers',
     'CableOutputStations',
-    # 截面/材料属性
+    # Section / material properties
     'set_cable_section',
     'get_cable_section',
     'get_cable_section_list',
@@ -137,24 +137,24 @@ __all__ = [
     'get_cable_material_overwrite',
     'set_cable_material_temp',
     'get_cable_material_temp',
-    # 修改系数
+    # Modifiers
     'set_cable_modifiers',
     'get_cable_modifiers',
     'delete_cable_modifiers',
-    # 质量
+    # Mass
     'set_cable_mass',
     'get_cable_mass',
     'delete_cable_mass',
-    # 输出站点
+    # Output stations
     'set_cable_output_stations',
     'get_cable_output_stations',
-    # 组
+    # Groups
     'set_cable_group',
     'get_cable_groups',
-    # 选择
+    # Selection
     'set_cable_selected',
     'get_cable_selected',
     'get_selected_cables',
-    # API 分类索引
+    # API category index
     'CABLE_API_CATEGORIES',
 ]

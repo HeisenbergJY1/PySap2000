@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-com_helper.py - COM 返回值处理工具
+com_helper.py - Utilities for handling COM return values.
 
-comtypes 调用 SAP2000 COM 接口时，返回值通常是 list 或 tuple：
-- 返回码在最后一个元素，0 表示成功
-- 数据在前面的元素中
+When `comtypes` calls the SAP2000 COM API, the return value is usually a
+tuple or list:
+- the last element is the return code, where `0` means success
+- preceding elements contain data
 
-这个模块提供统一的提取函数，避免每个方法都重复写判断逻辑。
-当 COM 调用失败时，自动记录 warning 级别日志（包含调用者文件和函数名），方便排查。
+This module centralizes extraction logic so individual wrappers do not need to
+repeat the same parsing and logging code.
 
 Usage:
     from PySap2000.com_helper import com_ret, com_data
 
-    # 提取返回码（失败时自动记日志，无需手动传名称）
+    # Extract the return code.
     ret = com_ret(model.FrameObj.Delete("1"))
 
-    # 提取数据
+    # Extract data.
     names = com_data(model.FrameObj.GetNameList(0, []), index=1, default=[])
 """
 
@@ -29,23 +30,23 @@ _log = logging.getLogger("pysap2000.com")
 
 def com_ret(result, *, context: str = "") -> int:
     """
-    从 COM 返回值提取返回码（最后一个元素）
+    Extract the return code from a COM result value.
 
-    comtypes 返回 list 或 tuple 时，返回码总在 result[-1]。
-    如果返回的是单个值（int），直接返回。
-    当返回码非零时：
-      - 自动记录 warning 日志（包含调用者文件和函数名）
-      - 若 config.strict_mode=True，抛出 PySap2000Error 异常
+    For tuple/list results, the return code is expected at `result[-1]`.
+    If a scalar integer is returned, it is treated as the return code directly.
+    When the return code is non-zero:
+      - a warning is logged automatically
+      - `PySap2000Error` is raised when `config.strict_mode` is enabled
 
     Args:
-        result: COM 调用的原始返回值
-        context: 可选的手动上下文描述，为空时自动从调用栈获取
+        result: Raw return value from a COM call
+        context: Optional manual context description
 
     Returns:
-        返回码，0 表示成功
+        The return code, where `0` means success
 
     Raises:
-        PySap2000Error: strict_mode 开启且返回码非零时抛出
+        PySap2000Error: Raised when strict mode is enabled and the code is non-zero
 
     Example:
         ret = com_ret(model.FrameObj.Delete("1"))
@@ -57,7 +58,7 @@ def com_ret(result, *, context: str = "") -> int:
         ret = result
 
     if ret != 0:
-        # 用 sys._getframe 替代 inspect.stack()，性能提升 10x+
+        # `sys._getframe()` is much cheaper than `inspect.stack()` here.
         if context:
             caller_info = context
         else:
@@ -69,7 +70,7 @@ def com_ret(result, *, context: str = "") -> int:
             except (AttributeError, ValueError):
                 caller_info = "<unknown>"
 
-        msg = f"COM 调用失败: {caller_info}, 返回码={ret}"
+        msg = f"COM call failed: {caller_info}, return_code={ret}"
         _log.warning(msg)
 
         from PySap2000.config import config
@@ -82,15 +83,15 @@ def com_ret(result, *, context: str = "") -> int:
 
 def com_data(result, index: int = 0, default=None) -> Any:
     """
-    从 COM 返回值提取指定位置的数据
+    Extract data from a specific position in a COM result value.
 
     Args:
-        result: COM 调用的原始返回值
-        index: 数据所在的索引位置，默认 0
-        default: 提取失败时的默认值
+        result: Raw return value from a COM call
+        index: Position of the desired value, default `0`
+        default: Value returned when extraction fails
 
     Returns:
-        指定位置的数据
+        The extracted data item
 
     Example:
         result = model.FrameObj.GetNameList(0, [])

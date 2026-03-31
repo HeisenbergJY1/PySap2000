@@ -1,34 +1,34 @@
 # -*- coding: utf-8 -*-
 """
-select.py - 全局选择操作函数
+select.py - Global selection operation helpers
 
-对应 SAP2000 的 SelectObj API
+Wraps the SAP2000 `SelectObj` API.
 
-这是全局选择操作模块，用于批量选择对象。
-单个对象的选择状态请使用 types_for_xxx/xx_selection.py
+This module provides global helpers for batch object selection.
+For per-object selection state, use each module's `selection.py` (for example `frame/selection.py`).
 
 SAP2000 API:
-- SelectObj.All(DeSelect) - 选择/取消选择所有对象
-- SelectObj.ClearSelection() - 清除选择
-- SelectObj.InvertSelection() - 反转选择
-- SelectObj.PreviousSelection() - 恢复上一次选择
-- SelectObj.GetSelected(NumberItems, ObjectType[], ObjectName[]) - 获取已选择对象
-- SelectObj.Group(Name, DeSelect) - 按组选择
-- SelectObj.Constraint(Name, DeSelect) - 按约束选择
-- SelectObj.CoordinateRange(...) - 按坐标范围选择
-- SelectObj.PlaneXY/XZ/YZ(Name, DeSelect) - 按平面选择
-- SelectObj.LinesParallelToCoordAxis(ParallelTo[], ...) - 选择平行于坐标轴的线
-- SelectObj.LinesParallelToLine(Name, DeSelect) - 选择平行于指定线的线
-- SelectObj.PropertyFrame/Area/Link/...(Name, DeSelect) - 按属性选择
-- SelectObj.SupportedPoints(DOF[], ...) - 选择有支座的节点
+- `SelectObj.All(DeSelect)` - Select or deselect all objects
+- `SelectObj.ClearSelection()` - Clear the current selection
+- `SelectObj.InvertSelection()` - Invert the current selection
+- `SelectObj.PreviousSelection()` - Restore the previous selection
+- `SelectObj.GetSelected(NumberItems, ObjectType[], ObjectName[])` - Get selected objects
+- `SelectObj.Group(Name, DeSelect)` - Select by group
+- `SelectObj.Constraint(Name, DeSelect)` - Select by constraint
+- `SelectObj.CoordinateRange(...)` - Select by coordinate range
+- `SelectObj.PlaneXY/XZ/YZ(Name, DeSelect)` - Select by plane
+- `SelectObj.LinesParallelToCoordAxis(ParallelTo[], ...)` - Select lines parallel to a coordinate axis
+- `SelectObj.LinesParallelToLine(Name, DeSelect)` - Select lines parallel to a reference line
+- `SelectObj.PropertyFrame/Area/Link/...(Name, DeSelect)` - Select by property
+- `SelectObj.SupportedPoints(DOF[], ...)` - Select supported points
 
 Usage:
     from PySap2000.selection import select_all, get_selected, select_by_group
     
-    # 选择所有
+    # Select all
     select_all(model)
     
-    # 获取已选择对象
+    # Get selected objects
     for obj_type, obj_name in get_selected(model):
         print(f"{obj_type}: {obj_name}")
 """
@@ -39,17 +39,17 @@ from .enums import SelectObjectType
 from PySap2000.com_helper import com_ret, com_data
 
 
-# ==================== 基础选择操作 ====================
+# ==================== Basic selection operations ====================
 
 def select_all(model) -> int:
     """
-    选择所有对象
+    Select all objects
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_all(model)
@@ -59,13 +59,13 @@ def select_all(model) -> int:
 
 def deselect_all(model) -> int:
     """
-    取消选择所有对象
+    Deselect all objects
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         deselect_all(model)
@@ -75,13 +75,13 @@ def deselect_all(model) -> int:
 
 def clear_selection(model) -> int:
     """
-    清除选择
+    Clear the current selection
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         clear_selection(model)
@@ -91,15 +91,15 @@ def clear_selection(model) -> int:
 
 def invert_selection(model) -> int:
     """
-    反转选择
+    Invert the current selection
     
-    取消选择已选对象，选择未选对象
+    Deselect currently selected objects and select the unselected ones.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         invert_selection(model)
@@ -109,13 +109,13 @@ def invert_selection(model) -> int:
 
 def previous_selection(model) -> int:
     """
-    恢复上一次选择
+    Restore the previous selection
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         previous_selection(model)
@@ -125,13 +125,13 @@ def previous_selection(model) -> int:
 
 def get_selected(model) -> List[Tuple[SelectObjectType, str]]:
     """
-    获取已选择对象列表
+    Get the list of selected objects
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        (对象类型, 对象名称) 元组列表
+        List of `(object_type, object_name)` tuples
         
     Example:
         selected = get_selected(model)
@@ -155,13 +155,13 @@ def get_selected(model) -> List[Tuple[SelectObjectType, str]]:
 
 def get_selected_raw(model) -> List[Tuple[int, str]]:
     """
-    获取已选择对象列表 (原始格式)
+    Get the selected object list in raw form
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        (对象类型整数, 对象名称) 元组列表
+        List of `(object_type_int, object_name)` tuples
         
     Example:
         selected = get_selected_raw(model)
@@ -182,13 +182,13 @@ def get_selected_raw(model) -> List[Tuple[int, str]]:
 
 def get_selected_count(model) -> int:
     """
-    获取已选择对象数量
+    Get the number of selected objects
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        已选择对象数量
+        Number of selected objects
     """
     result = model.SelectObj.GetSelected(0, [], [])
     
@@ -197,14 +197,14 @@ def get_selected_count(model) -> int:
 
 def get_selected_by_type(model, object_type: SelectObjectType) -> List[str]:
     """
-    获取指定类型的已选择对象
+    Get selected objects of a given type
     
     Args:
-        model: SapModel 对象
-        object_type: 对象类型
+        model: SAP2000 SapModel object
+        object_type: Object type
         
     Returns:
-        对象名称列表
+        List of object names
         
     Example:
         frames = get_selected_by_type(model, SelectObjectType.FRAME)
@@ -213,18 +213,18 @@ def get_selected_by_type(model, object_type: SelectObjectType) -> List[str]:
     return [name for obj_type, name in selected if obj_type == int(object_type)]
 
 
-# ==================== 按组/约束选择 ====================
+# ==================== Group / constraint selection ====================
 
 def select_by_group(model, group_name: str) -> int:
     """
-    按组选择对象
+    Select objects by group
     
     Args:
-        model: SapModel 对象
-        group_name: 组名称
+        model: SAP2000 SapModel object
+        group_name: Group name
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_group(model, "Beams")
@@ -234,14 +234,14 @@ def select_by_group(model, group_name: str) -> int:
 
 def deselect_by_group(model, group_name: str) -> int:
     """
-    按组取消选择对象
+    Deselect objects by group
     
     Args:
-        model: SapModel 对象
-        group_name: 组名称
+        model: SAP2000 SapModel object
+        group_name: Group name
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         deselect_by_group(model, "Beams")
@@ -251,16 +251,16 @@ def deselect_by_group(model, group_name: str) -> int:
 
 def select_by_constraint(model, constraint_name: str) -> int:
     """
-    按约束选择节点
+    Select points by constraint
     
-    选择分配了指定约束的所有节点
+    Select all points assigned to the specified constraint.
     
     Args:
-        model: SapModel 对象
-        constraint_name: 约束名称
+        model: SAP2000 SapModel object
+        constraint_name: Constraint name
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_constraint(model, "Diaph1")
@@ -270,14 +270,14 @@ def select_by_constraint(model, constraint_name: str) -> int:
 
 def deselect_by_constraint(model, constraint_name: str) -> int:
     """
-    按约束取消选择节点
+    Deselect points by constraint
     
     Args:
-        model: SapModel 对象
-        constraint_name: 约束名称
+        model: SAP2000 SapModel object
+        constraint_name: Constraint name
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         deselect_by_constraint(model, "Diaph1")
@@ -285,7 +285,7 @@ def deselect_by_constraint(model, constraint_name: str) -> int:
     return model.SelectObj.Constraint(constraint_name, True)
 
 
-# ==================== 按几何位置选择 ====================
+# ==================== Geometric selection ====================
 
 def select_by_coordinate_range(
     model,
@@ -305,30 +305,30 @@ def select_by_coordinate_range(
     link: bool = True
 ) -> int:
     """
-    按坐标范围选择对象
+    Select objects by coordinate range
     
     Args:
-        model: SapModel 对象
-        x_min, x_max: X坐标范围
-        y_min, y_max: Y坐标范围
-        z_min, z_max: Z坐标范围
-        deselect: False=选择, True=取消选择
-        csys: 坐标系名称
-        include_intersections: True=包含相交对象, False=仅完全在范围内的对象
-        point: 是否选择节点
-        line: 是否选择线对象
-        area: 是否选择面对象
-        solid: 是否选择实体对象
-        link: 是否选择连接单元
+        model: SAP2000 SapModel object
+        x_min, x_max: X-coordinate range
+        y_min, y_max: Y-coordinate range
+        z_min, z_max: Z-coordinate range
+        deselect: `False` to select, `True` to deselect
+        csys: Coordinate system name
+        include_intersections: `True` to include intersecting objects, `False` for only fully contained objects
+        point: Whether to include points
+        line: Whether to include line objects
+        area: Whether to include area objects
+        solid: Whether to include solid objects
+        link: Whether to include link objects
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
-        # 选择 X:0-10, Y:0-10, Z:0-5 范围内的所有对象
+        # Select all objects within X:0-10, Y:0-10, Z:0-5
         select_by_coordinate_range(model, 0, 10, 0, 10, 0, 5)
         
-        # 仅选择杆件
+        # Select only frame/line objects
         select_by_coordinate_range(model, 0, 10, 0, 10, 0, 5, 
                                    point=False, area=False, solid=False, link=False)
     """
@@ -341,15 +341,15 @@ def select_by_coordinate_range(
 
 def select_by_plane_xy(model, point_name: str, deselect: bool = False) -> int:
     """
-    选择与指定节点同一XY平面的对象
+    Select objects in the same XY plane as a point
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        point_name: Point name
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_plane_xy(model, "3")
@@ -359,15 +359,15 @@ def select_by_plane_xy(model, point_name: str, deselect: bool = False) -> int:
 
 def select_by_plane_xz(model, point_name: str, deselect: bool = False) -> int:
     """
-    选择与指定节点同一XZ平面的对象
+    Select objects in the same XZ plane as a point
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        point_name: Point name
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_plane_xz(model, "3")
@@ -377,15 +377,15 @@ def select_by_plane_xz(model, point_name: str, deselect: bool = False) -> int:
 
 def select_by_plane_yz(model, point_name: str, deselect: bool = False) -> int:
     """
-    选择与指定节点同一YZ平面的对象
+    Select objects in the same YZ plane as a point
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        point_name: Point name
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_plane_yz(model, "3")
@@ -401,32 +401,32 @@ def select_lines_parallel_to_coord_axis(
     deselect: bool = False
 ) -> int:
     """
-    选择平行于坐标轴或平面的线对象
+    Select line objects parallel to a coordinate axis or plane
     
     Args:
-        model: SapModel 对象
-        parallel_to: 6个布尔值的列表
-            [0] = X轴
-            [1] = Y轴
-            [2] = Z轴
-            [3] = XY平面
-            [4] = XZ平面
-            [5] = YZ平面
-        csys: 坐标系名称
-        tolerance: 角度容差 [deg]
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        parallel_to: List of 6 booleans
+            [0] = X axis
+            [1] = Y axis
+            [2] = Z axis
+            [3] = XY plane
+            [4] = XZ plane
+            [5] = YZ plane
+        csys: Coordinate system name
+        tolerance: Angular tolerance [deg]
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
-        # 选择平行于Z轴的线
+        # Select lines parallel to the Z axis
         select_lines_parallel_to_coord_axis(model, [False, False, True, False, False, False])
         
-        # 选择平行于XY平面的线
+        # Select lines parallel to the XY plane
         select_lines_parallel_to_coord_axis(model, [False, False, False, True, False, False])
     """
-    # 确保列表长度为6
+    # Ensure the list has length 6
     if len(parallel_to) < 6:
         parallel_to = parallel_to + [False] * (6 - len(parallel_to))
     
@@ -435,15 +435,15 @@ def select_lines_parallel_to_coord_axis(
 
 def select_lines_parallel_to_line(model, line_name: str, deselect: bool = False) -> int:
     """
-    选择平行于指定线的所有线对象
+    Select all line objects parallel to a reference line
     
     Args:
-        model: SapModel 对象
-        line_name: 线对象名称
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        line_name: Line object name
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_lines_parallel_to_line(model, "1")
@@ -451,19 +451,19 @@ def select_lines_parallel_to_line(model, line_name: str, deselect: bool = False)
     return model.SelectObj.LinesParallelToLine(str(line_name), deselect)
 
 
-# ==================== 按属性选择 ====================
+# ==================== Property-based selection ====================
 
 def select_by_property_frame(model, section_name: str, deselect: bool = False) -> int:
     """
-    按杆件截面属性选择
+    Select by frame section property
     
     Args:
-        model: SapModel 对象
-        section_name: 截面名称
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        section_name: Section name
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_property_frame(model, "FSEC1")
@@ -473,15 +473,15 @@ def select_by_property_frame(model, section_name: str, deselect: bool = False) -
 
 def select_by_property_area(model, section_name: str, deselect: bool = False) -> int:
     """
-    按面截面属性选择
+    Select by area section property
     
     Args:
-        model: SapModel 对象
-        section_name: 截面名称
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        section_name: Section name
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_property_area(model, "ASEC1")
@@ -491,15 +491,15 @@ def select_by_property_area(model, section_name: str, deselect: bool = False) ->
 
 def select_by_property_cable(model, section_name: str, deselect: bool = False) -> int:
     """
-    按索属性选择
+    Select by cable property
     
     Args:
-        model: SapModel 对象
-        section_name: 属性名称
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        section_name: Property name
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_property_cable(model, "Cable1")
@@ -509,15 +509,15 @@ def select_by_property_cable(model, section_name: str, deselect: bool = False) -
 
 def select_by_property_tendon(model, section_name: str, deselect: bool = False) -> int:
     """
-    按预应力筋属性选择
+    Select by tendon property
     
     Args:
-        model: SapModel 对象
-        section_name: 属性名称
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        section_name: Property name
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_property_tendon(model, "Tendon1")
@@ -527,15 +527,15 @@ def select_by_property_tendon(model, section_name: str, deselect: bool = False) 
 
 def select_by_property_link(model, property_name: str, deselect: bool = False) -> int:
     """
-    按连接属性选择
+    Select by link property
     
     Args:
-        model: SapModel 对象
-        property_name: 属性名称
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        property_name: Property name
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_property_link(model, "GAP1")
@@ -545,15 +545,15 @@ def select_by_property_link(model, property_name: str, deselect: bool = False) -
 
 def select_by_property_link_fd(model, property_name: str, deselect: bool = False) -> int:
     """
-    按频率相关连接属性选择
+    Select by frequency-dependent link property
     
     Args:
-        model: SapModel 对象
-        property_name: 属性名称
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        property_name: Property name
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_property_link_fd(model, "FDLink1")
@@ -563,15 +563,15 @@ def select_by_property_link_fd(model, property_name: str, deselect: bool = False
 
 def select_by_property_solid(model, property_name: str, deselect: bool = False) -> int:
     """
-    按实体属性选择
+    Select by solid property
     
     Args:
-        model: SapModel 对象
-        property_name: 属性名称
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        property_name: Property name
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_property_solid(model, "Solid1")
@@ -581,17 +581,17 @@ def select_by_property_solid(model, property_name: str, deselect: bool = False) 
 
 def select_by_property_material(model, material_name: str, deselect: bool = False) -> int:
     """
-    按材料属性选择
+    Select by material property
     
-    选择使用指定材料的所有对象
+    Select all objects that use the specified material.
     
     Args:
-        model: SapModel 对象
-        material_name: 材料名称
-        deselect: False=选择, True=取消选择
+        model: SAP2000 SapModel object
+        material_name: Material name
+        deselect: `False` to select, `True` to deselect
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
         select_by_property_material(model, "A992Fy50")
@@ -599,7 +599,7 @@ def select_by_property_material(model, material_name: str, deselect: bool = Fals
     return model.SelectObj.PropertyMaterial(material_name, deselect)
 
 
-# ==================== 按支座选择 ====================
+# ==================== Support-based selection ====================
 
 def select_supported_points(
     model,
@@ -614,37 +614,37 @@ def select_supported_points(
     select_one_joint_links: bool = True
 ) -> int:
     """
-    选择有支座的节点
+    Select supported points
     
     Args:
-        model: SapModel 对象
-        dof: 6个布尔值的列表，表示自由度
+        model: SAP2000 SapModel object
+        dof: List of 6 booleans representing the DOFs
             [0] = U1
             [1] = U2
             [2] = U3
             [3] = R1
             [4] = R2
             [5] = R3
-        csys: 坐标系名称 ("Local" 或已定义的坐标系)
-        deselect: False=选择, True=取消选择
-        select_restraints: 是否选择有约束的节点
-        select_joint_springs: 是否选择有节点弹簧的节点
-        select_line_springs: 是否选择有线弹簧贡献的节点
-        select_area_springs: 是否选择有面弹簧贡献的节点
-        select_solid_springs: 是否选择有实体弹簧贡献的节点
-        select_one_joint_links: 是否选择有单节点连接的节点
+        csys: Coordinate system name (`"Local"` or a defined coordinate system)
+        deselect: `False` to select, `True` to deselect
+        select_restraints: Whether to include restrained points
+        select_joint_springs: Whether to include points with joint springs
+        select_line_springs: Whether to include points with line spring contribution
+        select_area_springs: Whether to include points with area spring contribution
+        select_solid_springs: Whether to include points with solid spring contribution
+        select_one_joint_links: Whether to include points with one-joint links
         
     Returns:
-        0 表示成功
+        `0` on success
         
     Example:
-        # 选择Z方向有支座的节点
+        # Select points supported in the Z direction
         select_supported_points(model, [False, False, True, False, False, False])
         
-        # 选择所有方向有约束的节点
+        # Select points restrained in all directions
         select_supported_points(model, [True, True, True, True, True, True])
     """
-    # 确保列表长度为6
+    # Ensure the list has length 6
     if len(dof) < 6:
         dof = dof + [False] * (6 - len(dof))
     
@@ -658,29 +658,29 @@ def select_supported_points(
 
 def get_selected_objects(model) -> dict:
     """
-    获取当前选中的对象，按类型分类
+    Get the currently selected objects grouped by type
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        按类型分类的字典:
+        Dictionary grouped by type:
         {
-            "points": [],   # 节点
-            "frames": [],   # 杆件
-            "cables": [],   # 索
-            "tendons": [],  # 预应力筋
-            "areas": [],    # 面单元
-            "solids": [],   # 实体
-            "links": []     # 连接单元
+            "points": [],   # Points
+            "frames": [],   # Frames
+            "cables": [],   # Cables
+            "tendons": [],  # Tendons
+            "areas": [],    # Areas
+            "solids": [],   # Solids
+            "links": []     # Links
         }
         
     Example:
         selected = get_selected_objects(model)
-        print(f"选中了 {len(selected['frames'])} 个杆件")
-        print(f"选中了 {len(selected['areas'])} 个面单元")
+        print(f"Selected {len(selected['frames'])} frames")
+        print(f"Selected {len(selected['areas'])} areas")
         
-        # 遍历选中的面单元
+        # Iterate over selected areas
         for area_name in selected["areas"]:
             print(area_name)
     """
@@ -702,7 +702,7 @@ def get_selected_objects(model) -> dict:
     if not obj_types or not obj_names:
         return classified
     
-    # 对象类型: 1=Point, 2=Frame, 3=Cable, 4=Tendon, 5=Area, 6=Solid, 7=Link
+    # Object types: 1=Point, 2=Frame, 3=Cable, 4=Tendon, 5=Area, 6=Solid, 7=Link
     type_map = {
         1: "points",
         2: "frames",

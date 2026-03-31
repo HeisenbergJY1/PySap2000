@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-structure_core - 核心结构对象
-对应 SAP2000 的基本几何对象（PointObj, FrameObj, AreaObj 等）和材料
+structure_core - Core structural objects.
 
-设计原则 (参考 Dlubal API):
-- 核心对象 (Point, Frame, Area, Material 等) 是纯数据类
-- 扩展功能通过 types_for_xxx/ 模块的函数实现
-- 例如: 节点支座使用 types_for_points.set_point_support()
+This package contains the base geometric objects and material objects that map
+to SAP2000 APIs such as `PointObj`, `FrameObj`, and `AreaObj`.
 
-截面定义在 section/ 目录
+Design principles:
+- core objects such as `Point`, `Frame`, `Area`, and `Material` are pure data classes
+- extended behavior is implemented through helper functions in modules such as
+  `point/`, `frame/`, and `area/`
+- for example, point supports are assigned through `point.set_point_support()`
+
+Section definitions live in the `section/` package.
 """
 
 from .point import Point, PointCoordinateSystemType
@@ -16,7 +19,7 @@ from .material import (
     Material, MaterialType, MaterialSymmetryType, 
     WeightMassOption, MaterialDamping
 )
-# PointSupportType, ItemType 等枚举已移至 types_for_points 模块
+# PointSupportType and ItemType live in the `point` package.
 from .frame import Frame, FrameType, FrameSectionType, FrameReleaseType
 from .area import (
     Area, AreaType, AreaMeshType, AreaThicknessType, AreaOffsetType,
@@ -27,7 +30,7 @@ from .area import (
 )
 from .cable import Cable, CableType, CableGeometry, CableParameters
 from .link import Link, LinkLocalAxesAdvanced
-from link.enums import (
+from PySap2000.link.enums import (
     LinkType, LinkDirectionalType, LinkItemType, AxisVectorOption
 )
 
@@ -41,7 +44,7 @@ __all__ = [
     # Point (PointObj)
     'Point',
     'PointCoordinateSystemType',
-    # PointSupportType, ItemType 已移至 types_for_points
+    # PointSupportType and ItemType live in the `point` package
     # Frame (FrameObj)
     'Frame',
     'FrameType',

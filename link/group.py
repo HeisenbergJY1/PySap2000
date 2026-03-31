@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-group.py - 连接单元组分配相关函数
+group.py - Link group-assignment helpers.
 
-用于设置连接单元的组分配
+Provides functions to assign link objects to groups and query those assignments.
 
 SAP2000 API:
 - LinkObj.SetGroupAssign(Name, GroupName, Remove, ItemType)
@@ -22,17 +22,17 @@ def set_link_group(
     item_type: LinkItemType = LinkItemType.OBJECT
 ) -> int:
     """
-    设置连接单元组分配
+    Assign or remove a link object from a group.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        group_name: 组名称 (必须已存在)
-        remove: False=添加到组, True=从组移除
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        link_name: Link object name
+        group_name: Group name, which must already exist
+        remove: `False` to add the link, `True` to remove it
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
         set_link_group(model, "1", "Isolators")
@@ -46,7 +46,7 @@ def add_link_to_group(
     group_name: str,
     item_type: LinkItemType = LinkItemType.OBJECT
 ) -> int:
-    """将连接单元添加到组"""
+    """Add a link object to a group."""
     return set_link_group(model, link_name, group_name, False, item_type)
 
 
@@ -56,20 +56,20 @@ def remove_link_from_group(
     group_name: str,
     item_type: LinkItemType = LinkItemType.OBJECT
 ) -> int:
-    """从组移除连接单元"""
+    """Remove a link object from a group."""
     return set_link_group(model, link_name, group_name, True, item_type)
 
 
 def get_link_groups(model, link_name: str) -> Optional[List[str]]:
     """
-    获取连接单元所属组
+    Get the groups assigned to a link object.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
+        model: SAP2000 SapModel object
+        link_name: Link object name
     
     Returns:
-        组名称列表，失败返回 None
+        List of group names, or `None` if the query fails.
     """
     try:
         result = model.LinkObj.GetGroupAssign(str(link_name), 0, [])
@@ -83,7 +83,7 @@ def get_link_groups(model, link_name: str) -> Optional[List[str]]:
 
 
 def is_link_in_group(model, link_name: str, group_name: str) -> bool:
-    """检查连接单元是否在指定组中"""
+    """Check whether a link object belongs to a specific group."""
     groups = get_link_groups(model, link_name)
     if groups:
         return group_name in groups
@@ -91,7 +91,7 @@ def is_link_in_group(model, link_name: str, group_name: str) -> bool:
 
 
 def add_links_to_group(model, link_names: List[str], group_name: str) -> int:
-    """批量将连接单元添加到组"""
+    """Add multiple link objects to a group."""
     ret = 0
     for name in link_names:
         result = add_link_to_group(model, name, group_name)
@@ -101,7 +101,7 @@ def add_links_to_group(model, link_names: List[str], group_name: str) -> int:
 
 
 def remove_links_from_group(model, link_names: List[str], group_name: str) -> int:
-    """批量从组移除连接单元"""
+    """Remove multiple link objects from a group."""
     ret = 0
     for name in link_names:
         result = remove_link_from_group(model, name, group_name)

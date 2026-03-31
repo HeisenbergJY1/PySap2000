@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-design/steel.py - 钢结构设计函数
+design/steel.py - Steel design helpers
 
-SAP2000 DesignSteel API 的 Python 封装。
+Python wrapper for the SAP2000 `DesignSteel` API.
 """
 
 from typing import List, Optional, Union
@@ -13,27 +13,27 @@ from PySap2000.com_helper import com_ret, com_data
 
 
 def get_steel_code(model) -> str:
-    """获取当前钢结构设计规范
+    """Get the active steel design code
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        规范名称字符串
+        Code name string
     """
     result = model.DesignSteel.GetCode("")
     return com_data(result, 0, "")
 
 
 def set_steel_code(model, code: Union[SteelDesignCode, str]) -> int:
-    """设置钢结构设计规范
+    """Set the steel design code
     
     Args:
-        model: SapModel 对象
-        code: 规范枚举或规范名称字符串
+        model: SAP2000 SapModel object
+        code: Code enum or code name string
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     if isinstance(code, SteelDesignCode):
         code_name = STEEL_CODE_NAMES.get(code, "AISC 360-10")
@@ -45,41 +45,41 @@ def set_steel_code(model, code: Union[SteelDesignCode, str]) -> int:
 
 
 def start_steel_design(model) -> int:
-    """开始钢结构设计
+    """Run steel design
     
-    注意：需要先运行分析，且模型中存在钢框架对象。
+    Requires analysis to be run and steel frame objects in the model.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignSteel.StartDesign()
     return com_ret(ret)
 
 
 def delete_steel_results(model) -> int:
-    """删除所有钢结构设计结果
+    """Delete all steel design results
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignSteel.DeleteResults()
     return com_ret(ret)
 
 
 def get_steel_results_available(model) -> bool:
-    """检查钢结构设计结果是否可用
+    """Whether steel design results are available
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        True 表示结果可用，False 表示不可用
+        `True` if results are available
     """
     result = model.DesignSteel.GetResultsAvailable()
     return bool(com_data(result, 0, result))
@@ -90,15 +90,15 @@ def get_steel_summary_results(
     name: str,
     item_type: ItemType = ItemType.OBJECT
 ) -> List[SteelSummaryResult]:
-    """获取钢结构设计汇总结果
+    """Get steel design summary results
     
     Args:
-        model: SapModel 对象
-        name: 对象名称、组名称或忽略（取决于 item_type）
-        item_type: 对象选择类型
+        model: SAP2000 SapModel object
+        name: Object name, group name, or ignored depending on `item_type`
+        item_type: Object selection mode
         
     Returns:
-        设计结果列表
+        List of design results
     """
     result = model.DesignSteel.GetSummaryResults(
         name, 0, [], [], [], [], [], [], [], int(item_type)
@@ -116,7 +116,7 @@ def get_steel_summary_results(
         warning_summaries = com_data(result, 7) or []
         
         for i in range(num_items):
-            # 安全处理 ratio_type，未知值默认为 NONE
+            # Coerce `ratio_type`; default to NONE if unknown
             try:
                 ratio_type_val = ratio_types[i] if i < len(ratio_types) else 0
                 ratio_type = RatioType(ratio_type_val)
@@ -137,13 +137,13 @@ def get_steel_summary_results(
 
 
 def get_steel_design_group(model) -> List[str]:
-    """获取选中用于钢结构设计的组
+    """Groups selected for steel design
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        组名称列表
+        List of group names
     """
     result = model.DesignSteel.GetGroup(0, [])
     names = com_data(result, 1)
@@ -153,29 +153,29 @@ def get_steel_design_group(model) -> List[str]:
 
 
 def set_steel_design_group(model, name: str, selected: bool = True) -> int:
-    """设置组是否用于钢结构设计
+    """Select or deselect a group for steel design
     
     Args:
-        model: SapModel 对象
-        name: 组名称
-        selected: True 选中，False 取消选中
+        model: SAP2000 SapModel object
+        name: Group name
+        selected: `True` to select, `False` to deselect
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignSteel.SetGroup(name, selected)
     return com_ret(ret)
 
 
 def get_steel_design_section(model, name: str) -> str:
-    """获取框架对象的设计截面
+    """Get the design section assigned to a frame
     
     Args:
-        model: SapModel 对象
-        name: 框架对象名称
+        model: SAP2000 SapModel object
+        name: Frame object name
         
     Returns:
-        设计截面名称
+        Design section name
     """
     result = model.DesignSteel.GetDesignSection(name, "")
     return com_data(result, 0, "")
@@ -188,30 +188,30 @@ def set_steel_design_section(
     last_analysis: bool = False,
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
-    """设置框架对象的设计截面
+    """Set the design section for frame objects
     
     Args:
-        model: SapModel 对象
-        name: 对象名称、组名称或忽略（取决于 item_type）
-        prop_name: 截面名称（last_analysis=False 时使用）
-        last_analysis: True 使用最后分析截面，False 使用指定截面
-        item_type: 对象选择类型
+        model: SAP2000 SapModel object
+        name: Object name, group name, or ignored depending on `item_type`
+        prop_name: Section name when `last_analysis=False`
+        last_analysis: Use last analysis section if `True`, else use `prop_name`
+        item_type: Object selection mode
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignSteel.SetDesignSection(name, prop_name, last_analysis, int(item_type))
     return com_ret(ret)
 
 
 def get_steel_combo_strength(model) -> List[str]:
-    """获取用于强度设计的荷载组合
+    """Load combinations used for strength design
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        组合名称列表
+        List of load combination names
     """
     result = model.DesignSteel.GetComboStrength(0, [])
     names = com_data(result, 1)
@@ -221,28 +221,28 @@ def get_steel_combo_strength(model) -> List[str]:
 
 
 def set_steel_combo_strength(model, name: str, selected: bool = True) -> int:
-    """设置荷载组合是否用于强度设计
+    """Select a load combination for strength design
     
     Args:
-        model: SapModel 对象
-        name: 荷载组合名称
-        selected: True 选中，False 取消选中
+        model: SAP2000 SapModel object
+        name: Load combination name
+        selected: `True` to select, `False` to deselect
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignSteel.SetComboStrength(name, selected)
     return com_ret(ret)
 
 
 def get_steel_combo_deflection(model) -> List[str]:
-    """获取用于挠度设计的荷载组合
+    """Load combinations used for deflection design
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        组合名称列表
+        List of load combination names
     """
     result = model.DesignSteel.GetComboDeflection(0, [])
     names = com_data(result, 1)
@@ -252,85 +252,85 @@ def get_steel_combo_deflection(model) -> List[str]:
 
 
 def set_steel_combo_deflection(model, name: str, selected: bool = True) -> int:
-    """设置荷载组合是否用于挠度设计
+    """Select a load combination for deflection design
     
     Args:
-        model: SapModel 对象
-        name: 荷载组合名称
-        selected: True 选中，False 取消选中
+        model: SAP2000 SapModel object
+        name: Load combination name
+        selected: `True` to select, `False` to deselect
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignSteel.SetComboDeflection(name, selected)
     return com_ret(ret)
 
 
 def get_steel_combo_auto_generate(model) -> bool:
-    """获取是否自动生成设计组合
+    """Whether design combinations are auto-generated
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        True 表示自动生成
+        `True` if auto-generated
     """
     result = model.DesignSteel.GetComboAutoGenerate(False)
     return bool(com_data(result, 0, False))
 
 
 def set_steel_combo_auto_generate(model, auto_generate: bool = True) -> int:
-    """设置是否自动生成设计组合
+    """Enable or disable auto-generation of design combinations
 
     Args:
-        model: SapModel 对象
-        auto_generate: True 自动生成
+        model: SAP2000 SapModel object
+        auto_generate: `True` to auto-generate
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignSteel.SetComboAutoGenerate(auto_generate)
     return com_ret(ret)
 
 
 def set_steel_auto_select_null(model, name: str, item_type: ItemType = ItemType.OBJECT) -> int:
-    """将自动选择截面设为 None（移除自动选择）
+    """Clear auto-select section (set to None)
 
     Args:
-        model: SapModel 对象
-        name: 对象名称
-        item_type: 对象选择类型
+        model: SAP2000 SapModel object
+        name: Object name
+        item_type: Object selection mode
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignSteel.SetAutoSelectNull(name, int(item_type))
     return com_ret(ret)
 
 
 def reset_steel_overwrites(model) -> int:
-    """重置所有钢结构设计覆盖为默认值
+    """Reset all steel design overwrites to defaults
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignSteel.ResetOverwrites()
     return com_ret(ret)
 
 
 def verify_steel_passed(model) -> VerifyPassedResult:
-    """验证钢结构设计是否通过
+    """Verify steel design acceptance
     
-    获取未通过设计检查或尚未检查的框架对象。
+    Frames that failed design checks or are not yet checked.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        验证结果
+        Verification result
     """
     result = model.DesignSteel.VerifyPassed(0, 0, 0, [])
     
@@ -351,15 +351,15 @@ def verify_steel_passed(model) -> VerifyPassedResult:
 
 
 def verify_steel_sections(model) -> List[str]:
-    """验证分析截面与设计截面是否一致
+    """Verify analysis vs. design section assignments
     
-    获取分析截面与设计截面不同的框架对象。
+    Frames whose analysis section differs from the design section.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        截面不一致的框架对象名称列表
+        Frame names with mismatched sections
     """
     result = model.DesignSteel.VerifySections(0, [])
     

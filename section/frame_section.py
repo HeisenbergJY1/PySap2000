@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-frame_section.py - 杆件截面属性定义
-对应 SAP2000 的 PropFrame
+frame_section.py - Frame section property definitions.
+Wraps SAP2000 `PropFrame`.
 
-本模块用于定义截面属性（是什么），而非分配截面到杆件（怎么用）。
-截面分配功能请使用 types_for_frames 模块。
+This module defines frame section properties themselves rather than assigning
+them to frame objects. Use the `frame` module for section assignments.
 
 Usage:
     from section import FrameSection, FrameSectionType
     
-    # 获取截面
+    # Get a section
     section = FrameSection.get_by_name(model, "W14X22")
-    print(f"类型: {section.type_name}, 材料: {section.material}")
+    print(f"Type: {section.type_name}, material: {section.material}")
     
-    # 创建矩形截面
+    # Create a rectangular section
     rect = FrameSection(
         name="R1",
         property_type=FrameSectionType.RECTANGULAR,
@@ -32,7 +32,7 @@ from PySap2000.com_helper import com_ret, com_data
 
 
 class FrameSectionType(IntEnum):
-    """杆件截面类型 - 对应 SAP2000 eFramePropType"""
+    """Frame section type corresponding to SAP2000 `eFramePropType`."""
     I_SECTION = 1
     CHANNEL = 2
     T_SECTION = 3
@@ -56,32 +56,32 @@ class FrameSectionType(IntEnum):
 
 
 SECTION_TYPE_NAMES: Dict[FrameSectionType, str] = {
-    FrameSectionType.I_SECTION: "I形截面",
-    FrameSectionType.CHANNEL: "槽钢",
-    FrameSectionType.T_SECTION: "T形截面",
-    FrameSectionType.ANGLE: "角钢",
-    FrameSectionType.DOUBLE_ANGLE: "双角钢",
-    FrameSectionType.BOX: "箱形截面",
-    FrameSectionType.PIPE: "圆管",
-    FrameSectionType.RECTANGULAR: "矩形截面",
-    FrameSectionType.CIRCLE: "圆形截面",
-    FrameSectionType.GENERAL: "一般截面",
-    FrameSectionType.DOUBLE_CHANNEL: "双槽钢",
-    FrameSectionType.SD: "截面设计器",
-    FrameSectionType.VARIABLE: "变截面",
-    FrameSectionType.COLD_C: "冷弯C型钢",
-    FrameSectionType.COLD_Z: "冷弯Z型钢",
-    FrameSectionType.COLD_L: "冷弯L型钢",
-    FrameSectionType.COLD_HAT: "冷弯帽型钢",
-    FrameSectionType.BUILTUP_I_COVERPLATE: "组合I形盖板",
-    FrameSectionType.PRECAST_I: "预制I形梁",
-    FrameSectionType.PRECAST_U: "预制U形梁",
+    FrameSectionType.I_SECTION: "I-section",
+    FrameSectionType.CHANNEL: "Channel",
+    FrameSectionType.T_SECTION: "T-section",
+    FrameSectionType.ANGLE: "Angle",
+    FrameSectionType.DOUBLE_ANGLE: "Double angle",
+    FrameSectionType.BOX: "Box",
+    FrameSectionType.PIPE: "Pipe",
+    FrameSectionType.RECTANGULAR: "Rectangular",
+    FrameSectionType.CIRCLE: "Circle",
+    FrameSectionType.GENERAL: "General",
+    FrameSectionType.DOUBLE_CHANNEL: "Double channel",
+    FrameSectionType.SD: "Section Designer",
+    FrameSectionType.VARIABLE: "Variable",
+    FrameSectionType.COLD_C: "Cold-formed C",
+    FrameSectionType.COLD_Z: "Cold-formed Z",
+    FrameSectionType.COLD_L: "Cold-formed L",
+    FrameSectionType.COLD_HAT: "Cold-formed hat",
+    FrameSectionType.BUILTUP_I_COVERPLATE: "Built-up I with cover plate",
+    FrameSectionType.PRECAST_I: "Precast I girder",
+    FrameSectionType.PRECAST_U: "Precast U girder",
 }
 
 
 @dataclass
 class FrameSection:
-    """杆件截面属性 - 对应 SAP2000 PropFrame"""
+    """Frame section property wrapper for SAP2000 `PropFrame`."""
     
     name: str = ""
     property_type: Optional[FrameSectionType] = None
@@ -104,49 +104,49 @@ class FrameSection:
     guid: Optional[str] = None
     file_name: str = ""
     
-    # 变截面属性
-    np_num_segments: int = 0                          # 变截面段数
-    np_start_secs: List[str] = field(default_factory=list)   # 每段起始截面名
-    np_end_secs: List[str] = field(default_factory=list)     # 每段结束截面名
-    np_lengths: List[float] = field(default_factory=list)    # 每段长度
-    np_length_types: List[int] = field(default_factory=list) # 长度类型 (1=变长, 2=绝对)
-    np_ei33: List[int] = field(default_factory=list)         # EI33变化类型 (1=线性, 2=抛物线, 3=立方)
-    np_ei22: List[int] = field(default_factory=list)         # EI22变化类型
+    # Nonprismatic section properties
+    np_num_segments: int = 0                          # Number of nonprismatic segments
+    np_start_secs: List[str] = field(default_factory=list)   # Start section name for each segment
+    np_end_secs: List[str] = field(default_factory=list)     # End section name for each segment
+    np_lengths: List[float] = field(default_factory=list)    # Segment lengths
+    np_length_types: List[int] = field(default_factory=list) # Length type (1=variable, 2=absolute)
+    np_ei33: List[int] = field(default_factory=list)         # EI33 variation (1=linear, 2=parabolic, 3=cubic)
+    np_ei22: List[int] = field(default_factory=list)         # EI22 variation
     
-    # 截面力学属性 (from GetSectProps API)
-    area: float = 0.0           # 截面面积 [L²]
-    as2: float = 0.0            # 2轴剪切面积 [L²]
-    as3: float = 0.0            # 3轴剪切面积 [L²]
-    torsion: float = 0.0        # 扭转常数 [L⁴]
-    i22: float = 0.0            # 2轴惯性矩 [L⁴]
-    i33: float = 0.0            # 3轴惯性矩 [L⁴]
-    s22: float = 0.0            # 2轴截面模量 [L³]
-    s33: float = 0.0            # 3轴截面模量 [L³]
-    z22: float = 0.0            # 2轴塑性模量 [L³]
-    z33: float = 0.0            # 3轴塑性模量 [L³]
-    r22: float = 0.0            # 2轴回转半径 [L]
-    r33: float = 0.0            # 3轴回转半径 [L]
+    # Section properties from `GetSectProps`
+    area: float = 0.0           # Area [L^2]
+    as2: float = 0.0            # Shear area about local-2 [L^2]
+    as3: float = 0.0            # Shear area about local-3 [L^2]
+    torsion: float = 0.0        # Torsional constant [L^4]
+    i22: float = 0.0            # Moment of inertia about local-2 [L^4]
+    i33: float = 0.0            # Moment of inertia about local-3 [L^4]
+    s22: float = 0.0            # Section modulus about local-2 [L^3]
+    s33: float = 0.0            # Section modulus about local-3 [L^3]
+    z22: float = 0.0            # Plastic modulus about local-2 [L^3]
+    z33: float = 0.0            # Plastic modulus about local-3 [L^3]
+    r22: float = 0.0            # Radius of gyration about local-2 [L]
+    r33: float = 0.0            # Radius of gyration about local-3 [L]
     
-    # 单位长度重量 (计算值)
+    # Computed unit weight
     _weight_per_meter: float = 0.0
     
     _object_type: ClassVar[str] = "PropFrame"
     
     @property
     def weight_per_meter(self) -> float:
-        """单位长度重量 (kg/m)"""
+        """Unit weight per length in `kg/m`."""
         return self._weight_per_meter
 
     @classmethod
     def get_by_name(cls, model, name: str) -> 'FrameSection':
-        """获取指定名称的截面"""
+        """Get a section by name."""
         prop = cls(name=name)
         prop._get(model)
         return prop
 
     @classmethod
     def get_all(cls, model) -> List['FrameSection']:
-        """获取所有截面"""
+        """Get all sections."""
         names = cls.get_name_list(model)
         props = []
         for name in names:
@@ -159,12 +159,12 @@ class FrameSection:
     
     @staticmethod
     def get_count(model) -> int:
-        """获取截面总数"""
+        """Get the total number of sections."""
         return model.PropFrame.Count()
     
     @staticmethod
     def get_name_list(model, property_type: FrameSectionType = None) -> List[str]:
-        """获取截面名称列表"""
+        """Get the list of section names."""
         if property_type is not None:
             result = model.PropFrame.GetNameList(property_type.value)
         else:
@@ -173,34 +173,34 @@ class FrameSection:
         return list(names) if names else []
 
     def _get(self, model) -> 'FrameSection':
-        """从 SAP2000 获取截面数据"""
+        """Load section data from SAP2000."""
         result = model.PropFrame.GetTypeOAPI(self.name)
         type_val = com_data(result, 0)
         ret = com_ret(result)
         if type_val is None:
-            from exceptions import SectionError
-            raise SectionError(f"获取截面 {self.name} 类型失败")
+            from PySap2000.exceptions import SectionError
+            raise SectionError(f"Failed to get section type for {self.name}")
         if ret != 0:
-            from exceptions import SectionError
-            raise SectionError(f"截面 {self.name} 不存在")
+            from PySap2000.exceptions import SectionError
+            raise SectionError(f"Section {self.name} does not exist")
         try:
             self.property_type = FrameSectionType(type_val)
-            self.type_name = SECTION_TYPE_NAMES.get(self.property_type, f"未知类型({type_val})")
+            self.type_name = SECTION_TYPE_NAMES.get(self.property_type, f"Unknown type ({type_val})")
         except ValueError:
             self.property_type = None
-            self.type_name = f"未知类型({type_val})"
+            self.type_name = f"Unknown type ({type_val})"
         self._get_properties_by_type(model)
-        # 如果材料为空，尝试通用方法获取
+        # If material is empty, try a generic fallback getter.
         if not self.material:
             self._get_material_fallback(model)
-        # 获取截面力学属性
+        # Load section properties.
         self._get_sect_props(model)
-        # 计算单位长度重量
+        # Compute unit weight.
         self._calculate_weight_per_meter(model)
         return self
     
     def _get_properties_by_type(self, model):
-        """根据截面类型获取属性"""
+        """Load type-specific properties."""
         if self.property_type == FrameSectionType.RECTANGULAR:
             self._get_rectangle(model)
         elif self.property_type == FrameSectionType.CIRCLE:
@@ -230,9 +230,9 @@ class FrameSection:
 
     def _get_sect_props(self, model) -> None:
         """
-        从 SAP2000 获取截面力学属性
-        
-        调用 PropFrame.GetSectProps API 获取截面面积、惯性矩等属性
+        Load section properties from SAP2000.
+
+        Calls `PropFrame.GetSectProps` to obtain area, inertia, and related properties.
         """
         try:
             result = model.PropFrame.GetSectProps(
@@ -253,22 +253,22 @@ class FrameSection:
                 self.r22 = com_data(result, 10, default=0.0)
                 self.r33 = com_data(result, 11, default=0.0)
         except Exception:
-            # 如果获取失败，保持默认值 0.0
+            # Keep default values if the API call fails.
             pass
 
     def _calculate_weight_per_meter(self, model) -> float:
         """
-        计算单位长度重量 (kg/m)
+        Compute unit weight per length in `kg/m`.
         
         weight_per_meter = area × density
         
-        如果当前不是 N-m-C 单位，会临时切换获取数据
+        If the current units are not `N-m-C`, units are switched temporarily.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            单位长度重量 (kg/m)，如果材料不存在则返回 0.0
+            Unit weight per length in `kg/m`, or `0.0` if the material is unavailable.
         """
         if not self.material:
             self._weight_per_meter = 0.0
@@ -284,14 +284,14 @@ class FrameSection:
                 Units.set_present_units(model, UnitSystem.N_M_C)
             
             try:
-                # 获取截面面积 (m²)
+                # Get section area in m^2.
                 result = model.PropFrame.GetSectProps(
                     self.name, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0, 0.0, 0.0, 0.0
                 )
                 area_m2 = com_data(result, 0, default=0.0)
                 
-                # 获取材料密度 (kg/m³)
+                # Get material density in kg/m^3.
                 result = model.PropMaterial.GetWeightAndMass(self.material)
                 density_kg_m3 = com_data(result, 1, default=0.0)
                 
@@ -446,7 +446,7 @@ class FrameSection:
             self.guid = com_data(result, 10) or None
 
     def _get_general(self, model):
-        """获取 GENERAL 类型截面属性"""
+        """Load a `GENERAL` section."""
         try:
             result = model.PropFrame.GetGeneral(
                 self.name, "", "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", ""
@@ -460,24 +460,24 @@ class FrameSection:
             pass
 
     def _get_sd_section(self, model):
-        """获取 SD (Section Designer) 类型截面属性"""
+        """Load an `SD` (Section Designer) section."""
         try:
-            # SD 截面使用 GetSDSection 获取基本信息
+            # Section Designer sections use `GetSDSection` for basic info.
             # GetSDSection(Name, MatProp, NumberItems, ShapeName[], MyType[], DesignType, Color, Notes, GUID)
             result = model.PropFrame.GetSDSection(
                 self.name, "", 0, [], [], 0, 0, "", ""
             )
             mat = com_data(result, 0)
             if mat is not None:
-                self.material = mat or ""  # MatProp 在 index 0
-                # NumberItems 在 index 1，其他属性在后续索引
+                self.material = mat or ""  # `MatProp` is at index 0.
+                # `NumberItems` is at index 1; the rest follow.
         except Exception:
-            # 如果失败，尝试通用方法
+            # Fall back to the generic material getter.
             self._get_material_fallback(model)
 
     def _get_nonprismatic(self, model):
         """
-        获取变截面 (NonPrismatic) 属性
+        Load a nonprismatic section.
         
         API: PropFrame.GetNonPrismatic(Name, NumberItems, StartSec[], EndSec[],
              MyLength[], MyType[], EI33[], EI22[], Color, Notes, GUID)
@@ -495,7 +495,7 @@ class FrameSection:
                 self.np_ei33 = list(com_data(result, 5, default=[])) if com_data(result, 5) else []
                 self.np_ei22 = list(com_data(result, 6, default=[])) if com_data(result, 6) else []
                 
-                # 尝试从第一段的起始截面获取材料
+                # Try to inherit the material from the first start section.
                 if self.np_start_secs and not self.material:
                     try:
                         sub = FrameSection.get_by_name(model, self.np_start_secs[0])
@@ -506,14 +506,14 @@ class FrameSection:
             self._get_material_fallback(model)
 
     def _get_material_fallback(self, model):
-        """通用方法获取材料（最后的备用方案）"""
-        # 尝试多种方法获取材料
+        """Generic last-resort material getter."""
+        # Try multiple APIs to recover the material name.
         methods = [
-            # 方法1: GetGeneral (适用于 GENERAL 类型)
+            # Method 1: `GetGeneral` for GENERAL sections.
             lambda: model.PropFrame.GetGeneral(
                 self.name, "", "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "", ""
             ),
-            # 方法2: GetSDSection (适用于 SD 类型)
+            # Method 2: `GetSDSection` for Section Designer sections.
             lambda: model.PropFrame.GetSDSection(
                 self.name, "", 0, [], [], 0, 0, "", ""
             ),
@@ -532,7 +532,7 @@ class FrameSection:
                 continue
 
     def _create(self, model) -> int:
-        """在 SAP2000 中创建截面"""
+        """Create the section in SAP2000."""
         from PySap2000.logger import get_logger
         _log = get_logger("frame_section")
         if self.name:
@@ -544,7 +544,7 @@ class FrameSection:
             except Exception:
                 pass
         if self.property_type is None:
-            from exceptions import SectionError
+            from PySap2000.exceptions import SectionError
             raise SectionError("Section property_type is required")
         if self.property_type == FrameSectionType.RECTANGULAR:
             return self._create_rectangle(model)
@@ -569,8 +569,8 @@ class FrameSection:
         elif self.property_type == FrameSectionType.VARIABLE:
             return self._create_nonprismatic(model)
         else:
-            from exceptions import SectionError
-            raise SectionError(f"不支持创建截面类型: {self.property_type.name}")
+            from PySap2000.exceptions import SectionError
+            raise SectionError(f"Unsupported section type for creation: {self.property_type.name}")
     
     def _create_rectangle(self, model) -> int:
         return model.PropFrame.SetRectangle(
@@ -633,14 +633,14 @@ class FrameSection:
     
     def _create_nonprismatic(self, model) -> int:
         """
-        创建变截面
+        Create a nonprismatic section.
         
         API: PropFrame.SetNonPrismatic(Name, NumberItems, StartSec[], EndSec[],
              MyLength[], MyType[], EI33[], EI22[])
         """
         if not self.np_start_secs or not self.np_end_secs:
-            from exceptions import SectionError
-            raise SectionError("变截面必须指定 np_start_secs 和 np_end_secs")
+            from PySap2000.exceptions import SectionError
+            raise SectionError("Nonprismatic sections must define `np_start_secs` and `np_end_secs`")
         return model.PropFrame.SetNonPrismatic(
             self.name, self.np_num_segments,
             self.np_start_secs, self.np_end_secs,
@@ -649,32 +649,32 @@ class FrameSection:
         )
     
     def _delete(self, model) -> int:
-        """删除截面"""
+        """Delete the section."""
         return model.PropFrame.Delete(self.name)
     
     def _update(self, model) -> int:
-        """更新截面"""
+        """Update the section."""
         return self._create(model)
 
     @property
     def standard_name(self) -> str:
         """
-        获取标准化截面名称
-        
-        根据截面类型和尺寸生成标准名称:
-        - H - I形截面 (高x宽x腹板厚x翼缘厚)
-        - C - 槽钢 (高x宽x腹板厚x翼缘厚)
-        - T - T形截面 (高x宽x腹板厚x翼缘厚)
-        - L - 角钢 (高x宽x厚)
-        - 2L - 双角钢 (高x宽x厚x间距)
-        - B - 箱形截面 (高x宽x腹板厚x翼缘厚)
-        - P - 圆管 (直径x壁厚)
-        - R - 矩形截面 (高x宽)
-        - D - 圆形截面 (直径)
-        - 2C - 双槽钢 (高x宽x厚x间距)
+        Get a normalized section name.
+
+        Generated from section type and dimensions:
+        - `H` - I-section (`height x width x web x flange`)
+        - `C` - channel (`height x width x web x flange`)
+        - `T` - tee (`height x width x web x flange`)
+        - `L` - angle (`height x width x thickness`)
+        - `2L` - double angle (`height x width x thickness x spacing`)
+        - `B` - box (`height x width x web x flange`)
+        - `P` - pipe (`diameter x wall`)
+        - `R` - rectangular (`height x width`)
+        - `D` - circular (`diameter`)
+        - `2C` - double channel (`height x width x thickness x spacing`)
         
         Returns:
-            标准化的截面名称，无法标准化时返回原名称
+            Normalized section name, or the original name if it cannot be normalized.
             
         Example:
             section = FrameSection.get_by_name(model, "FSEC1")
@@ -690,7 +690,7 @@ class FrameSection:
             return f"T{self.height:.0f}x{self.width:.0f}x{self.web_thickness:.0f}x{self.flange_thickness:.0f}"
         
         elif self.property_type == FrameSectionType.ANGLE:
-            # 角钢厚度用 flange_thickness
+            # Angle thickness is stored in `flange_thickness`.
             return f"L{self.height:.0f}x{self.width:.0f}x{self.flange_thickness:.0f}"
         
         elif self.property_type == FrameSectionType.DOUBLE_ANGLE:
@@ -711,5 +711,5 @@ class FrameSection:
         elif self.property_type == FrameSectionType.DOUBLE_CHANNEL:
             return f"2C{self.height:.0f}x{self.width:.0f}x{self.flange_thickness:.0f}x{self.back_to_back_distance:.0f}"
         
-        # 无法标准化，返回原名称
+        # Fall back to the original name if normalization is not possible.
         return self.name

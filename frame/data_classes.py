@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-data_classes.py - 杆件相关数据类
+data_classes.py - Frame-related data classes.
 
-用于封装 SAP2000 FrameObj API 的输入输出数据
+Wraps input and output data used by the SAP2000 `FrameObj` API.
 
-注意: 荷载相关数据类已移至 loads/frame_load.py
+Note: Load-related data classes have been moved to `loads/frame_load.py`.
 """
 
 from dataclasses import dataclass
@@ -14,14 +14,14 @@ from typing import Tuple, Optional
 @dataclass
 class FrameReleaseData:
     """
-    杆件端部释放数据
+    Frame end-release data.
     
     Attributes:
-        frame_name: 杆件名称
-        release_i: I端释放 (U1, U2, U3, R1, R2, R3)
-        release_j: J端释放 (U1, U2, U3, R1, R2, R3)
-        start_value: I端部分固定刚度值
-        end_value: J端部分固定刚度值
+        frame_name: Frame object name
+        release_i: I-end release tuple `(U1, U2, U3, R1, R2, R3)`
+        release_j: J-end release tuple `(U1, U2, U3, R1, R2, R3)`
+        start_value: I-end partial-fixity stiffness values
+        end_value: J-end partial-fixity stiffness values
     """
     frame_name: str
     release_i: Tuple[bool, bool, bool, bool, bool, bool] = (False,) * 6
@@ -33,17 +33,17 @@ class FrameReleaseData:
 @dataclass
 class FrameModifierData:
     """
-    杆件截面修改器数据
-    
-    8个修改器值 (默认值都是1.0):
-        [0] = 截面面积修改器 (A)
-        [1] = 局部2方向剪切面积修改器 (As2)
-        [2] = 局部3方向剪切面积修改器 (As3)
-        [3] = 扭转常数修改器 (J)
-        [4] = 局部2轴惯性矩修改器 (I22)
-        [5] = 局部3轴惯性矩修改器 (I33)
-        [6] = 质量修改器
-        [7] = 重量修改器
+    Frame section modifier data.
+
+    The 8 modifier values all default to `1.0`:
+        [0] = area modifier (`A`)
+        [1] = local-2 shear-area modifier (`As2`)
+        [2] = local-3 shear-area modifier (`As3`)
+        [3] = torsional constant modifier (`J`)
+        [4] = local-2 inertia modifier (`I22`)
+        [5] = local-3 inertia modifier (`I33`)
+        [6] = mass modifier
+        [7] = weight modifier
     """
     frame_name: str
     area: float = 1.0       # A
@@ -56,7 +56,7 @@ class FrameModifierData:
     weight: float = 1.0     # Weight
     
     def to_tuple(self) -> Tuple[float, ...]:
-        """转换为元组格式"""
+        """Return the modifier values as a tuple."""
         return (
             self.area, self.shear_2, self.shear_3, self.torsion,
             self.inertia_22, self.inertia_33, self.mass, self.weight
@@ -64,7 +64,7 @@ class FrameModifierData:
     
     @classmethod
     def from_tuple(cls, frame_name: str, values: Tuple[float, ...]) -> 'FrameModifierData':
-        """从元组创建"""
+        """Create an instance from a modifier tuple."""
         return cls(
             frame_name=frame_name,
             area=values[0] if len(values) > 0 else 1.0,
@@ -81,12 +81,12 @@ class FrameModifierData:
 @dataclass
 class FrameLocalAxesData:
     """
-    杆件局部坐标轴数据
+    Frame local-axis data.
     
     Attributes:
-        frame_name: 杆件名称
-        angle: 局部2和3轴绕正局部1轴旋转的角度 [deg]
-        advanced: 是否使用高级局部轴参数
+        frame_name: Frame object name
+        angle: Rotation angle of local axes 2 and 3 about positive local axis 1 [deg]
+        advanced: Whether advanced local-axis options are enabled
     """
     frame_name: str
     angle: float = 0.0
@@ -96,16 +96,17 @@ class FrameLocalAxesData:
 @dataclass
 class FrameLocalAxesAdvancedData:
     """
-    杆件高级局部坐标轴数据
+    Advanced frame local-axis data.
     
     Attributes:
-        active: 是否启用高级局部坐标轴
-        plane2: 12=1-2平面, 13=1-3平面
-        pl_vect_opt: 平面参考向量选项 (1=坐标方向, 2=两节点, 3=用户向量)
-        pl_csys: 坐标系名称
-        pl_dir: 主方向和次方向
-        pl_pt: 两个节点名称
-        pl_vect: 用户向量
+        active: Whether advanced local-axis options are active
+        plane2: `12` for the 1-2 plane, `13` for the 1-3 plane
+        pl_vect_opt: Plane reference-vector option
+            (`1`=coordinate direction, `2`=two points, `3`=user vector)
+        pl_csys: Coordinate system name
+        pl_dir: Primary and secondary directions
+        pl_pt: Names of the two reference points
+        pl_vect: User-defined reference vector
     """
     active: bool = False
     plane2: int = 12
@@ -119,11 +120,11 @@ class FrameLocalAxesAdvancedData:
 @dataclass
 class FrameMassData:
     """
-    杆件质量数据
+    Frame mass data.
     
     Attributes:
-        frame_name: 杆件名称
-        mass_per_length: 单位长度质量 [M/L]
+        frame_name: Frame object name
+        mass_per_length: Mass per unit length [M/L]
     """
     frame_name: str
     mass_per_length: float = 0.0
@@ -132,15 +133,17 @@ class FrameMassData:
 @dataclass
 class FrameSectionNonPrismaticData:
     """
-    杆件变截面分配数据
-    
-    对应 FrameObj.GetSectionNonPrismatic 的返回值
+    Nonprismatic frame section assignment data.
+
+    Matches the return data of `FrameObj.GetSectionNonPrismatic`.
     
     Attributes:
-        frame_name: 杆件名称
-        prop_name: 变截面属性名称
-        total_length: 变截面假定总长度，0 表示与杆件等长
-        rel_start_loc: 变截面起点到杆件 I 端的相对距离（total_length > 0 时有效）
+        frame_name: Frame object name
+        prop_name: Nonprismatic property name
+        total_length: Assumed total nonprismatic length.
+            Use `0` to match the frame length.
+        rel_start_loc: Relative distance from the I-end to the nonprismatic
+            start location. Only used when `total_length > 0`.
     """
     frame_name: str
     prop_name: str = ""

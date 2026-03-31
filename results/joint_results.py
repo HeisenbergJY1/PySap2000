@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-joint_results.py - 节点结果函数
+joint_results.py - Joint result helpers.
 
-SAP2000 Results API 的节点结果函数封装
+Wraps joint-result functions from the SAP2000 Results API.
 
 SAP2000 API:
-- Results.JointDispl - 节点位移
-- Results.JointDisplAbs - 节点绝对位移
-- Results.JointReact - 节点反力
-- Results.JointAcc - 节点加速度
-- Results.JointAccAbs - 节点绝对加速度
-- Results.JointVel - 节点速度
-- Results.JointVelAbs - 节点绝对速度
-- Results.JointRespSpec - 节点反应谱
+- `Results.JointDispl` - joint displacements
+- `Results.JointDisplAbs` - absolute joint displacements
+- `Results.JointReact` - joint reactions
+- `Results.JointAcc` - joint accelerations
+- `Results.JointAccAbs` - absolute joint accelerations
+- `Results.JointVel` - joint velocities
+- `Results.JointVelAbs` - absolute joint velocities
+- `Results.JointRespSpec` - joint response spectrum results
 """
 
 from typing import List
@@ -31,28 +31,28 @@ def get_joint_displ(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[JointDisplResult]:
     """
-    获取节点位移结果
+    Get joint displacement results.
     
     Args:
-        model: SapModel 对象
-        name: 点对象名、点元素名或组名
-        item_type: 元素类型
-            - OBJECT_ELM: 指定对象对应的元素
-            - ELEMENT: 指定元素
-            - GROUP_ELM: 组内所有元素
-            - SELECTION_ELM: 所有选中元素 (忽略name)
+        model: SAP2000 SapModel object
+        name: Point object name, point element name, or group name
+        item_type: Element scope
+            - `OBJECT_ELM`: elements associated with the specified object
+            - `ELEMENT`: the specified element
+            - `GROUP_ELM`: all elements in the group
+            - `SELECTION_ELM`: all selected elements, ignoring `name`
             
     Returns:
-        JointDisplResult 列表
+        List of `JointDisplResult`.
         
     Example:
-        # 获取单个点的位移
+        # Get displacement for a single point
         results = get_joint_displ(model, "1", ItemTypeElm.OBJECT_ELM)
         
-        # 获取所有点的位移
+        # Get displacements for all points
         results = get_joint_displ(model, "ALL", ItemTypeElm.GROUP_ELM)
         
-        # 获取选中点的位移
+        # Get displacements for selected points
         results = get_joint_displ(model, "", ItemTypeElm.SELECTION_ELM)
     """
     result = model.Results.JointDispl(
@@ -102,23 +102,23 @@ def get_joint_react(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[JointReactResult]:
     """
-    获取节点反力结果
-    
-    反力来自约束、弹簧和接地连接单元。
+    Get joint reaction results.
+
+    Reactions come from restraints, springs, and grounded link elements.
     
     Args:
-        model: SapModel 对象
-        name: 点对象名、点元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Point object name, point element name, or group name
+        item_type: Element scope
             
     Returns:
-        JointReactResult 列表
+        List of `JointReactResult`.
         
     Example:
-        # 获取单个支座的反力
+        # Get reactions for a single support point
         results = get_joint_react(model, "1", ItemTypeElm.OBJECT_ELM)
         
-        # 获取所有支座的反力
+        # Get reactions for all support points
         results = get_joint_react(model, "ALL", ItemTypeElm.GROUP_ELM)
     """
     result = model.Results.JointReact(
@@ -168,15 +168,15 @@ def get_joint_displ_abs(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[JointDisplAbsResult]:
     """
-    获取节点绝对位移结果（用于多支座激励分析）
+    Get absolute joint displacement results, typically for multi-support excitation.
     
     Args:
-        model: SapModel 对象
-        name: 点对象名、点元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Point object name, point element name, or group name
+        item_type: Element scope
             
     Returns:
-        JointDisplAbsResult 列表
+        List of `JointDisplAbsResult`.
     """
     result = model.Results.JointDisplAbs(
         name, int(item_type),
@@ -225,15 +225,15 @@ def get_joint_acc(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[JointAccResult]:
     """
-    获取节点加速度结果
+    Get joint acceleration results.
     
     Args:
-        model: SapModel 对象
-        name: 点对象名、点元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Point object name, point element name, or group name
+        item_type: Element scope
             
     Returns:
-        JointAccResult 列表
+        List of `JointAccResult`.
     """
     result = model.Results.JointAcc(
         name, int(item_type),
@@ -282,15 +282,15 @@ def get_joint_acc_abs(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[JointAccAbsResult]:
     """
-    获取节点绝对加速度结果（用于多支座激励分析）
+    Get absolute joint acceleration results, typically for multi-support excitation.
     
     Args:
-        model: SapModel 对象
-        name: 点对象名、点元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Point object name, point element name, or group name
+        item_type: Element scope
             
     Returns:
-        JointAccAbsResult 列表
+        List of `JointAccAbsResult`.
     """
     result = model.Results.JointAccAbs(
         name, int(item_type),
@@ -339,15 +339,15 @@ def get_joint_vel(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[JointVelResult]:
     """
-    获取节点速度结果
+    Get joint velocity results.
     
     Args:
-        model: SapModel 对象
-        name: 点对象名、点元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Point object name, point element name, or group name
+        item_type: Element scope
             
     Returns:
-        JointVelResult 列表
+        List of `JointVelResult`.
     """
     result = model.Results.JointVel(
         name, int(item_type),
@@ -396,15 +396,15 @@ def get_joint_vel_abs(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[JointVelAbsResult]:
     """
-    获取节点绝对速度结果（用于多支座激励分析）
+    Get absolute joint velocity results, typically for multi-support excitation.
     
     Args:
-        model: SapModel 对象
-        name: 点对象名、点元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Point object name, point element name, or group name
+        item_type: Element scope
             
     Returns:
-        JointVelAbsResult 列表
+        List of `JointVelAbsResult`.
     """
     result = model.Results.JointVelAbs(
         name, int(item_type),
@@ -453,15 +453,15 @@ def get_joint_resp_spec(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[JointRespSpecResult]:
     """
-    获取节点反应谱结果
+    Get joint response spectrum results.
     
     Args:
-        model: SapModel 对象
-        name: 点对象名、点元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Point object name, point element name, or group name
+        item_type: Element scope
             
     Returns:
-        JointRespSpecResult 列表
+        List of `JointRespSpecResult`.
     """
     result = model.Results.JointRespSpec(
         name, int(item_type),

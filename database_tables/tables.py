@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-tables.py - 交互式表格编辑核心类
+tables.py - Core classes for interactive table editing
 
-对应 SAP2000 的 DatabaseTables 接口
+Wraps SAP2000 `DatabaseTables` interface.
 
 API Reference:
     - DatabaseTables.GetAvailableTables
@@ -23,30 +23,30 @@ from enum import IntEnum
 
 
 class TableImportType(IntEnum):
-    """表格导入类型"""
-    NOT_IMPORTABLE = 0          # 不可导入
-    IMPORTABLE = 1              # 可导入
-    IMPORTABLE_NOT_INTERACTIVE = 2  # 可导入但不可交互
+    """Table import type"""
+    NOT_IMPORTABLE = 0          # Not importable
+    IMPORTABLE = 1              # Importable
+    IMPORTABLE_NOT_INTERACTIVE = 2  # Importable but not interactive
 
 
 class TableExportFormat(IntEnum):
-    """表格导出格式"""
-    ARRAY = 1       # 数组格式
-    CSV_FILE = 2    # CSV 文件
-    CSV_STRING = 3  # CSV 字符串
-    XML_STRING = 4  # XML 字符串
+    """Table export format"""
+    ARRAY = 1       # Array format
+    CSV_FILE = 2    # CSV file
+    CSV_STRING = 3  # CSV string
+    XML_STRING = 4  # XML string
 
 
 @dataclass
 class TableInfo:
     """
-    表格信息
+    Table info
     
     Attributes:
-        table_key: 表格键名
-        table_name: 表格显示名称
-        import_type: 导入类型 (0=不可导入, 1=可导入, 2=可导入但不可交互)
-        is_empty: 是否为空表格
+        table_key: table key
+        table_name: Table display name
+        import_type: Import type (`0` not importable, `1` importable, `2` importable but not interactive)
+        is_empty: whether the table is empty
     """
     table_key: str
     table_name: str = ""
@@ -55,21 +55,21 @@ class TableInfo:
     
     @property
     def is_importable(self) -> bool:
-        """是否可导入"""
+        """Whether importable."""
         return self.import_type in (1, 2)
 
 
 @dataclass
 class TableField:
     """
-    表格字段信息
+    Table field info
     
     Attributes:
-        field_key: 字段键名
-        field_name: 字段显示名称
-        description: 字段描述
-        units: 单位字符串
-        is_importable: 是否可导入
+        field_key: field key
+        field_name: field display name
+        description: field description
+        units: unit string
+        is_importable: Whether importable
     """
     field_key: str
     field_name: str = ""
@@ -81,14 +81,14 @@ class TableField:
 @dataclass
 class TableData:
     """
-    表格数据
+    Table data
     
     Attributes:
-        table_key: 表格键名
-        table_version: 表格版本
-        field_keys: 字段键名列表
-        num_records: 记录数
-        data: 数据列表 (按行展开的一维列表)
+        table_key: table key
+        table_version: table version
+        field_keys: field key list
+        num_records: record count
+        data: Data list (row-flattened 1D list)
     """
     table_key: str = ""
     table_version: int = 0
@@ -98,18 +98,18 @@ class TableData:
     
     @property
     def num_fields(self) -> int:
-        """字段数量"""
+        """Number of fields"""
         return len(self.field_keys)
     
     def get_row(self, row_index: int) -> List[str]:
         """
-        获取指定行的数据
+        Get data for a specific row
         
         Args:
-            row_index: 行索引 (0-based)
+            row_index: row index (0-based)
         
         Returns:
-            该行的数据列表
+            Data list for that row
         """
         if row_index < 0 or row_index >= self.num_records:
             return []
@@ -119,14 +119,14 @@ class TableData:
     
     def set_row(self, row_index: int, row_data: List[str]) -> bool:
         """
-        设置指定行的数据
+        Set data for a specific row
         
         Args:
-            row_index: 行索引 (0-based)
-            row_data: 行数据列表
+            row_index: row index (0-based)
+            row_data: Row data list
         
         Returns:
-            是否设置成功
+            whether setting succeeds
         """
         if row_index < 0 or row_index >= self.num_records:
             return False
@@ -139,13 +139,13 @@ class TableData:
     
     def add_row(self, row_data: List[str]) -> bool:
         """
-        添加一行数据
+        Add one row
         
         Args:
-            row_data: 行数据列表
+            row_data: Row data list
         
         Returns:
-            是否添加成功
+            whether adding succeeds
         """
         if len(row_data) != self.num_fields:
             return False
@@ -155,13 +155,13 @@ class TableData:
     
     def delete_row(self, row_index: int) -> bool:
         """
-        删除指定行
+        Delete a specific row
         
         Args:
-            row_index: 行索引 (0-based)
+            row_index: row index (0-based)
         
         Returns:
-            是否删除成功
+            whether deletion succeeds
         """
         if row_index < 0 or row_index >= self.num_records:
             return False
@@ -173,14 +173,14 @@ class TableData:
     
     def get_value(self, row_index: int, field_name: str) -> Optional[str]:
         """
-        获取指定单元格的值
+        Get a specific cell value
         
         Args:
-            row_index: 行索引 (0-based)
-            field_name: 字段名称
+            row_index: row index (0-based)
+            field_name: field name
         
         Returns:
-            单元格值，未找到返回 None
+            Cell value, or `None` if not found
         """
         if field_name not in self.field_keys:
             return None
@@ -192,15 +192,15 @@ class TableData:
     
     def set_value(self, row_index: int, field_name: str, value: str) -> bool:
         """
-        设置指定单元格的值
+        Set a specific cell value
         
         Args:
-            row_index: 行索引 (0-based)
-            field_name: 字段名称
-            value: 新值
+            row_index: row index (0-based)
+            field_name: field name
+            value: new value
         
         Returns:
-            是否设置成功
+            whether setting succeeds
         """
         if field_name not in self.field_keys:
             return False
@@ -213,13 +213,13 @@ class TableData:
     
     def get_column(self, field_name: str) -> List[str]:
         """
-        获取指定列的所有值
+        Get all values in a specific column
         
         Args:
-            field_name: 字段名称
+            field_name: field name
         
         Returns:
-            该列的值列表
+            value list for that column
         """
         if field_name not in self.field_keys:
             return []
@@ -229,14 +229,14 @@ class TableData:
     
     def find_rows(self, field_name: str, value: str) -> List[int]:
         """
-        查找字段值匹配的行索引
+        Find row indices by field value match
         
         Args:
-            field_name: 字段名称
-            value: 要匹配的值
+            field_name: field name
+            value: value to match
         
         Returns:
-            匹配的行索引列表
+            List of matching row indices
         """
         result = []
         for i in range(self.num_records):
@@ -246,10 +246,10 @@ class TableData:
     
     def to_dict_list(self) -> List[Dict[str, str]]:
         """
-        转换为字典列表格式
+        Convert to list-of-dicts format
         
         Returns:
-            每行一个字典的列表
+            list of dicts (one per row)
         """
         result = []
         for i in range(self.num_records):
@@ -260,10 +260,10 @@ class TableData:
     
     def from_dict_list(self, dict_list: List[Dict[str, str]]) -> None:
         """
-        从字典列表导入数据
+        Import data from list of dicts
         
         Args:
-            dict_list: 字典列表
+            dict_list: list of dictionaries
         """
         self.data = []
         self.num_records = 0
@@ -273,31 +273,31 @@ class TableData:
     
     def to_dataframe(self):
         """
-        转换为 pandas DataFrame
+        Convert to pandas DataFrame
         
         Returns:
-            pandas.DataFrame 对象
+            pandas.DataFrame object
         
         Raises:
-            ImportError: 如果未安装 pandas
+            ImportError: if pandas is not installed
         """
         try:
             import pandas as pd
             return pd.DataFrame(self.to_dict_list())
         except ImportError:
-            raise ImportError("需要安装 pandas: pip install pandas")
+            raise ImportError("pandas is required: pip install pandas")
     
     def from_dataframe(self, df) -> None:
         """
-        从 pandas DataFrame 导入数据
+        Import from pandas DataFrame
         
         Args:
-            df: pandas.DataFrame 对象
+            df: pandas.DataFrame object
         """
         self.from_dict_list(df.to_dict('records'))
     
     def copy(self) -> 'TableData':
-        """创建副本"""
+        """Create a copy"""
         return TableData(
             table_key=self.table_key,
             table_version=self.table_version,
@@ -310,15 +310,15 @@ class TableData:
 @dataclass
 class ApplyResult:
     """
-    应用编辑结果
+    Apply result
     
     Attributes:
-        success: 是否成功
-        num_fatal_errors: 致命错误数
-        num_error_msgs: 错误消息数
-        num_warn_msgs: 警告消息数
-        num_info_msgs: 信息消息数
-        import_log: 导入日志
+        success: whether successful
+        num_fatal_errors: fatal error count
+        num_error_msgs: error message count
+        num_warn_msgs: warning message count
+        num_info_msgs: info message count
+        import_log: import log
     """
     success: bool = False
     num_fatal_errors: int = 0
@@ -330,39 +330,39 @@ class ApplyResult:
 
 class DatabaseTables:
     """
-    数据库表格管理类
+    Database table manager
     
-    提供交互式表格编辑的静态方法
+    Provides static methods for interactive table editing.
     
-    典型工作流程:
-        1. get_available_tables() - 获取可用表格
-        2. get_table_for_editing() - 获取表格数据
-        3. 修改 TableData 对象
-        4. set_table_for_editing() - 设置修改后的数据
-        5. apply_edited_tables() - 应用更改到模型
+    Typical workflow:
+        1. get_available_tables() - Get available tables
+        2. get_table_for_editing() - Get table data
+        3. Modify the `TableData` object
+        4. set_table_for_editing() - Set modified data
+        5. apply_edited_tables() - Apply changes to the model
     
     Example:
-        # 读取并修改节点坐标
+        # Read and modify joint coordinates
         data = DatabaseTables.get_table_for_editing(model, "Joint Coordinates")
-        data.set_value(0, "XorR", "100")  # 修改第一个节点的 X 坐标
+        data.set_value(0, "XorR", "100")  # Modify X coordinate of the first joint
         DatabaseTables.set_table_for_editing(model, data)
         result = DatabaseTables.apply_edited_tables(model)
         if not result.success:
             print(result.import_log)
     """
     
-    # ==================== 表格查询 ====================
+    # ==================== Table query ====================
     
     @staticmethod
     def get_available_tables(model) -> List[TableInfo]:
         """
-        获取可用表格列表 (有数据的表格)
+        Get available table list (tables with data)
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            TableInfo 对象列表
+            list of `TableInfo` objects
         
         Example:
             tables = DatabaseTables.get_available_tables(model)
@@ -394,13 +394,13 @@ class DatabaseTables:
     @staticmethod
     def get_available_table_keys(model) -> List[str]:
         """
-        获取可用表格键名列表 (简化版)
+        Get available table-key list (compact helper)
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            表格键名列表
+            List of table keys
         """
         tables = DatabaseTables.get_available_tables(model)
         return [t.table_key for t in tables]
@@ -408,13 +408,13 @@ class DatabaseTables:
     @staticmethod
     def get_all_tables(model) -> List[TableInfo]:
         """
-        获取所有表格列表 (包括空表格)
+        Get all tables (including empty tables)
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            TableInfo 对象列表
+            list of `TableInfo` objects
         """
         # API: GetAllTables(NumberTables, TableKey[], TableName[], ImportType[])
         result = model.DatabaseTables.GetAllTables(0, [], [], [])
@@ -434,20 +434,20 @@ class DatabaseTables:
                 table_key=table_keys[i] if i < len(table_keys) else "",
                 table_name=table_names[i] if i < len(table_names) else "",
                 import_type=import_types[i] if i < len(import_types) else 0,
-                is_empty=True  # GetAllTables 不返回 IsEmpty
+                is_empty=True  # `GetAllTables` does not return `IsEmpty`
             ))
         return tables
     
     @staticmethod
     def get_all_table_keys(model) -> List[str]:
         """
-        获取所有表格键名列表 (简化版)
+        Get all table keys (compact helper)
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            表格键名列表
+            List of table keys
         """
         tables = DatabaseTables.get_all_tables(model)
         return [t.table_key for t in tables]
@@ -455,15 +455,15 @@ class DatabaseTables:
     @staticmethod
     def get_fields_in_table(model, table_key: str, table_version: int = 0) -> List[TableField]:
         """
-        获取表格中的所有字段
+        Get all fields in a table
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            table_version: 表格版本 (默认 0)
+            model: SapModel object
+            table_key: table key
+            table_version: Table version (default `0`)
         
         Returns:
-            TableField 对象列表
+            list of `TableField` objects
         
         Example:
             fields = DatabaseTables.get_fields_in_table(model, "Joint Coordinates")
@@ -472,7 +472,7 @@ class DatabaseTables:
         """
         # API: GetAllFieldsInTable(TableKey, TableVersion, NumberFields, 
         #      FieldKey[], FieldName[], Description[], UnitsString[], IsImportable[])
-        # 返回: [TableVersion, NumberFields, FieldKey[], FieldName[], Description[], UnitsString[], IsImportable[], ret]
+        # Returns: [TableVersion, NumberFields, FieldKey[], FieldName[], Description[], UnitsString[], IsImportable[], ret]
         result = model.DatabaseTables.GetAllFieldsInTable(
             table_key, table_version, 0, [], [], [], [], []
         )
@@ -506,15 +506,15 @@ class DatabaseTables:
         table_version: int = 0
     ) -> Tuple[List[str], List[str], List[str], List[str], List[bool]]:
         """
-        获取表格中的所有字段 (原始格式)
+        Get all fields in a table (raw format)
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            table_version: 表格版本
+            model: SapModel object
+            table_key: table key
+            table_version: table version
         
         Returns:
-            (field_keys, field_names, descriptions, units, is_importable) 元组
+            (field_keys, field_names, descriptions, units, is_importable) tuple
         """
         fields = DatabaseTables.get_fields_in_table(model, table_key, table_version)
         return (
@@ -526,7 +526,7 @@ class DatabaseTables:
         )
 
     
-    # ==================== 读取表格 ====================
+    # ==================== Read tables ====================
     
     @staticmethod
     def get_table_for_display(
@@ -536,16 +536,16 @@ class DatabaseTables:
         group_name: str = ""
     ) -> Optional[TableData]:
         """
-        获取显示用表格数据 (Array 格式)
+        Get display table data (array format).
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            field_keys: 要获取的字段列表，None 或 [""] 表示所有字段
-            group_name: 组名称，空字符串或 "All" 表示所有对象
+            model: SapModel object
+            table_key: table key
+            field_keys: Field keys to retrieve. `None` or `[""]` means all fields.
+            group_name: Group name. Empty string or `"All"` means all objects.
         
         Returns:
-            TableData 对象，失败返回 None
+            `TableData` object, or `None` on failure
         
         Example:
             data = DatabaseTables.get_table_for_display(
@@ -556,13 +556,13 @@ class DatabaseTables:
                 for row in data.to_dict_list():
                     print(row)
         """
-        # 如果 field_keys 为 None 或空，使用 [""] 表示所有字段
+        # If no field list is provided, use [""] to request all fields.
         if field_keys is None or len(field_keys) == 0:
             field_keys = [""]
         
         # API: GetTableForDisplayArray(TableKey, FieldKeyList[], GroupName,
         #      TableVersion, FieldKeysIncluded[], NumberRecords, TableData[])
-        # 返回格式: [输入的field_keys, TableVersion, FieldKeysIncluded, NumberRecords, TableData, ret]
+        # Return layout: [input_field_keys, TableVersion, FieldKeysIncluded, NumberRecords, TableData, ret]
         result = model.DatabaseTables.GetTableForDisplayArray(
             table_key,
             field_keys,
@@ -592,17 +592,17 @@ class DatabaseTables:
         group_name: str = ""
     ) -> Optional[TableData]:
         """
-        获取编辑用表格数据 (Array 格式)
+        Get editable table data (array format).
         
-        与 get_table_for_display 类似，但返回可编辑的数据。
+        Similar to `get_table_for_display`, but returns editable data.
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            group_name: 组名称 (当前版本未激活此参数)
+            model: SapModel object
+            table_key: table key
+            group_name: group name (this parameter is currently inactive)
         
         Returns:
-            TableData 对象，失败返回 None
+            `TableData` object, or `None` on failure
         
         Example:
             data = DatabaseTables.get_table_for_editing(model, "Joint Coordinates")
@@ -612,7 +612,7 @@ class DatabaseTables:
         """
         # API: GetTableForEditingArray(TableKey, GroupName,
         #      TableVersion, FieldKeysIncluded[], NumberRecords, TableData[])
-        # 返回: [TableVersion, FieldKeysIncluded[], NumberRecords, TableData[], ret]
+        # Returns: [TableVersion, FieldKeysIncluded[], NumberRecords, TableData[], ret]
         result = model.DatabaseTables.GetTableForEditingArray(
             table_key,
             group_name,
@@ -635,7 +635,7 @@ class DatabaseTables:
         )
 
     
-    # ==================== 编辑表格 ====================
+    # ==================== Edit tables ====================
     
     @staticmethod
     def set_table_for_editing(
@@ -643,14 +643,14 @@ class DatabaseTables:
         table_data: TableData
     ) -> int:
         """
-        设置编辑表格数据 (推荐方式)
+        Set editable table data (recommended).
         
         Args:
-            model: SapModel 对象
-            table_data: TableData 对象
+            model: SapModel object
+            table_data: `TableData` object
         
         Returns:
-            0 表示成功，非零表示失败
+            `0` on success, nonzero on failure
         
         Example:
             data = DatabaseTables.get_table_for_editing(model, "Joint Coordinates")
@@ -681,18 +681,18 @@ class DatabaseTables:
         data: List[str]
     ) -> int:
         """
-        设置编辑表格数据 (原始参数方式)
+        Set editable table data (raw-argument form).
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            table_version: 表格版本
-            field_keys: 字段键名列表
-            num_records: 记录数
-            data: 数据列表
+            model: SapModel object
+            table_key: table key
+            table_version: table version
+            field_keys: field key list
+            num_records: record count
+            data: data list
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetTableForEditingArray(
             table_key,
@@ -710,22 +710,22 @@ class DatabaseTables:
         fill_import_log: bool = True
     ) -> ApplyResult:
         """
-        应用已编辑的表格
+        Apply edited tables
         
-        将所有通过 set_table_for_editing 设置的更改应用到模型。
+        Apply all pending changes set by `set_table_for_editing` to the model.
         
         Args:
-            model: SapModel 对象
-            fill_import_log: 是否填充导入日志
+            model: SapModel object
+            fill_import_log: Whether to populate the import log
         
         Returns:
-            ApplyResult 对象
+            `ApplyResult` object
         
         Example:
             DatabaseTables.set_table_for_editing(model, data)
             result = DatabaseTables.apply_edited_tables(model)
             if not result.success:
-                print(f"错误: {result.num_fatal_errors} 个致命错误")
+                print(f"Error: {result.num_fatal_errors} fatal errors")
                 print(result.import_log)
         """
         # API: ApplyEditedTables(FillImportLog, NumFatalErrors, NumErrorMsgs, 
@@ -747,20 +747,20 @@ class DatabaseTables:
     @staticmethod
     def cancel_table_editing(model) -> int:
         """
-        取消表格编辑
+        Cancel table editing
         
-        取消所有未应用的表格编辑。
+        Cancel all unapplied table edits.
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.CancelTableEditing()
         return com_ret(result)
     
-    # ==================== 显示选项 ====================
+    # ==================== Display options ====================
     
     @staticmethod
     def set_load_patterns_selected(
@@ -769,15 +769,15 @@ class DatabaseTables:
         selected: bool = True
     ) -> int:
         """
-        设置显示的荷载模式
+        Set displayed load patterns
         
         Args:
-            model: SapModel 对象
-            load_patterns: 荷载模式名称列表
-            selected: True=选中, False=取消选中
+            model: SapModel object
+            load_patterns: load-pattern name list
+            selected: `True` selects, `False` deselects
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetLoadPatternsSelectedForDisplay(
             len(load_patterns),
@@ -793,15 +793,15 @@ class DatabaseTables:
         selected: bool = True
     ) -> int:
         """
-        设置显示的荷载工况
+        Set displayed load cases
         
         Args:
-            model: SapModel 对象
-            load_cases: 荷载工况名称列表
-            selected: True=选中, False=取消选中
+            model: SapModel object
+            load_cases: load-case name list
+            selected: `True` selects, `False` deselects
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetLoadCasesSelectedForDisplay(
             len(load_cases),
@@ -817,15 +817,15 @@ class DatabaseTables:
         selected: bool = True
     ) -> int:
         """
-        设置显示的荷载组合
+        Set displayed load combinations
         
         Args:
-            model: SapModel 对象
-            load_combos: 荷载组合名称列表
-            selected: True=选中, False=取消选中
+            model: SapModel object
+            load_combos: load-combination name list
+            selected: `True` selects, `False` deselects
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetLoadCombinationsSelectedForDisplay(
             len(load_combos),
@@ -834,7 +834,7 @@ class DatabaseTables:
         )
         return com_ret(result)
     
-    # ==================== 导出 ====================
+    # ==================== Export ====================
     
     @staticmethod
     def show_tables_in_excel(
@@ -844,16 +844,16 @@ class DatabaseTables:
         group_name: str = ""
     ) -> int:
         """
-        在 Excel 中显示表格
+        Show tables in Excel
         
         Args:
-            model: SapModel 对象
-            table_keys: 表格键名列表
-            field_keys_list: 每个表格的字段键名列表 (可选)
-            group_name: 组名称 (可选)
+            model: SapModel object
+            table_keys: List of table keys
+            field_keys_list: Field-key list for each table (optional)
+            group_name: group name (optional)
         
         Returns:
-            0 表示成功
+            `0` on success
         
         Example:
             DatabaseTables.show_tables_in_excel(
@@ -866,10 +866,10 @@ class DatabaseTables:
         if field_keys_list is None:
             field_keys_list = [[] for _ in table_keys]
         
-        # 每个表格的字段数
+        # field count per table
         num_fields_per_table = [len(fields) for fields in field_keys_list]
         
-        # 展平字段列表
+        # flatten field list
         all_field_keys = []
         for fields in field_keys_list:
             all_field_keys.extend(fields)
@@ -884,7 +884,7 @@ class DatabaseTables:
         
         return com_ret(result)
     
-    # ==================== 便捷方法 ====================
+    # ==================== Convenience helpers ====================
     
     @staticmethod
     def read_table(
@@ -893,21 +893,21 @@ class DatabaseTables:
         as_dataframe: bool = False
     ):
         """
-        读取表格数据 (便捷方法)
+        Read table data (convenience helper)
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            as_dataframe: 是否返回 pandas DataFrame
+            model: SapModel object
+            table_key: table key
+            as_dataframe: Whether to return a pandas DataFrame
         
         Returns:
-            TableData 对象或 pandas DataFrame
+            `TableData` object or pandas DataFrame
         
         Example:
-            # 返回 TableData
+            # Returns TableData
             data = DatabaseTables.read_table(model, "Joint Coordinates")
             
-            # 返回 DataFrame
+            # Returns DataFrame
             df = DatabaseTables.read_table(model, "Joint Coordinates", as_dataframe=True)
         """
         data = DatabaseTables.get_table_for_display(model, table_key)
@@ -922,18 +922,18 @@ class DatabaseTables:
         modifications: Dict[int, Dict[str, str]]
     ) -> ApplyResult:
         """
-        编辑表格数据 (便捷方法)
+        Edit table data (convenience helper)
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            modifications: 修改字典 {行索引: {字段名: 新值}}
+            model: SapModel object
+            table_key: table key
+            modifications: Modification mapping `{row_index: {field_name: new_value}}`
         
         Returns:
-            ApplyResult 对象
+            `ApplyResult` object
         
         Example:
-            # 修改第0行的 X 坐标和第1行的 Y 坐标
+            # Modify the X coordinate in row 0 and Y coordinate in row 1
             result = DatabaseTables.edit_table(model, "Joint Coordinates", {
                 0: {"XorR": "100"},
                 1: {"Y": "200"}
@@ -941,7 +941,7 @@ class DatabaseTables:
         """
         data = DatabaseTables.get_table_for_editing(model, table_key)
         if not data:
-            return ApplyResult(success=False, import_log="无法获取表格数据")
+            return ApplyResult(success=False, import_log="Failed to retrieve table data")
         
         for row_idx, field_values in modifications.items():
             for field_name, value in field_values.items():
@@ -949,7 +949,7 @@ class DatabaseTables:
         
         ret = DatabaseTables.set_table_for_editing(model, data)
         if ret != 0:
-            return ApplyResult(success=False, import_log="设置表格数据失败")
+            return ApplyResult(success=False, import_log="Failed to set table data")
         
         return DatabaseTables.apply_edited_tables(model)
     
@@ -960,15 +960,15 @@ class DatabaseTables:
         df
     ) -> ApplyResult:
         """
-        从 pandas DataFrame 导入数据
+        Import from pandas DataFrame
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
+            model: SapModel object
+            table_key: table key
             df: pandas DataFrame
         
         Returns:
-            ApplyResult 对象
+            `ApplyResult` object
         
         Example:
             import pandas as pd
@@ -982,17 +982,17 @@ class DatabaseTables:
         """
         data = DatabaseTables.get_table_for_editing(model, table_key)
         if not data:
-            return ApplyResult(success=False, import_log="无法获取表格数据")
+            return ApplyResult(success=False, import_log="Failed to retrieve table data")
         
         data.from_dataframe(df)
         
         ret = DatabaseTables.set_table_for_editing(model, data)
         if ret != 0:
-            return ApplyResult(success=False, import_log="设置表格数据失败")
+            return ApplyResult(success=False, import_log="Failed to set table data")
         
         return DatabaseTables.apply_edited_tables(model)
 
-    # ==================== CSV 格式方法 ====================
+    # ==================== CSV helpers ====================
     
     @staticmethod
     def get_table_for_display_csv_file(
@@ -1003,17 +1003,17 @@ class DatabaseTables:
         group_name: str = ""
     ) -> int:
         """
-        获取显示用表格数据并保存为 CSV 文件
+        Get display table data and save it as a CSV file
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            file_path: CSV 文件路径
-            field_keys: 要获取的字段列表，None 表示所有字段
-            group_name: 组名称，空字符串表示所有对象
+            model: SapModel object
+            table_key: table key
+            file_path: CSV file path
+            field_keys: Field keys to retrieve. `None` means all fields.
+            group_name: Group name. Empty string means all objects.
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         if field_keys is None:
             field_keys = []
@@ -1035,16 +1035,16 @@ class DatabaseTables:
         group_name: str = ""
     ) -> Tuple[str, int]:
         """
-        获取显示用表格数据为 CSV 字符串
+        Get display table data as a CSV string
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            field_keys: 要获取的字段列表，None 表示所有字段
-            group_name: 组名称，空字符串表示所有对象
+            model: SapModel object
+            table_key: table key
+            field_keys: Field keys to retrieve. `None` means all fields.
+            group_name: Group name. Empty string means all objects.
         
         Returns:
-            (csv_string, ret) 元组
+            (csv_string, ret) tuple
         """
         if field_keys is None:
             field_keys = []
@@ -1066,16 +1066,16 @@ class DatabaseTables:
         field_keys: List[str] = None
     ) -> int:
         """
-        获取编辑用表格数据并保存为 CSV 文件
+        Get editable table data and save it as a CSV file
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            file_path: CSV 文件路径
-            field_keys: 要获取的字段列表，None 表示所有字段
+            model: SapModel object
+            table_key: table key
+            file_path: CSV file path
+            field_keys: Field keys to retrieve. `None` means all fields.
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         if field_keys is None:
             field_keys = []
@@ -1095,15 +1095,15 @@ class DatabaseTables:
         field_keys: List[str] = None
     ) -> Tuple[str, int]:
         """
-        获取编辑用表格数据为 CSV 字符串
+        Get editable table data as a CSV string
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            field_keys: 要获取的字段列表，None 表示所有字段
+            model: SapModel object
+            table_key: table key
+            field_keys: Field keys to retrieve. `None` means all fields.
         
         Returns:
-            (csv_string, ret) 元组
+            (csv_string, ret) tuple
         """
         if field_keys is None:
             field_keys = []
@@ -1123,15 +1123,15 @@ class DatabaseTables:
         file_path: str
     ) -> int:
         """
-        从 CSV 文件设置编辑表格数据
+        Set editable table data from a CSV file
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            file_path: CSV 文件路径
+            model: SapModel object
+            table_key: table key
+            file_path: CSV file path
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetTableForEditingCSVFile(
             table_key,
@@ -1147,15 +1147,15 @@ class DatabaseTables:
         csv_string: str
     ) -> int:
         """
-        从 CSV 字符串设置编辑表格数据
+        Set editable table data from a CSV string
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            csv_string: CSV 格式字符串
+            model: SapModel object
+            table_key: table key
+            csv_string: CSV formatted string
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetTableForEditingCSVString(
             table_key,
@@ -1164,18 +1164,18 @@ class DatabaseTables:
         
         return com_ret(result)
     
-    # ==================== 获取显示选项 ====================
+    # ==================== Get display options ====================
     
     @staticmethod
     def get_load_patterns_selected(model) -> Tuple[List[str], int]:
         """
-        获取当前选中显示的荷载模式
+        Get currently selected load patterns.
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            (load_patterns, ret) 元组
+            (load_patterns, ret) tuple
         """
         result = model.DatabaseTables.GetLoadPatternsSelectedForDisplay(0, [])
         
@@ -1187,13 +1187,13 @@ class DatabaseTables:
     @staticmethod
     def get_load_cases_selected(model) -> Tuple[List[str], int]:
         """
-        获取当前选中显示的荷载工况
+        Get currently selected load cases.
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            (load_cases, ret) 元组
+            (load_cases, ret) tuple
         """
         result = model.DatabaseTables.GetLoadCasesSelectedForDisplay(0, [])
         
@@ -1205,13 +1205,13 @@ class DatabaseTables:
     @staticmethod
     def get_load_combinations_selected(model) -> Tuple[List[str], int]:
         """
-        获取当前选中显示的荷载组合
+        Get currently selected load combinations.
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            (load_combos, ret) 元组
+            (load_combos, ret) tuple
         """
         result = model.DatabaseTables.GetLoadCombinationsSelectedForDisplay(0, [])
         
@@ -1220,18 +1220,18 @@ class DatabaseTables:
             return list(com_data(result, index=1, default=[]) or []), ret
         return [], -1
     
-    # ==================== Named Sets 方法 ====================
+    # ==================== Named sets ====================
     
     @staticmethod
     def get_section_cuts_selected(model) -> Tuple[List[str], int]:
         """
-        获取当前选中显示的截面切割
+        Get currently selected section cuts.
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            (section_cuts, ret) 元组
+            (section_cuts, ret) tuple
         """
         result = model.DatabaseTables.GetSectionCutsSelectedForDisplay(0, [])
         
@@ -1247,15 +1247,15 @@ class DatabaseTables:
         selected: bool = True
     ) -> int:
         """
-        设置显示的截面切割
+        Set displayed section cuts.
         
         Args:
-            model: SapModel 对象
-            section_cuts: 截面切割名称列表
-            selected: True=选中, False=取消选中
+            model: SapModel object
+            section_cuts: section-cut name list
+            selected: `True` selects, `False` deselects
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetSectionCutsSelectedForDisplay(
             len(section_cuts),
@@ -1267,13 +1267,13 @@ class DatabaseTables:
     @staticmethod
     def get_generalized_displacements_selected(model) -> Tuple[List[str], int]:
         """
-        获取当前选中显示的广义位移
+        Get currently selected generalized displacements.
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            (generalized_displacements, ret) 元组
+            (generalized_displacements, ret) tuple
         """
         result = model.DatabaseTables.GetGeneralizedDisplacementsSelectedForDisplay(0, [])
         
@@ -1289,15 +1289,15 @@ class DatabaseTables:
         selected: bool = True
     ) -> int:
         """
-        设置显示的广义位移
+        Set displayed generalized displacements.
         
         Args:
-            model: SapModel 对象
-            generalized_displacements: 广义位移名称列表
-            selected: True=选中, False=取消选中
+            model: SapModel object
+            generalized_displacements: generalized-displacement name list
+            selected: `True` selects, `False` deselects
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetGeneralizedDisplacementsSelectedForDisplay(
             len(generalized_displacements),
@@ -1310,13 +1310,13 @@ class DatabaseTables:
     @staticmethod
     def get_pushover_named_sets_selected(model) -> Tuple[List[str], int]:
         """
-        获取当前选中显示的 Pushover 命名集
+        Get currently selected pushover named sets.
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            (named_sets, ret) 元组
+            (named_sets, ret) tuple
         """
         result = model.DatabaseTables.GetPushoverNamedSetsSelectedForDisplay(0, [])
         
@@ -1332,15 +1332,15 @@ class DatabaseTables:
         selected: bool = True
     ) -> int:
         """
-        设置显示的 Pushover 命名集
+        Set displayed pushover named sets.
         
         Args:
-            model: SapModel 对象
-            named_sets: 命名集名称列表
-            selected: True=选中, False=取消选中
+            model: SapModel object
+            named_sets: named-set name list
+            selected: `True` selects, `False` deselects
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetPushoverNamedSetsSelectedForDisplay(
             len(named_sets),
@@ -1352,13 +1352,13 @@ class DatabaseTables:
     @staticmethod
     def get_joint_response_spectra_named_sets_selected(model) -> Tuple[List[str], int]:
         """
-        获取当前选中显示的节点反应谱命名集
+        Get currently selected joint-response-spectrum named sets.
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            (named_sets, ret) 元组
+            (named_sets, ret) tuple
         """
         result = model.DatabaseTables.GetJointResponseSpectraNamedSetsSelectedForDisplay(0, [])
         
@@ -1374,15 +1374,15 @@ class DatabaseTables:
         selected: bool = True
     ) -> int:
         """
-        设置显示的节点反应谱命名集
+        Set displayed joint-response-spectrum named sets.
         
         Args:
-            model: SapModel 对象
-            named_sets: 命名集名称列表
-            selected: True=选中, False=取消选中
+            model: SapModel object
+            named_sets: named-set name list
+            selected: `True` selects, `False` deselects
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetJointResponseSpectraNamedSetsSelectedForDisplay(
             len(named_sets),
@@ -1394,13 +1394,13 @@ class DatabaseTables:
     @staticmethod
     def get_plot_function_traces_named_sets_selected(model) -> Tuple[List[str], int]:
         """
-        获取当前选中显示的绘图函数轨迹命名集
+        Get currently selected plot-function-trace named sets.
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            (named_sets, ret) 元组
+            (named_sets, ret) tuple
         """
         result = model.DatabaseTables.GetPlotFunctionTracesNamedSetsSelectedForDisplay(0, [])
         
@@ -1416,15 +1416,15 @@ class DatabaseTables:
         selected: bool = True
     ) -> int:
         """
-        设置显示的绘图函数轨迹命名集
+        Set displayed plot-function-trace named sets.
         
         Args:
-            model: SapModel 对象
-            named_sets: 命名集名称列表
-            selected: True=选中, False=取消选中
+            model: SapModel object
+            named_sets: named-set name list
+            selected: `True` selects, `False` deselects
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetPlotFunctionTracesNamedSetsSelectedForDisplay(
             len(named_sets),
@@ -1436,13 +1436,13 @@ class DatabaseTables:
     @staticmethod
     def get_element_virtual_work_named_sets_selected(model) -> Tuple[List[str], int]:
         """
-        获取当前选中显示的单元虚功命名集
+        Get currently selected element-virtual-work named sets.
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            (named_sets, ret) 元组
+            (named_sets, ret) tuple
         """
         result = model.DatabaseTables.GetElementVirtualWorkNamedSetsSelectedForDisplay(0, [])
         
@@ -1458,15 +1458,15 @@ class DatabaseTables:
         selected: bool = True
     ) -> int:
         """
-        设置显示的单元虚功命名集
+        Set displayedelement virtual-work named sets
         
         Args:
-            model: SapModel 对象
-            named_sets: 命名集名称列表
-            selected: True=选中, False=取消选中
+            model: SapModel object
+            named_sets: named-set name list
+            selected: `True` selects, `False` deselects
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetElementVirtualWorkNamedSetsSelectedForDisplay(
             len(named_sets),
@@ -1475,26 +1475,26 @@ class DatabaseTables:
         )
         return com_ret(result)
     
-    # ==================== 输出选项 ====================
+    # ==================== Output options ====================
     
     @staticmethod
     def get_table_output_options(model) -> Tuple[Dict[str, Any], int]:
         """
-        获取表格输出选项
+        Get table output options.
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            (options_dict, ret) 元组
-            options_dict 包含:
-                - joints: 节点输出选项 (0=All, 1=Selected, 2=None)
-                - frames: 杆件输出选项
-                - cables: 索输出选项
-                - tendons: 预应力筋输出选项
-                - areas: 面单元输出选项
-                - solids: 实体单元输出选项
-                - links: 连接单元输出选项
+            (options_dict, ret) tuple
+            options_dict includes:
+                - joints: joint output option (0=All, 1=Selected, 2=None)
+                - frames: frame output option
+                - cables: cable output option
+                - tendons: tendon output option
+                - areas: area output option
+                - solids: solid output option
+                - links: link output option
         """
         # API: GetTableOutputOptionsForDisplay(Joints, Frames, Cables, Tendons, Areas, Solids, Links)
         result = model.DatabaseTables.GetTableOutputOptionsForDisplay(
@@ -1526,20 +1526,20 @@ class DatabaseTables:
         links: int = 0
     ) -> int:
         """
-        设置表格输出选项
+        Set table output options.
         
         Args:
-            model: SapModel 对象
-            joints: 节点输出选项 (0=All, 1=Selected, 2=None)
-            frames: 杆件输出选项
-            cables: 索输出选项
-            tendons: 预应力筋输出选项
-            areas: 面单元输出选项
-            solids: 实体单元输出选项
-            links: 连接单元输出选项
+            model: SapModel object
+            joints: joint output option (0=All, 1=Selected, 2=None)
+            frames: frame output option
+            cables: cable output option
+            tendons: tendon output option
+            areas: area output option
+            solids: solid output option
+            links: link output option
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.DatabaseTables.SetTableOutputOptionsForDisplay(
             joints, frames, cables, tendons, areas, solids, links
@@ -1547,21 +1547,21 @@ class DatabaseTables:
         
         return com_ret(result)
     
-    # ==================== 工具方法 ====================
+    # ==================== Utility helpers ====================
     
     @staticmethod
     def get_obsolete_table_keys(model) -> Tuple[Dict[str, str], int]:
         """
-        获取废弃表格键名映射
+        Get obsolete table-key mapping.
         
-        返回旧表格键名到新表格键名的映射。
+        Returns a mapping from obsolete keys to replacement keys.
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
         
         Returns:
-            (mapping_dict, ret) 元组
-            mapping_dict: {旧键名: 新键名}
+            (mapping_dict, ret) tuple
+            mapping_dict: `{old_key: new_key}`
         """
         # API: GetObsoleteTableKeyList(NumberItems, OldKey[], NewKey[])
         result = model.DatabaseTables.GetObsoleteTableKeyList(0, [], [])
@@ -1583,20 +1583,20 @@ class DatabaseTables:
     @staticmethod
     def find_tables(model, keyword: str, include_empty: bool = False) -> List[TableInfo]:
         """
-        搜索表格 (便捷方法)
+        Find tables (Convenience helpers)
         
-        根据关键字搜索表格名称。
+        Search table names by keyword.
         
         Args:
-            model: SapModel 对象
-            keyword: 搜索关键字 (不区分大小写)
-            include_empty: 是否包含空表格
+            model: SapModel object
+            keyword: search keyword (case-insensitive)
+            include_empty: whether to include empty tables
         
         Returns:
-            匹配的 TableInfo 列表
+            List of matching `TableInfo` objects
         
         Example:
-            # 搜索所有包含 "Frame" 的表格
+            # Search all tables containing "Frame"
             tables = DatabaseTables.find_tables(model, "Frame")
             for t in tables:
                 print(t.table_key)
@@ -1618,16 +1618,16 @@ class DatabaseTables:
         for_editing: bool = False
     ) -> int:
         """
-        导出表格到 CSV 文件 (便捷方法)
+        Export table to CSV file (convenience helper)
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            file_path: CSV 文件路径
-            for_editing: True=导出可编辑格式, False=导出显示格式
+            model: SapModel object
+            table_key: table key
+            file_path: CSV file path
+            for_editing: `True` exports editing format, `False` exports display format
         
         Returns:
-            0 表示成功
+            `0` on success
         
         Example:
             DatabaseTables.export_to_csv(model, "Joint Coordinates", "joints.csv")
@@ -1645,16 +1645,16 @@ class DatabaseTables:
         apply_immediately: bool = True
     ) -> ApplyResult:
         """
-        从 CSV 文件导入表格数据 (便捷方法)
+        Import table data from a CSV file (convenience helper)
         
         Args:
-            model: SapModel 对象
-            table_key: 表格键名
-            file_path: CSV 文件路径
-            apply_immediately: 是否立即应用更改
+            model: SapModel object
+            table_key: table key
+            file_path: CSV file path
+            apply_immediately: whether to apply changes immediately
         
         Returns:
-            ApplyResult 对象
+            `ApplyResult` object
         
         Example:
             result = DatabaseTables.import_from_csv(model, "Joint Coordinates", "joints.csv")
@@ -1663,9 +1663,9 @@ class DatabaseTables:
         """
         ret = DatabaseTables.set_table_for_editing_csv_file(model, table_key, file_path)
         if ret != 0:
-            return ApplyResult(success=False, import_log="设置 CSV 文件失败")
+            return ApplyResult(success=False, import_log="Failed to set CSV file")
         
         if apply_immediately:
             return DatabaseTables.apply_edited_tables(model)
         else:
-            return ApplyResult(success=True, import_log="数据已加载，请调用 apply_edited_tables 应用更改")
+            return ApplyResult(success=True, import_log="Data loaded. Call `apply_edited_tables` to apply changes.")

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-release.py - 杆件端部释放相关函数
+release.py - Frame end-release helpers.
 
-用于设置杆件端部的约束释放（铰接）
+Helpers for assigning and querying end releases on frame elements.
 
 SAP2000 API:
 - FrameObj.SetReleases(Name, II[], JJ[], StartValue[], EndValue[], ItemType)
@@ -22,28 +22,26 @@ def set_frame_release(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置杆件端部释放类型（便捷方法）
-    
-    使用预定义的释放类型快速设置。
+    Assign a predefined frame end-release preset.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        release_type: 释放类型
-            - BOTH_FIXED: 两端固定
-            - I_END_HINGED: I端铰接 (释放 R2, R3)
-            - J_END_HINGED: J端铰接 (释放 R2, R3)
-            - BOTH_HINGED: 两端铰接
-        item_type: 操作范围
+        model: `SapModel` object
+        frame_name: Frame name
+        release_type: Release preset
+            - `BOTH_FIXED`: both ends fixed
+            - `I_END_HINGED`: I-end hinged (R2 and R3 released)
+            - `J_END_HINGED`: J-end hinged (R2 and R3 released)
+            - `BOTH_HINGED`: both ends hinged
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
-        # 设置杆件两端铰接
+        # Set both ends as hinged
         set_frame_release(model, "1", FrameReleaseType.BOTH_HINGED)
         
-        # 设置杆件 I 端铰接
+        # Set the I-end as hinged
         set_frame_release(model, "1", FrameReleaseType.I_END_HINGED)
     """
     release_i, release_j = RELEASE_PRESETS.get(
@@ -72,33 +70,31 @@ def set_frame_release_custom(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置杆件自定义端部释放
-    
-    可以自由组合 6 个自由度的释放状态。
+    Assign custom end releases to a frame.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        release_i: I端释放 (U1, U2, U3, R1, R2, R3)
-            - True: 释放该自由度
-            - False: 固定该自由度
-        release_j: J端释放 (U1, U2, U3, R1, R2, R3)
-        start_value: I端部分固定刚度值 (可选)
-        end_value: J端部分固定刚度值 (可选)
-        item_type: 操作范围
+        model: `SapModel` object
+        frame_name: Frame name
+        release_i: I-end release tuple `(U1, U2, U3, R1, R2, R3)`
+            - `True`: release this degree of freedom
+            - `False`: keep this degree of freedom fixed
+        release_j: J-end release tuple
+        start_value: Partial-fixity values for the I-end, optional
+        end_value: Partial-fixity values for the J-end, optional
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
-        # I端释放 R2, R3 (弯矩铰)
+        # Release R2 and R3 at the I-end
         set_frame_release_custom(
             model, "1",
             (False, False, False, False, True, True),
             (False, False, False, False, False, False)
         )
         
-        # 两端释放扭转
+        # Release torsion at both ends
         set_frame_release_custom(
             model, "1",
             (False, False, False, True, False, False),
@@ -125,20 +121,20 @@ def get_frame_release(
     frame_name: str
 ) -> Optional[FrameReleaseData]:
     """
-    获取杆件端部释放状态
+    Return the end-release state of a frame.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: `SapModel` object
+        frame_name: Frame name
     
     Returns:
-        FrameReleaseData 对象，失败返回 None
+        `FrameReleaseData`, or `None` on failure
     
     Example:
         release = get_frame_release(model, "1")
         if release:
-            print(f"I端释放: {release.release_i}")
-            print(f"J端释放: {release.release_j}")
+            print(f"I-end releases: {release.release_i}")
+            print(f"J-end releases: {release.release_j}")
     """
     try:
         result = model.FrameObj.GetReleases(str(frame_name))
@@ -162,21 +158,19 @@ def get_frame_release_type(
     frame_name: str
 ) -> Optional[FrameReleaseType]:
     """
-    获取杆件端部释放类型
-    
-    根据释放状态推断释放类型。
+    Infer the release preset from the current frame release state.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: `SapModel` object
+        frame_name: Frame name
     
     Returns:
-        释放类型，如果不匹配预定义类型则返回 None
+        Matching release preset, or `None` if no preset matches
     
     Example:
         release_type = get_frame_release_type(model, "1")
         if release_type == FrameReleaseType.BOTH_HINGED:
-            print("这是两端铰接杆件")
+            print("This frame is hinged at both ends")
     """
     release = get_frame_release(model, frame_name)
     if release:
@@ -191,23 +185,23 @@ def is_frame_hinged(
     frame_name: str
 ) -> Tuple[bool, bool]:
     """
-    检查杆件端部是否铰接
+    Check whether each frame end behaves like a hinge.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: `SapModel` object
+        frame_name: Frame name
     
     Returns:
-        (I端是否铰接, J端是否铰接)
+        Tuple `(i_end_hinged, j_end_hinged)`
     
     Example:
         i_hinged, j_hinged = is_frame_hinged(model, "1")
         if i_hinged:
-            print("I端是铰接")
+            print("The I-end is hinged")
     """
     release = get_frame_release(model, frame_name)
     if release:
-        # 检查 R2 和 R3 是否都释放
+        # A hinge is inferred when both R2 and R3 are released.
         i_hinged = release.release_i[4] and release.release_i[5]
         j_hinged = release.release_j[4] and release.release_j[5]
         return (i_hinged, j_hinged)

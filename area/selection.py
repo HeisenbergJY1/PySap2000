@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-selection.py - 面单元选择函数
-对应 SAP2000 的 AreaObj 选择相关 API
+selection.py - Area selection helpers.
+
+Wraps SAP2000 `AreaObj` selection APIs.
 """
 
 from typing import List
@@ -17,22 +18,22 @@ def set_area_selected(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置面单元选择状态
+    Set the selection state of an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        selected: 是否选中
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        selected: Whether the area should be selected
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
         
     Example:
-        # 选中面单元 "1"
+        # Select area "1"
         set_area_selected(model, "1", True)
         
-        # 取消选中面单元 "1"
+        # Deselect area "1"
         set_area_selected(model, "1", False)
     """
     return model.AreaObj.SetSelected(str(area_name), selected, int(item_type))
@@ -43,18 +44,18 @@ def get_area_selected(
     area_name: str
 ) -> bool:
     """
-    获取面单元选择状态
+    Get the selection state of an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        True 表示选中，False 表示未选中
+        `True` if selected, otherwise `False`.
         
     Example:
         is_selected = get_area_selected(model, "1")
-        print(f"面单元 1 {'已选中' if is_selected else '未选中'}")
+        print(f"Area 1 is {'selected' if is_selected else 'not selected'}")
     """
     try:
         result = model.AreaObj.GetSelected(str(area_name), False)
@@ -71,14 +72,14 @@ def select_area(
     area_name: str
 ) -> int:
     """
-    选中面单元
+    Select an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
         
     Example:
         select_area(model, "1")
@@ -91,14 +92,14 @@ def deselect_area(
     area_name: str
 ) -> int:
     """
-    取消选中面单元
+    Deselect an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
         
     Example:
         deselect_area(model, "1")
@@ -111,14 +112,14 @@ def select_areas(
     area_names: List[str]
 ) -> int:
     """
-    批量选中面单元
+    Select multiple area objects.
     
     Args:
-        model: SapModel 对象
-        area_names: 面单元名称列表
+        model: SAP2000 SapModel object
+        area_names: List of area object names
         
     Returns:
-        0 表示全部成功，非 0 表示有失败
+        `0` if all operations succeed. Nonzero indicates at least one failure.
         
     Example:
         select_areas(model, ["1", "2", "3"])
@@ -136,14 +137,14 @@ def deselect_areas(
     area_names: List[str]
 ) -> int:
     """
-    批量取消选中面单元
+    Deselect multiple area objects.
     
     Args:
-        model: SapModel 对象
-        area_names: 面单元名称列表
+        model: SAP2000 SapModel object
+        area_names: List of area object names
         
     Returns:
-        0 表示全部成功，非 0 表示有失败
+        `0` if all operations succeed. Nonzero indicates at least one failure.
         
     Example:
         deselect_areas(model, ["1", "2", "3"])
@@ -161,13 +162,13 @@ def is_area_selected(
     area_name: str
 ) -> bool:
     """
-    检查面单元是否选中
+    Check whether an area object is selected.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        True 表示选中，False 表示未选中
+        `True` if selected, otherwise `False`.
     """
     return get_area_selected(model, area_name)

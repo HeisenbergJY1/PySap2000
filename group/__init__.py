@@ -1,38 +1,39 @@
 # -*- coding: utf-8 -*-
 """
-group - 组定义模块
+group - Group definition helpers.
 
-用于管理 SAP2000 中的组定义 (GroupDef API)
+Provides helpers for managing SAP2000 group definitions via the `GroupDef` API.
 
-注意: 这是组的定义和管理模块，不是对象到组的分配。
-对象到组的分配请使用:
-- types_for_frames/frame_group.py
-- types_for_links/link_group.py
-- types_for_areas/area_group.py
-- types_for_points/point_group.py
-- types_for_cables/cable_group.py
+Note:
+    This package manages group definitions themselves, not assignments of
+    objects into groups. For assignments, use each module's `group.py`:
+    - `frame/group.py`
+    - `link/group.py`
+    - `area/group.py`
+    - `point/` (via `Point.set_group_assign`)
+    - `cable/group.py`
 
 SAP2000 API:
-- GroupDef.SetGroup - 创建/修改组
-- GroupDef.GetGroup - 获取组属性
-- GroupDef.GetNameList - 获取所有组名称
-- GroupDef.GetAssignments - 获取组内所有对象
-- GroupDef.Count - 获取组数量
-- GroupDef.Delete - 删除组
-- GroupDef.ChangeName - 重命名组
-- GroupDef.Clear - 清空组内对象
+- `GroupDef.SetGroup` - Create or update a group
+- `GroupDef.GetGroup` - Get group properties
+- `GroupDef.GetNameList` - Get all group names
+- `GroupDef.GetAssignments` - Get all objects in a group
+- `GroupDef.Count` - Get the group count
+- `GroupDef.Delete` - Delete a group
+- `GroupDef.ChangeName` - Rename a group
+- `GroupDef.Clear` - Remove all objects from a group
 
 Usage:
     from PySap2000.group import Group, GroupObjectType
     
-    # 创建组
+    # Create a group
     group = Group(name="MyGroup")
     group._create(model)
     
-    # 获取组
+    # Get a group
     group = Group.get_by_name(model, "MyGroup")
     
-    # 获取组内所有对象
+    # Get all objects in the group
     assignments = group.get_assignments(model)
     for obj_type, obj_name in assignments:
         print(f"{GroupObjectType(obj_type).name}: {obj_name}")
@@ -47,10 +48,10 @@ __all__ = [
     "GroupObjectType",
 ]
 
-# AI Agent 友好的 API 分类
+# API categories for discoverability
 GROUP_API_CATEGORIES = {
     "group_definition": {
-        "description": "组定义和管理",
+        "description": "Group definition and management",
         "class": "Group",
         "methods": [
             "_create",
@@ -66,7 +67,7 @@ GROUP_API_CATEGORIES = {
         ],
     },
     "enums": {
-        "description": "组相关枚举",
+        "description": "Group-related enums",
         "items": ["GroupObjectType"],
     },
 }

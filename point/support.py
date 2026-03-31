@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-support.py - 节点支座相关函数
+support.py - Point support helpers.
 
-用于设置节点的边界条件（约束）
+Helpers for assigning and querying point boundary conditions.
 
 SAP2000 API:
 - PointObj.SetRestraint(Name, Value, ItemType)
@@ -22,28 +22,26 @@ def set_point_support(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置节点支座类型
-    
-    这是设置支座的便捷方法，使用预定义的支座类型。
+    Assign a predefined support type to a point.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        support_type: 支座类型
-            - FIXED: 固定支座 (全约束)
-            - HINGED: 铰接支座 (约束平动，释放转动)
-            - ROLLER: 滚动支座 (仅约束 Z 方向)
-            - FREE: 自由 (无约束)
-        item_type: 项目类型
+        model: `SapModel` object
+        point_name: Point name
+        support_type: Support preset
+            - `FIXED`: fully restrained
+            - `HINGED`: translations restrained, rotations released
+            - `ROLLER`: only Z translation restrained
+            - `FREE`: no restraint
+        item_type: Item scope
     
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     
     Example:
-        # 设置节点 "1" 为固定支座
+        # Set point "1" as fixed
         set_point_support(model, "1", PointSupportType.FIXED)
         
-        # 设置节点 "2" 为铰接支座
+        # Set point "2" as hinged
         set_point_support(model, "2", PointSupportType.HINGED)
     """
     restraints = list(SUPPORT_RESTRAINTS.get(support_type, (False,) * 6))
@@ -58,26 +56,24 @@ def set_point_restraint(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置节点自定义约束
-    
-    可以自由组合 6 个自由度的约束状态。
+    Assign custom restraints to a point.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        restraints: 约束状态 (U1, U2, U3, R1, R2, R3)
-            - True: 约束该自由度
-            - False: 释放该自由度
-        item_type: 项目类型
+        model: `SapModel` object
+        point_name: Point name
+        restraints: Restraint state `(U1, U2, U3, R1, R2, R3)`
+            - `True`: restrain this degree of freedom
+            - `False`: release this degree of freedom
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
-        # 约束 X, Y 平动，释放其他
+        # Restrain X and Y translations only
         set_point_restraint(model, "1", (True, True, False, False, False, False))
         
-        # 约束所有平动，释放所有转动
+        # Restrain all translations and release all rotations
         set_point_restraint(model, "2", (True, True, True, False, False, False))
     """
     result = model.PointObj.SetRestraint(str(point_name), list(restraints), item_type)
@@ -89,19 +85,19 @@ def get_point_restraint(
     point_name: str
 ) -> Optional[Tuple[bool, bool, bool, bool, bool, bool]]:
     """
-    获取节点约束状态
+    Return the point restraint state.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
+        model: `SapModel` object
+        point_name: Point name
     
     Returns:
-        约束状态元组 (U1, U2, U3, R1, R2, R3)，失败返回 None
+        Restraint tuple `(U1, U2, U3, R1, R2, R3)`, or `None` on failure
     
     Example:
         restraints = get_point_restraint(model, "1")
         if restraints:
-            print(f"U1约束: {restraints[0]}, U2约束: {restraints[1]}")
+            print(f"U1 restrained: {restraints[0]}, U2 restrained: {restraints[1]}")
     """
     try:
         result = model.PointObj.GetRestraint(str(point_name))
@@ -119,21 +115,19 @@ def get_point_support_type(
     point_name: str
 ) -> Optional[PointSupportType]:
     """
-    获取节点支座类型
-    
-    根据约束状态推断支座类型。
+    Infer the support preset from the current restraint state.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
+        model: `SapModel` object
+        point_name: Point name
     
     Returns:
-        支座类型，如果不匹配预定义类型则返回 None
+        Matching support type, or `None` if no preset matches
     
     Example:
         support_type = get_point_support_type(model, "1")
         if support_type == PointSupportType.FIXED:
-            print("这是固定支座")
+            print("This is a fixed support")
     """
     restraints = get_point_restraint(model, point_name)
     if restraints:
@@ -149,15 +143,15 @@ def delete_point_restraint(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    删除节点约束（释放所有自由度）
+    Delete point restraints and release all degrees of freedom.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        item_type: 项目类型
+        model: `SapModel` object
+        point_name: Point name
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
         delete_point_restraint(model, "1")
@@ -167,24 +161,23 @@ def delete_point_restraint(
 
 def get_points_with_support(model) -> List[str]:
     """
-    获取所有有支座的节点名称列表（使用 Database Tables API 批量获取）
-    
-    原实现: N 个节点 = N 次 COM 调用逐个检查约束
-    新实现: 1 次 DB Tables 调用获取所有约束数据
+    Return all point names that currently have support restraints.
+
+    This uses the Database Tables API instead of per-point COM calls.
     
     Args:
-        model: SapModel 对象
+        model: `SapModel` object
     
     Returns:
-        有支座的节点名称列表
+        List of supported point names
     
     Example:
         supported_points = get_points_with_support(model)
-        print(f"共有 {len(supported_points)} 个支座节点")
+        print(f"Total supported points: {len(supported_points)}")
     """
     from PySap2000.database_tables import DatabaseTables
     
-    # 一次 COM 调用获取所有约束分配
+    # Fetch all restraint assignments in one call.
     table_data = DatabaseTables.get_table_for_display(
         model, "Joint Restraint Assignments"
     )
@@ -197,7 +190,7 @@ def get_points_with_support(model) -> List[str]:
     
     for row in table_data.to_dict_list():
         joint_name = row.get("Joint", "")
-        # 只要有任意一个自由度被约束（值为 "Yes"），就算有支座
+        # Any restrained DOF means the point has support conditions.
         has_restraint = any(
             row.get(f, "").strip().lower() == "yes"
             for f in restraint_fields

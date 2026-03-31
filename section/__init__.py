@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-section - 截面定义模块 (PropXxx API)
+section - Section property definitions (`PropXxx` APIs).
 
-本模块用于定义截面属性（是什么），而非分配属性到对象（怎么用）。
-属性分配功能请使用 types_for_xxx 模块。
+This package defines section properties themselves, rather than assigning
+those properties to objects. Use the corresponding functional modules
+(`frame/`, `area/`, `cable/`, `link/`) for assignments.
 
-包含 SAP2000 中各种对象的截面定义：
-- FrameSection: 杆件截面 (PropFrame)
-- CableSection: 缆索截面 (PropCable)
-- AreaSection: 面截面 (PropArea)
-- LinkSection: 连接截面 (PropLink)
+Includes section definitions for SAP2000 objects:
+- `FrameSection`: frame/member sections (`PropFrame`)
+- `CableSection`: cable sections (`PropCable`)
+- `AreaSection`: area sections (`PropArea`)
+- `LinkSection`: link properties (`PropLink`)
 
-材料定义在 structure_core/material.py
+Material definitions live in `structure_core/material.py`.
 
 Usage:
     from section import FrameSection, AreaSection, LinkSection

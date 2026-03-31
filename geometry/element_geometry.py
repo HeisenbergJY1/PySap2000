@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-element_geometry.py - 单元几何描述
+element_geometry.py - Element geometry descriptions
 
-定义单元的几何信息（节点、截面、方向等），不依赖任何渲染库
+Defines element geometry information (nodes, section, direction, etc.) without depending on any rendering library.
 
-优化：支持 orjson（如果已安装），JSON 序列化/反序列化速度提升 5-10 倍
+Optimization: supports `orjson` (if installed), with 5-10x faster JSON serialization/deserialization.
 """
 
 from dataclasses import dataclass, field
 from typing import List, Tuple, Optional
 import json
 
-# 尝试使用 orjson（更快的 JSON 库）
+# Try using `orjson` (a faster JSON library)
 try:
     import orjson
     _USE_ORJSON = True
@@ -21,7 +21,7 @@ except ImportError:
 
 @dataclass
 class Point3D:
-    """三维点"""
+    """3D point"""
     x: float
     y: float
     z: float
@@ -35,23 +35,23 @@ class Point3D:
 
 @dataclass
 class ElementGeometry:
-    """单元几何基类"""
+    """Base element geometry class"""
     name: str
-    point_i: Point3D  # 起点
-    point_j: Point3D  # 终点
+    point_i: Point3D  # Start point
+    point_j: Point3D  # End point
     section_name: str
     material: str = ""
     group: str = ""
     
     def length(self) -> float:
-        """计算单元长度"""
+        """Compute element length"""
         dx = self.point_j.x - self.point_i.x
         dy = self.point_j.y - self.point_i.y
         dz = self.point_j.z - self.point_i.z
         return (dx**2 + dy**2 + dz**2) ** 0.5
     
     def direction_vector(self) -> Tuple[float, float, float]:
-        """计算单元方向向量（归一化）"""
+        """Compute normalized element direction vector"""
         length = self.length()
         if length == 0:
             return (0, 0, 1)
@@ -61,7 +61,7 @@ class ElementGeometry:
         return (dx, dy, dz)
     
     def to_dict(self) -> dict:
-        """转换为字典（可序列化为 JSON）"""
+        """Convert to a dictionary (JSON-serializable)."""
         return {
             "name": self.name,
             "type": self.__class__.__name__,
@@ -76,10 +76,10 @@ class ElementGeometry:
 
 @dataclass
 class FrameElement3D(ElementGeometry):
-    """框架单元几何"""
+    """Frame element geometry"""
     section_type: str = ""  # Circle, Rect, I, etc.
-    section_params: dict = field(default_factory=dict)  # 截面参数
-    local_axis_angle: float = 0.0  # 局部坐标系旋转角度（度）
+    section_params: dict = field(default_factory=dict)  # Section parameters
+    local_axis_angle: float = 0.0  # Local coordinate system rotation angle (degrees)
     
     def to_dict(self) -> dict:
         data = super().to_dict()
@@ -93,11 +93,11 @@ class FrameElement3D(ElementGeometry):
 
 @dataclass
 class CableElement3D(ElementGeometry):
-    """索单元几何"""
-    diameter: float = 0.0  # 直径（米）
-    area: float = 0.0  # 面积（平方米）
-    section_type: str = "Circle"  # 索截面类型（默认圆形）
-    section_params: dict = field(default_factory=dict)  # 截面参数
+    """Cable element geometry"""
+    diameter: float = 0.0  # Diameter (m)
+    area: float = 0.0  # Area (m^2)
+    section_type: str = "Circle"  # Cable section type (default: circle)
+    section_params: dict = field(default_factory=dict)  # Section parameters
     
     def to_dict(self) -> dict:
         data = super().to_dict()
@@ -112,17 +112,17 @@ class CableElement3D(ElementGeometry):
 
 @dataclass
 class Model3D:
-    """完整的三维模型数据"""
+    """Complete 3D model data"""
     elements: List[ElementGeometry] = field(default_factory=list)
     model_name: str = ""
-    units: str = "m"  # 单位
+    units: str = "m"  # Units
     
     def add_element(self, element: ElementGeometry):
-        """添加单元"""
+        """Add an element"""
         self.elements.append(element)
     
     def to_dict(self) -> dict:
-        """转换为字典"""
+        """Convert to dictionary"""
         return {
             "model_name": self.model_name,
             "units": self.units,
@@ -132,26 +132,26 @@ class Model3D:
     
     def to_json(self, filepath: str = None, indent: bool = True) -> str:
         """
-        导出为 JSON
+        Export as JSON
         
-        如果安装了 orjson，使用 orjson 序列化（速度快 5-10 倍）
+        If `orjson` is installed, use it for serialization (5-10x faster).
         
         Args:
-            filepath: 输出文件路径（可选）
-            indent: 是否格式化输出（默认 True）
+            filepath: Output file path (optional)
+            indent: Whether to format output (default: `True`)
             
         Returns:
-            JSON 字符串
+            JSON string
         """
         data = self.to_dict()
         
         if _USE_ORJSON:
-            # 使用 orjson（更快）
+            # Use `orjson` (faster)
             option = orjson.OPT_INDENT_2 if indent else 0
             json_bytes = orjson.dumps(data, option=option)
             json_str = json_bytes.decode('utf-8')
         else:
-            # 回退到标准库
+            # Fallback to the standard library
             json_str = json.dumps(data, indent=2 if indent else None, ensure_ascii=False)
         
         if filepath:
@@ -163,9 +163,9 @@ class Model3D:
     @classmethod
     def from_json(cls, json_str: str) -> 'Model3D':
         """
-        从 JSON 加载
+        Load from JSON
         
-        如果安装了 orjson，使用 orjson 反序列化（速度快 5-10 倍）
+        If `orjson` is installed, use it for deserialization (5-10x faster).
         """
         if _USE_ORJSON:
             data = orjson.loads(json_str)

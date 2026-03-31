@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-panel_zone.py - 节点域相关函数
+panel_zone.py - Panel-zone helpers.
 
-用于设置梁柱节点的节点域 (Panel Zone)
+Helpers for assigning and querying beam-column joint panel zones.
 
 SAP2000 API:
 - PointObj.SetPanelZone / GetPanelZone / DeletePanelZone
@@ -33,39 +33,39 @@ def set_point_panel_zone(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置节点域
-    
-    节点域用于模拟梁柱节点区域的剪切变形。
+    Assign a panel zone to a point.
+
+    Panel zones are used to model shear deformation in beam-column joints.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        prop_type: 属性类型
-            - ELASTIC_FROM_COLUMN: 从柱截面计算弹性刚度
-            - ELASTIC_FROM_COLUMN_DOUBLER: 从柱截面+加劲板计算
-            - FROM_SPRING_STIFFNESS: 指定弹簧刚度
-            - FROM_LINK_PROPERTY: 使用连接单元属性
-        thickness: 加劲板厚度 [L] (仅 ELASTIC_FROM_COLUMN_DOUBLER 使用)
-        k1: 弹簧刚度1 (仅 FROM_SPRING_STIFFNESS 使用)
-        k2: 弹簧刚度2 (仅 FROM_SPRING_STIFFNESS 使用)
-        link_prop: 连接单元属性名称 (仅 FROM_LINK_PROPERTY 使用)
-        connectivity: 连接类型
-        local_axis_from: 局部轴来源
-        local_axis_angle: 局部轴角度 [deg]
-        item_type: 项目类型
+        model: `SapModel` object
+        point_name: Point name
+        prop_type: Property type
+            - `ELASTIC_FROM_COLUMN`: derive elastic stiffness from the column section
+            - `ELASTIC_FROM_COLUMN_DOUBLER`: derive it from the column plus doubler plate
+            - `FROM_SPRING_STIFFNESS`: specify spring stiffness explicitly
+            - `FROM_LINK_PROPERTY`: use a link property
+        thickness: Doubler-plate thickness [L]
+        k1: Spring stiffness 1
+        k2: Spring stiffness 2
+        link_prop: Link property name
+        connectivity: Connectivity type
+        local_axis_from: Local-axis source
+        local_axis_angle: Local-axis angle [deg]
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
-        # 使用柱截面计算节点域刚度
+        # Derive panel-zone stiffness from the column section
         set_point_panel_zone(model, "5", PanelZonePropType.ELASTIC_FROM_COLUMN)
         
-        # 使用加劲板
+        # Use a doubler plate
         set_point_panel_zone(
             model, "5", 
             PanelZonePropType.ELASTIC_FROM_COLUMN_DOUBLER,
-            thickness=0.01  # 10mm 加劲板
+            thickness=0.01  # 10 mm doubler plate
         )
     """
     return model.PointObj.SetPanelZone(
@@ -87,19 +87,19 @@ def get_point_panel_zone(
     point_name: str
 ) -> Optional[PanelZoneData]:
     """
-    获取节点域设置
+    Return panel-zone settings for a point.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
+        model: `SapModel` object
+        point_name: Point name
     
     Returns:
-        PanelZoneData 对象，失败或无节点域返回 None
+        `PanelZoneData`, or `None` when unavailable
     
     Example:
         pz = get_point_panel_zone(model, "5")
         if pz:
-            print(f"节点域类型: {pz.prop_type}")
+            print(f"Panel-zone type: {pz.prop_type}")
     """
     try:
         result = model.PointObj.GetPanelZone(str(point_name))
@@ -126,15 +126,15 @@ def delete_point_panel_zone(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    删除节点域
+    Delete the panel-zone assignment from a point.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        item_type: 项目类型
+        model: `SapModel` object
+        point_name: Point name
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
         delete_point_panel_zone(model, "5")
@@ -147,13 +147,13 @@ def has_point_panel_zone(
     point_name: str
 ) -> bool:
     """
-    检查节点是否有节点域
+    Check whether a point has panel-zone data assigned.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
+        model: `SapModel` object
+        point_name: Point name
     
     Returns:
-        True=有节点域, False=没有
+        `True` if panel-zone data exists, otherwise `False`
     """
     return get_point_panel_zone(model, point_name) is not None

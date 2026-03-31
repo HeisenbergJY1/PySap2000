@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-exceptions.py - 统一异常定义
-参考 dlubal.api.common.exceptions
+exceptions.py - Unified exception definitions.
+
+Inspired by `dlubal.api.common.exceptions`.
 
 Usage:
     from PySap2000.exceptions import PointError, FrameError, AnalysisError
@@ -19,7 +20,7 @@ from typing import Optional, Dict, Any
 
 
 def _deprecated_class(cls, replacement: str):
-    """为弃用的类添加警告"""
+    """Attach a deprecation warning to a legacy exception class."""
     original_init = cls.__init__
 
     @wraps(original_init)
@@ -37,11 +38,11 @@ def _deprecated_class(cls, replacement: str):
 
 class PySap2000Error(Exception):
     """
-    PySap2000 基础异常类
+    Base exception for PySap2000.
 
     Attributes:
-        message: 错误消息
-        details: 详细信息字典
+        message: Error message
+        details: Optional details dictionary
     """
     def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
         super().__init__(message)
@@ -55,36 +56,40 @@ class PySap2000Error(Exception):
         return self.message
 
 
-class ConnectionError(PySap2000Error):
-    """连接 SAP2000 失败"""
+class SAPConnectionError(PySap2000Error):
+    """Raised when connecting to SAP2000 fails."""
     pass
 
 
-class ConnectionTimeoutError(ConnectionError):
-    """连接超时"""
+# Backward-compatible alias. Deprecated; prefer SAPConnectionError.
+ConnectionError = SAPConnectionError
+
+
+class ConnectionTimeoutError(SAPConnectionError):
+    """Raised when a SAP2000 connection attempt times out."""
     pass
 
 
-class ConnectionLostError(ConnectionError):
-    """连接丢失"""
+class ConnectionLostError(SAPConnectionError):
+    """Raised when an existing SAP2000 connection is lost."""
     pass
 
 
-class SAP2000NotRunningError(ConnectionError):
-    """SAP2000 未运行"""
+class SAP2000NotRunningError(SAPConnectionError):
+    """Raised when SAP2000 is not running."""
     pass
 
 
 class ObjectError(PySap2000Error):
-    """对象操作错误"""
+    """Raised for object operation errors."""
     pass
 
 
 class NodeError(ObjectError):
     """
-    [DEPRECATED] 节点相关错误
-    
-    请使用 PointError 替代
+    [DEPRECATED] Point-related error.
+
+    Use PointError instead.
     """
     pass
 
@@ -92,15 +97,15 @@ NodeError = _deprecated_class(NodeError, "PointError")
 
 
 class PointError(ObjectError):
-    """Point 相关错误"""
+    """Raised for point-related errors."""
     pass
 
 
 class MemberError(ObjectError):
     """
-    [DEPRECATED] 杆件相关错误
-    
-    请使用 FrameError 替代
+    [DEPRECATED] Frame-related error.
+
+    Use FrameError instead.
     """
     pass
 
@@ -108,50 +113,50 @@ MemberError = _deprecated_class(MemberError, "FrameError")
 
 
 class FrameError(ObjectError):
-    """Frame 相关错误"""
+    """Raised for frame-related errors."""
     pass
 
 
 class SurfaceError(ObjectError):
-    """面单元相关错误"""
+    """Raised for surface-related errors."""
     pass
 
 
 class AreaError(ObjectError):
-    """Area 相关错误"""
+    """Raised for area-related errors."""
     pass
 
 
 class CableError(ObjectError):
-    """Cable 相关错误"""
+    """Raised for cable-related errors."""
     pass
 
 
 class LinkError(ObjectError):
-    """Link 相关错误"""
+    """Raised for link-related errors."""
     pass
 
 
 class MaterialError(ObjectError):
-    """材料相关错误"""
+    """Raised for material-related errors."""
     pass
 
 
 class SectionError(ObjectError):
-    """截面相关错误"""
+    """Raised for section-related errors."""
     pass
 
 
 class LoadError(ObjectError):
-    """荷载相关错误"""
+    """Raised for load-related errors."""
     pass
 
 
 class AnalysisError(PySap2000Error):
-    """分析相关错误"""
+    """Raised for analysis-related errors."""
     pass
 
 
 class ResultError(PySap2000Error):
-    """结果获取错误"""
+    """Raised for result retrieval errors."""
     pass

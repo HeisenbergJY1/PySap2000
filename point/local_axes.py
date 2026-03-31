@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-local_axes.py - 节点局部坐标轴相关函数
+local_axes.py - Point local-axis helpers.
 
-用于设置节点的局部坐标系
+Helpers for assigning and querying point local coordinate systems.
 
 SAP2000 API:
 - PointObj.SetLocalAxes / GetLocalAxes
@@ -23,30 +23,30 @@ def set_point_local_axes(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置节点局部坐标轴角度
-    
-    局部坐标轴的定义方式 (按顺序旋转):
-    1. 首先将局部 1, 2, 3 轴设置为与全局 X, Y, Z 轴相同
-    2. 绕局部 3 轴旋转角度 a
-    3. 绕旋转后的局部 2 轴旋转角度 b
-    4. 绕旋转后的局部 1 轴旋转角度 c
+    Set point local-axis angles.
+
+    The local coordinate system is defined through sequential rotations:
+    1. Start with local axes 1, 2, and 3 aligned with global X, Y, and Z
+    2. Rotate about local axis 3 by angle `a`
+    3. Rotate about the transformed local axis 2 by angle `b`
+    4. Rotate about the transformed local axis 1 by angle `c`
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        a: 绕 3 轴旋转角度 [deg]
-        b: 绕 2 轴旋转角度 [deg]
-        c: 绕 1 轴旋转角度 [deg]
-        item_type: 项目类型
+        model: `SapModel` object
+        point_name: Point name
+        a: Rotation about axis 3 [deg]
+        b: Rotation about axis 2 [deg]
+        c: Rotation about axis 1 [deg]
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
-        # 绕 Z 轴旋转 90°
+        # Rotate 90 degrees about the Z axis
         set_point_local_axes(model, "1", 90, 0, 0)
         
-        # 绕 Y 轴旋转 45°
+        # Rotate 45 degrees about the Y axis
         set_point_local_axes(model, "2", 0, 45, 0)
     """
     return model.PointObj.SetLocalAxes(str(point_name), a, b, c, item_type)
@@ -57,20 +57,20 @@ def get_point_local_axes(
     point_name: str
 ) -> Optional[Tuple[float, float, float]]:
     """
-    获取节点局部坐标轴角度
+    Return point local-axis angles.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
+        model: `SapModel` object
+        point_name: Point name
     
     Returns:
-        角度元组 (a, b, c) [deg]，失败返回 None
+        Angle tuple `(a, b, c)` in degrees, or `None` on failure
     
     Example:
         angles = get_point_local_axes(model, "1")
         if angles:
             a, b, c = angles
-            print(f"旋转角度: a={a}°, b={b}°, c={c}°")
+            print(f"Rotation angles: a={a}°, b={b}°, c={c}°")
     """
     try:
         result = model.PointObj.GetLocalAxes(str(point_name), 0.0, 0.0, 0.0, False)
@@ -102,32 +102,32 @@ def set_point_local_axes_advanced(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置节点高级局部坐标轴
-    
-    这是高级方法，允许通过多种方式定义局部坐标轴。
+    Assign advanced local-axis settings to a point.
+
+    This advanced helper supports multiple axis-definition modes.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        active: True=使用高级定义, False=使用简单角度定义
-        axvec_opt: 轴向量选项 (1=坐标方向, 2=两点, 3=用户向量)
-        axcsys: 轴坐标系名称
-        axdir: 轴方向 (正向, 负向)
-        axpt: 轴定义点 (点1, 点2)
-        axvec: 轴向量 (x, y, z)
-        plane2: 平面定义选项
-        plvec_opt: 平面向量选项
-        plcsys: 平面坐标系名称
-        pldir: 平面方向
-        plpt: 平面定义点
-        plvec: 平面向量
-        item_type: 项目类型
+        model: `SapModel` object
+        point_name: Point name
+        active: `True` to use advanced definition, `False` for simple angles
+        axvec_opt: Axis vector option (`1` coord direction, `2` two points, `3` user vector)
+        axcsys: Axis coordinate system name
+        axdir: Axis directions
+        axpt: Axis definition points
+        axvec: Axis vector `(x, y, z)`
+        plane2: Plane definition option
+        plvec_opt: Plane vector option
+        plcsys: Plane coordinate system name
+        pldir: Plane directions
+        plpt: Plane definition points
+        plvec: Plane vector
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Note:
-        对于大多数情况，建议使用简单的 set_point_local_axes() 函数。
+        For most cases, prefer the simpler `set_point_local_axes()` helper.
     """
     return model.PointObj.SetLocalAxesAdvanced(
         str(point_name),
@@ -152,14 +152,14 @@ def get_point_local_axes_advanced(
     point_name: str
 ) -> Optional[dict]:
     """
-    获取节点高级局部坐标轴设置
+    Return advanced local-axis settings for a point.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
+        model: `SapModel` object
+        point_name: Point name
     
     Returns:
-        包含高级设置的字典，失败返回 None
+        Dictionary of advanced settings, or `None` on failure
     """
     try:
         result = model.PointObj.GetLocalAxesAdvanced(str(point_name))
@@ -190,15 +190,15 @@ def get_point_transformation_matrix(
     is_global: bool = True
 ) -> Optional[Tuple[float, ...]]:
     """
-    获取节点坐标变换矩阵
+    Return the point transformation matrix.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        is_global: True=全局到局部, False=局部到全局
+        model: `SapModel` object
+        point_name: Point name
+        is_global: `True` for global-to-local, `False` for local-to-global
     
     Returns:
-        12个元素的变换矩阵，失败返回 None
+        12-value transformation matrix, or `None` on failure
     """
     try:
         result = model.PointObj.GetTransformationMatrix(

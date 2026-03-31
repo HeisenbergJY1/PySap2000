@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-group.py - 杆件组分配相关函数
+group.py - Frame group-assignment helpers.
 
-用于设置杆件的组分配
+Provides functions to assign frames to groups and query existing assignments.
 
 SAP2000 API:
 - FrameObj.SetGroupAssign(Name, GroupName, Remove, ItemType)
@@ -22,23 +22,23 @@ def set_frame_group(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置杆件组分配
+    Assign or remove a frame from a group.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        group_name: 组名称 (必须已存在)
-        remove: False=添加到组, True=从组移除
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        group_name: Group name, which must already exist
+        remove: `False` to add the frame, `True` to remove it
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
-        # 将杆件添加到组
+        # Add the frame to a group
         set_frame_group(model, "1", "Beams")
         
-        # 从组移除杆件
+        # Remove the frame from a group
         set_frame_group(model, "1", "Beams", remove=True)
     """
     return model.FrameObj.SetGroupAssign(str(frame_name), group_name, remove, int(item_type))
@@ -51,16 +51,16 @@ def add_frame_to_group(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    将杆件添加到组
+    Add a frame to a group.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        group_name: 组名称 (必须已存在)
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        group_name: Group name, which must already exist
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
         add_frame_to_group(model, "1", "Beams")
@@ -75,16 +75,16 @@ def remove_frame_from_group(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    从组移除杆件
+    Remove a frame from a group.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        group_name: 组名称
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        group_name: Group name
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
         remove_frame_from_group(model, "1", "Beams")
@@ -97,19 +97,19 @@ def get_frame_groups(
     frame_name: str
 ) -> Optional[List[str]]:
     """
-    获取杆件所属组
+    Get the groups assigned to a frame.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        组名称列表，失败返回 None
+        List of group names, or `None` if the query fails.
     
     Example:
         groups = get_frame_groups(model, "1")
         if groups:
-            print(f"杆件所属组: {groups}")
+            print(f"Assigned groups: {groups}")
     """
     try:
         result = model.FrameObj.GetGroupAssign(str(frame_name), 0, [])
@@ -128,19 +128,19 @@ def is_frame_in_group(
     group_name: str
 ) -> bool:
     """
-    检查杆件是否在指定组中
+    Check whether a frame belongs to a specific group.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        group_name: 组名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        group_name: Group name
     
     Returns:
-        True=在组中, False=不在组中
+        `True` if the frame belongs to the group, otherwise `False`.
     
     Example:
         if is_frame_in_group(model, "1", "Beams"):
-            print("杆件在 Beams 组中")
+            print("The frame belongs to the Beams group")
     """
     groups = get_frame_groups(model, frame_name)
     if groups:
@@ -154,15 +154,15 @@ def add_frames_to_group(
     group_name: str
 ) -> int:
     """
-    批量将杆件添加到组
+    Add multiple frames to a group.
     
     Args:
-        model: SapModel 对象
-        frame_names: 杆件名称列表
-        group_name: 组名称 (必须已存在)
+        model: SAP2000 SapModel object
+        frame_names: List of frame object names
+        group_name: Group name, which must already exist
     
     Returns:
-        0 表示全部成功
+        `0` if all operations succeed.
     
     Example:
         add_frames_to_group(model, ["1", "2", "3"], "Beams")
@@ -181,15 +181,15 @@ def remove_frames_from_group(
     group_name: str
 ) -> int:
     """
-    批量从组移除杆件
+    Remove multiple frames from a group.
     
     Args:
-        model: SapModel 对象
-        frame_names: 杆件名称列表
-        group_name: 组名称
+        model: SAP2000 SapModel object
+        frame_names: List of frame object names
+        group_name: Group name
     
     Returns:
-        0 表示全部成功
+        `0` if all operations succeed.
     
     Example:
         remove_frames_from_group(model, ["1", "2", "3"], "Beams")

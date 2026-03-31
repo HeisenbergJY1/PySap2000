@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-edit_general.py - 通用编辑
+edit_general.py - General editing
 
-SAP2000 EditGeneral API 封装
+Wrappers for the SAP2000 `EditGeneral` API.
 
 SAP2000 API:
-- EditGeneral.ExtrudeAreaToSolidLinearNormal - 面拉伸为实体（法向）
-- EditGeneral.ExtrudeAreaToSolidLinearUser - 面拉伸为实体（用户定义）
-- EditGeneral.ExtrudeAreaToSolidRadial - 面拉伸为实体（径向）
-- EditGeneral.ExtrudeFrameToAreaLinear - 框架拉伸为面
-- EditGeneral.ExtrudeFrameToAreaRadial - 框架拉伸为面（径向）
-- EditGeneral.ExtrudePointToFrameLinear - 点拉伸为框架
-- EditGeneral.ExtrudePointToFrameRadial - 点拉伸为框架（径向）
-- EditGeneral.Move - 移动
-- EditGeneral.ReplicateLinear - 线性复制
-- EditGeneral.ReplicateMirror - 镜像复制
-- EditGeneral.ReplicateRadial - 径向复制
+- `EditGeneral.ExtrudeAreaToSolidLinearNormal` - Extrude areas to solids (normal)
+- `EditGeneral.ExtrudeAreaToSolidLinearUser` - Extrude areas to solids (user vector)
+- `EditGeneral.ExtrudeAreaToSolidRadial` - Extrude areas to solids (radial)
+- `EditGeneral.ExtrudeFrameToAreaLinear` - Extrude frames to areas (linear)
+- `EditGeneral.ExtrudeFrameToAreaRadial` - Extrude frames to areas (radial)
+- `EditGeneral.ExtrudePointToFrameLinear` - Extrude points to frames (linear)
+- `EditGeneral.ExtrudePointToFrameRadial` - Extrude points to frames (radial)
+- `EditGeneral.Move` - Move
+- `EditGeneral.ReplicateLinear` - Linear replicate
+- `EditGeneral.ReplicateMirror` - Mirror replicate
+- `EditGeneral.ReplicateRadial` - Radial replicate
 """
 
 from typing import List
@@ -29,16 +29,16 @@ def extrude_area_to_solid_linear_normal(
     delete_original: bool = False
 ) -> List[str]:
     """
-    沿法向将选中面单元拉伸为实体
+    Extrude selected areas to solids along the normal direction
     
     Args:
-        model: SapModel 对象
-        num_solid: 实体数量
-        thickness: 总厚度
-        delete_original: 是否删除原面单元
+        model: SAP2000 SapModel object
+        num_solid: Number of solids
+        thickness: Total thickness
+        delete_original: Whether to delete original areas
         
     Returns:
-        新创建的实体名称列表
+        List of newly created solid names
     """
     result = model.EditGeneral.ExtrudeAreaToSolidLinearNormal(
         num_solid, thickness, delete_original, 0, []
@@ -59,18 +59,18 @@ def extrude_area_to_solid_linear_user(
     delete_original: bool = False
 ) -> List[str]:
     """
-    沿用户定义方向将选中面单元拉伸为实体
+    Extrude selected areas to solids along a user-defined direction
     
     Args:
-        model: SapModel 对象
-        num_solid: 实体数量
-        dx: X方向增量
-        dy: Y方向增量
-        dz: Z方向增量
-        delete_original: 是否删除原面单元
+        model: SAP2000 SapModel object
+        num_solid: Number of solids
+        dx: X increment
+        dy: Y increment
+        dz: Z increment
+        delete_original: Whether to delete original areas
         
     Returns:
-        新创建的实体名称列表
+        List of newly created solid names
     """
     result = model.EditGeneral.ExtrudeAreaToSolidLinearUser(
         num_solid, dx, dy, dz, delete_original, 0, []
@@ -95,18 +95,18 @@ def extrude_area_to_solid_radial(
     delete_original: bool = False
 ) -> List[str]:
     """
-    径向将选中面单元拉伸为实体
+    Extrude selected areas to solids radially
     
     Args:
-        model: SapModel 对象
-        num_solid: 实体数量
-        total_angle: 总角度 [deg]
-        x, y, z: 旋转轴上的点坐标
-        rx, ry, rz: 旋转轴方向向量
-        delete_original: 是否删除原面单元
+        model: SAP2000 SapModel object
+        num_solid: Number of solids
+        total_angle: Total angle [deg]
+        x, y, z: A point on the rotation axis
+        rx, ry, rz: Rotation-axis direction vector
+        delete_original: Whether to delete original areas
         
     Returns:
-        新创建的实体名称列表
+        List of newly created solid names
     """
     result = model.EditGeneral.ExtrudeAreaToSolidRadial(
         num_solid, total_angle, x, y, z, rx, ry, rz, delete_original, 0, []
@@ -127,18 +127,18 @@ def extrude_frame_to_area_linear(
     delete_original: bool = False
 ) -> List[str]:
     """
-    线性将选中框架拉伸为面单元
+    Extrude selected frames to area objects linearly
     
     Args:
-        model: SapModel 对象
-        num_area: 面单元数量
-        dx: X方向增量
-        dy: Y方向增量
-        dz: Z方向增量
-        delete_original: 是否删除原框架
+        model: SAP2000 SapModel object
+        num_area: Number of areas
+        dx: X increment
+        dy: Y increment
+        dz: Z increment
+        delete_original: Whether to delete original frames
         
     Returns:
-        新创建的面单元名称列表
+        List of newly created area object names
     """
     result = model.EditGeneral.ExtrudeFrameToAreaLinear(
         num_area, dx, dy, dz, delete_original, 0, []
@@ -163,18 +163,18 @@ def extrude_frame_to_area_radial(
     delete_original: bool = False
 ) -> List[str]:
     """
-    径向将选中框架拉伸为面单元
+    Extrude selected frames to area objects radially
     
     Args:
-        model: SapModel 对象
-        num_area: 面单元数量
-        total_angle: 总角度 [deg]
-        x, y, z: 旋转轴上的点坐标
-        rx, ry, rz: 旋转轴方向向量
-        delete_original: 是否删除原框架
+        model: SAP2000 SapModel object
+        num_area: Number of areas
+        total_angle: Total angle [deg]
+        x, y, z: A point on the rotation axis
+        rx, ry, rz: Rotation-axis direction vector
+        delete_original: Whether to delete original frames
         
     Returns:
-        新创建的面单元名称列表
+        List of newly created area object names
     """
     result = model.EditGeneral.ExtrudeFrameToAreaRadial(
         num_area, total_angle, x, y, z, rx, ry, rz, delete_original, 0, []
@@ -195,18 +195,18 @@ def extrude_point_to_frame_linear(
     delete_original: bool = False
 ) -> List[str]:
     """
-    线性将选中点拉伸为框架
+    Extrude selected points to frames linearly
     
     Args:
-        model: SapModel 对象
-        num_frame: 框架数量
-        dx: X方向增量
-        dy: Y方向增量
-        dz: Z方向增量
-        delete_original: 是否删除原点
+        model: SAP2000 SapModel object
+        num_frame: Number of frames
+        dx: X increment
+        dy: Y increment
+        dz: Z increment
+        delete_original: Whether to delete original points
         
     Returns:
-        新创建的框架名称列表
+        List of newly created frame names
     """
     result = model.EditGeneral.ExtrudePointToFrameLinear(
         num_frame, dx, dy, dz, delete_original, 0, []
@@ -231,18 +231,18 @@ def extrude_point_to_frame_radial(
     delete_original: bool = False
 ) -> List[str]:
     """
-    径向将选中点拉伸为框架
+    Extrude selected points to frames radially
     
     Args:
-        model: SapModel 对象
-        num_frame: 框架数量
-        total_angle: 总角度 [deg]
-        x, y, z: 旋转轴上的点坐标
-        rx, ry, rz: 旋转轴方向向量
-        delete_original: 是否删除原点
+        model: SAP2000 SapModel object
+        num_frame: Number of frames
+        total_angle: Total angle [deg]
+        x, y, z: A point on the rotation axis
+        rx, ry, rz: Rotation-axis direction vector
+        delete_original: Whether to delete original points
         
     Returns:
-        新创建的框架名称列表
+        List of newly created frame names
     """
     result = model.EditGeneral.ExtrudePointToFrameRadial(
         num_frame, total_angle, x, y, z, rx, ry, rz, delete_original, 0, []
@@ -261,16 +261,16 @@ def move_selected(
     dz: float
 ) -> int:
     """
-    移动选中对象
+    Move selected objects
     
     Args:
-        model: SapModel 对象
-        dx: X方向移动量
-        dy: Y方向移动量
-        dz: Z方向移动量
+        model: SAP2000 SapModel object
+        dx: X translation
+        dy: Y translation
+        dz: Z translation
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditGeneral.Move(dx, dy, dz)
 
@@ -283,17 +283,17 @@ def replicate_linear(
     dz: float
 ) -> int:
     """
-    线性复制选中对象
+    Replicate selected objects linearly
     
     Args:
-        model: SapModel 对象
-        num: 复制数量
-        dx: X方向增量
-        dy: Y方向增量
-        dz: Z方向增量
+        model: SAP2000 SapModel object
+        num: Number of copies
+        dx: X increment
+        dy: Y increment
+        dz: Z increment
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditGeneral.ReplicateLinear(num, dx, dy, dz)
 
@@ -306,18 +306,18 @@ def replicate_mirror(
     z: float = 0.0
 ) -> int:
     """
-    镜像复制选中对象
+    Replicate selected objects by mirror
     
     Args:
-        model: SapModel 对象
-        plane: 镜像平面
-            1 = 平行于YZ平面
-            2 = 平行于XZ平面
-            3 = 平行于XY平面
-        x, y, z: 镜像平面上的点坐标
+        model: SAP2000 SapModel object
+        plane: Mirror plane
+            `1` = Plane parallel to YZ
+            `2` = Plane parallel to XZ
+            `3` = Plane parallel to XY
+        x, y, z: A point on the mirror plane
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditGeneral.ReplicateMirror(plane, x, y, z)
 
@@ -334,16 +334,16 @@ def replicate_radial(
     rz: float
 ) -> int:
     """
-    径向复制选中对象
+    Replicate selected objects radially
     
     Args:
-        model: SapModel 对象
-        num: 复制数量
-        total_angle: 总角度 [deg]
-        x, y, z: 旋转轴上的点坐标
-        rx, ry, rz: 旋转轴方向向量
+        model: SAP2000 SapModel object
+        num: Number of copies
+        total_angle: Total angle [deg]
+        x, y, z: A point on the rotation axis
+        rx, ry, rz: Rotation-axis direction vector
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditGeneral.ReplicateRadial(num, total_angle, x, y, z, rx, ry, rz)

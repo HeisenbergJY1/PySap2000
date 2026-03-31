@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-config.py - 集中配置管理
+config.py - Centralized configuration management.
 
-集中管理 PySap2000 的所有配置项，支持环境变量覆盖。
+This module stores project-wide configuration and supports environment-variable
+overrides.
 
 Usage:
     from PySap2000.config import config
     
-    # 访问配置
+    # Read config values
     print(config.default_units)
     print(config.agent.max_history_rounds)
     
-    # 修改配置
+    # Update config values
     config.log_level = "DEBUG"
     
-    # 使用环境变量覆盖
+    # Override values with environment variables
     # export PYSAP_LOG_LEVEL=DEBUG
     # export PYSAP_AGENT_MAX_HISTORY=20
 """
@@ -26,18 +27,18 @@ from pathlib import Path
 
 
 def _get_env(key: str, default: str = "") -> str:
-    """获取环境变量"""
+    """Return an environment variable with the `PYSAP_` prefix."""
     return os.environ.get(f"PYSAP_{key}", default)
 
 
 def _get_env_int(key: str, default: int) -> int:
-    """获取整数类型环境变量"""
+    """Read an integer environment variable."""
     value = _get_env(key)
     return int(value) if value.isdigit() else default
 
 
 def _get_env_bool(key: str, default: bool) -> bool:
-    """获取布尔类型环境变量"""
+    """Read a boolean environment variable."""
     value = _get_env(key).lower()
     if value in ("true", "1", "yes"):
         return True
@@ -47,7 +48,7 @@ def _get_env_bool(key: str, default: bool) -> bool:
 
 
 def _get_env_float(key: str, default: float) -> float:
-    """获取浮点类型环境变量"""
+    """Read a float environment variable."""
     value = _get_env(key)
     try:
         return float(value) if value else default
@@ -57,28 +58,28 @@ def _get_env_float(key: str, default: float) -> float:
 
 @dataclass
 class AgentConfig:
-    """LangChain Agent 配置"""
+    """Configuration for agent-related features."""
     
-    # LLM 配置
+    # Model configuration
     default_provider: str = "qwen"
     default_model: str = "qwen-plus"
     temperature: float = 0.1
     max_tokens: int = 4096
     
-    # 对话配置
+    # Conversation configuration
     max_history_rounds: int = 10
     enable_tool_selector: bool = True
     enable_rag: bool = True
     
-    # 安全配置
+    # Safety configuration
     require_confirmation: bool = True
-    pending_timeout: int = 300  # 秒
+    pending_timeout: int = 300  # seconds
     
-    # 文档路径
+    # Documentation path
     docs_path: str = "docs/CSI_AI_Ready_Texts"
     
     def __post_init__(self):
-        """从环境变量加载配置"""
+        """Load values from environment variables."""
         self.default_provider = _get_env("AGENT_PROVIDER", self.default_provider)
         self.default_model = _get_env("AGENT_MODEL", self.default_model)
         self.temperature = _get_env_float("AGENT_TEMPERATURE", self.temperature)
@@ -90,25 +91,25 @@ class AgentConfig:
 
 @dataclass
 class VisualizationConfig:
-    """可视化配置"""
+    """Visualization-related configuration."""
     
-    # 默认颜色
+    # Default colors
     point_color: str = "#FF0000"
     frame_color: str = "#0066CC"
     area_color: str = "#00CC66"
     cable_color: str = "#FF6600"
     
-    # 渲染配置
+    # Rendering configuration
     default_opacity: float = 0.8
     show_grid: bool = True
     show_axes: bool = True
     
-    # 导出配置
+    # Export configuration
     default_format: str = "html"  # html, json, gltf
     embed_viewer: bool = True
     
     def __post_init__(self):
-        """从环境变量加载配置"""
+        """Load values from environment variables."""
         self.point_color = _get_env("VIS_POINT_COLOR", self.point_color)
         self.frame_color = _get_env("VIS_FRAME_COLOR", self.frame_color)
         self.area_color = _get_env("VIS_AREA_COLOR", self.area_color)
@@ -116,25 +117,25 @@ class VisualizationConfig:
 
 @dataclass
 class ConnectionConfig:
-    """SAP2000 连接配置"""
+    """SAP2000 connection configuration."""
     
-    # 连接方式
+    # Connection mode
     attach_to_instance: bool = True
     program_path: str = ""
     
-    # 超时配置
-    connection_timeout: int = 30  # 秒
-    operation_timeout: int = 60   # 秒
+    # Timeout configuration
+    connection_timeout: int = 30  # seconds
+    operation_timeout: int = 60   # seconds
     
-    # 重试配置
+    # Retry configuration
     max_retries: int = 3
-    retry_delay: float = 1.0  # 秒
+    retry_delay: float = 1.0  # seconds
     
-    # 默认单位
+    # Default units
     default_units: int = 6  # kN_m_C
     
     def __post_init__(self):
-        """从环境变量加载配置"""
+        """Load values from environment variables."""
         self.attach_to_instance = _get_env_bool("ATTACH_TO_INSTANCE", self.attach_to_instance)
         self.program_path = _get_env("SAP_PROGRAM_PATH", self.program_path)
         self.connection_timeout = _get_env_int("CONNECTION_TIMEOUT", self.connection_timeout)
@@ -144,47 +145,48 @@ class ConnectionConfig:
 @dataclass
 class PySap2000Config:
     """
-    PySap2000 主配置类
-    
-    集中管理所有配置项，支持环境变量覆盖。
-    
-    环境变量前缀: PYSAP_
+    Main configuration object for PySap2000.
+
+    All top-level config values live here and can be overridden through
+    environment variables.
+
+    Environment variable prefix: `PYSAP_`
     
     Example:
-        # 设置环境变量
+        # Set environment variables
         export PYSAP_LOG_LEVEL=DEBUG
         export PYSAP_AGENT_MAX_HISTORY=20
         
-        # 代码中使用
+        # Use in code
         from PySap2000.config import config
         config.log_level = "INFO"
     """
     
-    # 日志配置
+    # Logging
     log_level: str = "INFO"
     log_file: Optional[str] = None
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     
-    # 调试模式
+    # Debug mode
     debug: bool = False
     
-    # 严格模式：COM 调用失败时抛出异常而非静默返回错误码
+    # Strict mode: raise instead of silently returning COM error codes
     strict_mode: bool = False
     
-    # 子配置
+    # Nested config sections
     agent: AgentConfig = field(default_factory=AgentConfig)
     visualization: VisualizationConfig = field(default_factory=VisualizationConfig)
     connection: ConnectionConfig = field(default_factory=ConnectionConfig)
     
     def __post_init__(self):
-        """从环境变量加载配置"""
+        """Load values from environment variables."""
         self.log_level = _get_env("LOG_LEVEL", self.log_level)
         self.log_file = _get_env("LOG_FILE") or None
         self.debug = _get_env_bool("DEBUG", self.debug)
         self.strict_mode = _get_env_bool("STRICT_MODE", self.strict_mode)
     
     def to_dict(self) -> dict:
-        """转换为字典"""
+        """Convert the config object into a dictionary."""
         return {
             "log_level": self.log_level,
             "log_file": self.log_file,
@@ -209,7 +211,7 @@ class PySap2000Config:
         }
     
     def update_from_dict(self, data: dict) -> None:
-        """从字典更新配置"""
+        """Update config values from a dictionary."""
         if "log_level" in data:
             self.log_level = data["log_level"]
         if "log_file" in data:
@@ -225,5 +227,5 @@ class PySap2000Config:
                 self.agent.temperature = agent_data["temperature"]
 
 
-# 全局配置实例
+# Global config instance
 config = PySap2000Config()

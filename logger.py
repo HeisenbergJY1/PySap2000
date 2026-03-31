@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-logger.py - 统一日志管理
+logger.py - Unified logging helpers.
 
-提供 PySap2000 库的日志功能，支持多种日志级别和输出目标。
+Provides logging utilities for PySap2000 with configurable levels and outputs.
 
 Usage:
     from PySap2000.logger import logger, setup_logger
     
-    # 使用默认日志器
+    # Use the default logger
     logger.info("Connected to SAP2000")
     logger.debug("Creating point at (0, 0, 0)")
     logger.error("Failed to create frame")
     
-    # 自定义日志配置
+    # Use custom logging configuration
     setup_logger(level="DEBUG", log_file="pysap2000.log")
 """
 
@@ -23,17 +23,17 @@ from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
 
-# 创建 PySap2000 专用日志器
+# Create the package logger.
 logger = logging.getLogger("pysap2000")
 
-# 默认格式
+# Default formats
 DEFAULT_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 SIMPLE_FORMAT = "%(levelname)s: %(message)s"
 
 
 class ColoredFormatter(logging.Formatter):
     """
-    带颜色的日志格式化器（仅在终端有效）
+    Log formatter with ANSI colors for terminal output.
     """
     COLORS = {
         'DEBUG': '\033[36m',     # Cyan
@@ -59,37 +59,37 @@ def setup_logger(
     backup_count: int = 5
 ) -> logging.Logger:
     """
-    配置 PySap2000 日志器
+    Configure the PySap2000 logger.
 
     Args:
-        level: 日志级别 ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
-        log_file: 日志文件路径（可选），如果提供则同时输出到文件
-        format_string: 自定义日志格式
-        use_colors: 是否在终端使用颜色
-        max_bytes: 单个日志文件最大字节数（默认 10MB）
-        backup_count: 保留的备份文件数量（默认 5）
+        level: Logging level
+        log_file: Optional log file path
+        format_string: Optional log format override
+        use_colors: Whether to use ANSI colors in terminal output
+        max_bytes: Maximum size of a single log file
+        backup_count: Number of rotated log files to keep
 
     Returns:
-        配置好的日志器
+        The configured logger
 
     Example:
-        # 开发模式：显示 DEBUG 级别
+        # Development mode: show DEBUG output
         setup_logger(level="DEBUG")
 
-        # 生产模式：保存到文件，带轮转
+        # Production mode: write to a rotating file
         setup_logger(level="INFO", log_file="app.log", max_bytes=10*1024*1024, backup_count=5)
     """
-    # 清除现有处理器
+    # Clear existing handlers
     logger.handlers.clear()
 
-    # 设置日志级别
+    # Configure log level
     log_level = getattr(logging, level.upper(), logging.INFO)
     logger.setLevel(log_level)
 
-    # 设置格式
+    # Resolve format
     fmt = format_string or DEFAULT_FORMAT
 
-    # 控制台处理器
+    # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(log_level)
 
@@ -100,7 +100,7 @@ def setup_logger(
 
     logger.addHandler(console_handler)
 
-    # 文件处理器（如果指定）- 使用轮转
+    # Rotating file handler, when requested
     if log_file:
         log_path = Path(log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -115,7 +115,7 @@ def setup_logger(
         file_handler.setFormatter(logging.Formatter(fmt))
         logger.addHandler(file_handler)
 
-    # 防止日志传播到根日志器
+    # Prevent propagation to the root logger
     logger.propagate = False
 
     return logger
@@ -123,13 +123,13 @@ def setup_logger(
 
 def get_logger(name: str) -> logging.Logger:
     """
-    获取子日志器
+    Return a child logger.
     
     Args:
-        name: 子日志器名称
+        name: Child logger name
         
     Returns:
-        子日志器，会继承 pysap2000 日志器的配置
+        A child logger inheriting the package logger configuration
         
     Example:
         from PySap2000.logger import get_logger
@@ -140,6 +140,6 @@ def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(f"pysap2000.{name}")
 
 
-# 默认配置：INFO 级别，仅控制台输出
+# Default configuration: INFO level, console only
 if not logger.handlers:
     setup_logger(level="INFO")

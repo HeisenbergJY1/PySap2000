@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-mass.py - 杆件质量相关函数
+mass.py - Frame mass helpers.
 
-用于设置杆件的附加质量
+Provides functions to assign and query additional frame mass.
 
 SAP2000 API:
 - FrameObj.SetMass(Name, MassOverL, Replace, ItemType)
@@ -24,25 +24,25 @@ def set_frame_mass(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置杆件单位长度质量
-    
-    用于添加非结构质量（如管道、设备等）。
+    Set the additional mass per unit length for a frame.
+
+    This is typically used for non-structural mass such as piping or equipment.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        mass_per_length: 单位长度质量 [M/L]
-        replace: True=替换现有质量, False=叠加
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        mass_per_length: Mass per unit length [M/L]
+        replace: `True` to replace existing mass, `False` to add to it
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
-        # 设置杆件附加质量 100 kg/m
+        # Assign 100 kg/m of additional mass
         set_frame_mass(model, "1", 100)
         
-        # 叠加质量
+        # Add to the existing mass
         set_frame_mass(model, "1", 50, replace=False)
     """
     return model.FrameObj.SetMass(str(frame_name), mass_per_length, replace, int(item_type))
@@ -53,19 +53,19 @@ def get_frame_mass(
     frame_name: str
 ) -> Optional[float]:
     """
-    获取杆件单位长度质量
+    Get the additional mass per unit length of a frame.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        单位长度质量 [M/L]，失败返回 None
+        Mass per unit length [M/L], or `None` if the query fails.
     
     Example:
         mass = get_frame_mass(model, "1")
         if mass:
-            print(f"单位长度质量: {mass}")
+            print(f"Mass per unit length: {mass}")
     """
     try:
         result = model.FrameObj.GetMass(str(frame_name), 0.0)
@@ -82,19 +82,19 @@ def get_frame_mass_data(
     frame_name: str
 ) -> Optional[FrameMassData]:
     """
-    获取杆件质量数据对象
+    Get frame mass data as a structured object.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        FrameMassData 对象，失败返回 None
+        A `FrameMassData` instance, or `None` if unavailable.
     
     Example:
         mass_data = get_frame_mass_data(model, "1")
         if mass_data:
-            print(f"质量: {mass_data.mass_per_length}")
+            print(f"Mass: {mass_data.mass_per_length}")
     """
     mass = get_frame_mass(model, frame_name)
     if mass is not None:
@@ -108,15 +108,15 @@ def delete_frame_mass(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    删除杆件附加质量
+    Delete additional frame mass.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
         delete_frame_mass(model, "1")
@@ -129,18 +129,18 @@ def has_frame_mass(
     frame_name: str
 ) -> bool:
     """
-    检查杆件是否有附加质量
+    Check whether a frame has additional assigned mass.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        True=有附加质量, False=无附加质量
+        `True` if additional mass exists, otherwise `False`.
     
     Example:
         if has_frame_mass(model, "1"):
-            print("杆件有附加质量")
+            print("The frame has additional mass")
     """
     mass = get_frame_mass(model, frame_name)
     return mass is not None and mass > 0

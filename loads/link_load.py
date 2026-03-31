@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-link_load.py - 连接单元荷载
+link_load.py - Link-object loads
 
-包含:
-- 枚举: LinkLoadItemType
-- 数据类: LinkLoadDeformationData, LinkLoadGravityData, LinkLoadTargetForceData
-- 函数: set_link_load_xxx, get_link_load_xxx, delete_link_load_xxx
+Includes:
+- Enums: LinkLoadItemType
+- Dataclasses: LinkLoadDeformationData, LinkLoadGravityData, LinkLoadTargetForceData
+- Functions: set_link_load_xxx, get_link_load_xxx, delete_link_load_xxx
 
 SAP2000 API:
 - LinkObj.SetLoadDeformation / GetLoadDeformation / DeleteLoadDeformation
@@ -20,20 +20,20 @@ from enum import IntEnum
 from PySap2000.com_helper import com_ret, com_data
 
 
-# ==================== 枚举 ====================
+# ==================== Enums ====================
 
 class LinkLoadItemType(IntEnum):
-    """荷载应用对象类型"""
-    OBJECT = 0              # 单个对象
-    GROUP = 1               # 组
-    SELECTED_OBJECTS = 2    # 选中对象
+    """Load assignment target type."""
+    OBJECT = 0              # Single object
+    GROUP = 1               # Group
+    SELECTED_OBJECTS = 2    # Selected objects
 
 
-# ==================== 数据类 ====================
+# ==================== Dataclasses ====================
 
 @dataclass
 class LinkLoadDeformationData:
-    """连接单元变形荷载数据"""
+    """Link deformation load data."""
     link_name: str = ""
     load_pattern: str = ""
     dof: Tuple[bool, ...] = field(default_factory=lambda: (False,) * 6)  # U1,U2,U3,R1,R2,R3
@@ -42,7 +42,7 @@ class LinkLoadDeformationData:
 
 @dataclass
 class LinkLoadGravityData:
-    """连接单元重力荷载数据"""
+    """Link gravity load data."""
     link_name: str = ""
     load_pattern: str = ""
     x: float = 0.0
@@ -53,7 +53,7 @@ class LinkLoadGravityData:
 
 @dataclass
 class LinkLoadTargetForceData:
-    """连接单元目标力荷载数据"""
+    """Link target-force load data."""
     link_name: str = ""
     load_pattern: str = ""
     dof: Tuple[bool, ...] = field(default_factory=lambda: (False,) * 6)  # P,V2,V3,T,M2,M3
@@ -61,7 +61,7 @@ class LinkLoadTargetForceData:
     relative_dist: Tuple[float, ...] = field(default_factory=lambda: (0.5,) * 6)
 
 
-# ==================== 变形荷载函数 ====================
+# ==================== deformation load functions ====================
 
 def set_link_load_deformation(
     model,
@@ -72,18 +72,18 @@ def set_link_load_deformation(
     item_type: LinkLoadItemType = LinkLoadItemType.OBJECT
 ) -> int:
     """
-    设置连接单元变形荷载
-    
+    Set link object deformation load.
+
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        load_pattern: 荷载模式名称
-        dof: 各自由度是否有变形荷载 (U1, U2, U3, R1, R2, R3)
-        deformation: 变形值 (U1, U2, U3 [L], R1, R2, R3 [rad])
-        item_type: 操作范围
+        model: SapModel object
+        link_name: Link object name
+        load_pattern: Load pattern name
+        dof: Whether each DOF has deformation load (U1, U2, U3, R1, R2, R3)
+        deformation: Deformation values (U1, U2, U3 [L], R1, R2, R3 [rad])
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
         set_link_load_deformation(model, "1", "DEAD", 
@@ -103,15 +103,15 @@ def get_link_load_deformation(
     item_type: LinkLoadItemType = LinkLoadItemType.OBJECT
 ) -> List[LinkLoadDeformationData]:
     """
-    获取连接单元变形荷载
-    
+    Get link object deformation load.
+
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        item_type: 操作范围
+        model: SapModel object
+        link_name: Link object name
+        item_type: Operation scope
     
     Returns:
-        LinkLoadDeformationData 对象列表
+        List of LinkLoadDeformationData
     """
     loads = []
     try:
@@ -152,21 +152,21 @@ def delete_link_load_deformation(
     item_type: LinkLoadItemType = LinkLoadItemType.OBJECT
 ) -> int:
     """
-    删除连接单元变形荷载
-    
+    Delete link object deformation load.
+
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        load_pattern: 荷载模式名称
-        item_type: 操作范围
+        model: SapModel object
+        link_name: Link object name
+        load_pattern: Load pattern name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.LinkObj.DeleteLoadDeformation(str(link_name), load_pattern, int(item_type))
 
 
-# ==================== 重力荷载函数 ====================
+# ==================== gravity load functions ====================
 
 def set_link_load_gravity(
     model,
@@ -180,21 +180,21 @@ def set_link_load_gravity(
     item_type: LinkLoadItemType = LinkLoadItemType.OBJECT
 ) -> int:
     """
-    设置连接单元重力荷载
-    
+    Set link object gravity load.
+
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        load_pattern: 荷载模式名称
-        x: X方向重力系数
-        y: Y方向重力系数
-        z: Z方向重力系数 (默认-1)
-        replace: True=替换现有荷载, False=叠加
-        csys: 坐标系名称
-        item_type: 操作范围
-    
+        model: SapModel object
+        link_name: Link object name
+        load_pattern: Load pattern name
+        x: X-direction gravity factor
+        y: Y-direction gravity factor
+        z: Z-direction gravity factor (default -1)
+        replace: `True` replaces existing loads, `False` adds to existing loads
+        csys: Coordinate system name
+        item_type: Operation scope
+
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.LinkObj.SetLoadGravity(
         str(link_name), load_pattern, x, y, z, replace, csys, int(item_type)
@@ -207,15 +207,15 @@ def get_link_load_gravity(
     item_type: LinkLoadItemType = LinkLoadItemType.OBJECT
 ) -> List[LinkLoadGravityData]:
     """
-    获取连接单元重力荷载
-    
+    Get link object gravity load.
+
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        item_type: 操作范围
+        model: SapModel object
+        link_name: Link object name
+        item_type: Operation scope
     
     Returns:
-        LinkLoadGravityData 对象列表
+        List of LinkLoadGravityData
     """
     loads = []
     try:
@@ -250,21 +250,21 @@ def delete_link_load_gravity(
     item_type: LinkLoadItemType = LinkLoadItemType.OBJECT
 ) -> int:
     """
-    删除连接单元重力荷载
-    
+    Delete link object gravity load.
+
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        load_pattern: 荷载模式名称
-        item_type: 操作范围
+        model: SapModel object
+        link_name: Link object name
+        load_pattern: Load pattern name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.LinkObj.DeleteLoadGravity(str(link_name), load_pattern, int(item_type))
 
 
-# ==================== 目标力荷载函数 ====================
+# ==================== target-force load functions ====================
 
 def set_link_load_target_force(
     model,
@@ -276,19 +276,19 @@ def set_link_load_target_force(
     item_type: LinkLoadItemType = LinkLoadItemType.OBJECT
 ) -> int:
     """
-    设置连接单元目标力荷载
-    
+    Set link object target-force load.
+
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        load_pattern: 荷载模式名称
-        dof: 各自由度是否有目标力 (P, V2, V3, T, M2, M3)
-        force: 目标力值 (P [F], V2 [F], V3 [F], T [FL], M2 [FL], M3 [FL])
-        relative_dist: 相对距离 (0-1)
-        item_type: 操作范围
-    
+        model: SapModel object
+        link_name: Link object name
+        load_pattern: Load pattern name
+        dof: Whether each DOF has target force (P, V2, V3, T, M2, M3)
+        force: Target force values (P [F], V2 [F], V3 [F], T [FL], M2 [FL], M3 [FL])
+        relative_dist: Relative distance along element (0-1) per DOF
+        item_type: Operation scope
+
     Returns:
-        0 表示成功
+        `0` on success
     """
     dof_list = list(dof) if len(dof) >= 6 else list(dof) + [False] * (6 - len(dof))
     f_list = list(force) if len(force) >= 6 else list(force) + [0.0] * (6 - len(force))
@@ -305,15 +305,15 @@ def get_link_load_target_force(
     item_type: LinkLoadItemType = LinkLoadItemType.OBJECT
 ) -> List[LinkLoadTargetForceData]:
     """
-    获取连接单元目标力荷载
-    
+    Get link object target-force load.
+
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        item_type: 操作范围
+        model: SapModel object
+        link_name: Link object name
+        item_type: Operation scope
     
     Returns:
-        LinkLoadTargetForceData 对象列表
+        List of LinkLoadTargetForceData
     """
     loads = []
     try:
@@ -361,15 +361,15 @@ def delete_link_load_target_force(
     item_type: LinkLoadItemType = LinkLoadItemType.OBJECT
 ) -> int:
     """
-    删除连接单元目标力荷载
-    
+    Delete link object target-force load.
+
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        load_pattern: 荷载模式名称
-        item_type: 操作范围
+        model: SapModel object
+        link_name: Link object name
+        load_pattern: Load pattern name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.LinkObj.DeleteLoadTargetForce(str(link_name), load_pattern, int(item_type))

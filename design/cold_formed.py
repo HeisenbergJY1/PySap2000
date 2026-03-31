@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-design/cold_formed.py - 冷弯薄壁钢设计函数
+design/cold_formed.py - Cold-formed steel design helpers
 
-SAP2000 DesignColdFormed API 的 Python 封装。
-API 路径: SapModel.DesignColdFormed
+Python wrapper for the SAP2000 `DesignColdFormed` API.
+API path: `SapModel.DesignColdFormed`
 """
 
 from typing import List, Union
@@ -15,36 +15,36 @@ from .enums import (
 from .data_classes import SteelSummaryResult, VerifyPassedResult
 from PySap2000.com_helper import com_ret, com_data
 
-# 冷弯薄壁钢汇总结果复用 SteelSummaryResult（API 签名完全相同）
+# Reuse `SteelSummaryResult` for cold-formed steel (same API layout)
 ColdFormedSummaryResult = SteelSummaryResult
 
 
 # ============================================================================
-# 规范设置
+# Code selection
 # ============================================================================
 
 def get_cold_formed_code(model) -> str:
-    """获取当前冷弯薄壁钢设计规范
+    """Get the active cold-formed steel design code
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        规范名称字符串
+        Code name string
     """
     result = model.DesignColdFormed.GetCode("")
     return com_data(result, 0, "")
 
 
 def set_cold_formed_code(model, code: Union[ColdFormedDesignCode, str]) -> int:
-    """设置冷弯薄壁钢设计规范
+    """Set the cold-formed steel design code
 
     Args:
-        model: SapModel 对象
-        code: 规范枚举或规范名称字符串
+        model: SAP2000 SapModel object
+        code: Code enum or code name string
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     if isinstance(code, ColdFormedDesignCode):
         code_name = COLD_FORMED_CODE_NAMES.get(code, "AISI-ASD96")
@@ -55,101 +55,101 @@ def set_cold_formed_code(model, code: Union[ColdFormedDesignCode, str]) -> int:
 
 
 # ============================================================================
-# 设计执行
+# Run design
 # ============================================================================
 
 def start_cold_formed_design(model) -> int:
-    """开始冷弯薄壁钢设计
+    """Run cold-formed steel design
 
-    注意：需要先运行分析，且模型中存在冷弯薄壁钢框架对象。
+    Requires analysis to be run and cold-formed frame objects in the model.
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignColdFormed.StartDesign()
     return com_ret(ret)
 
 
 def delete_cold_formed_results(model) -> int:
-    """删除所有冷弯薄壁钢设计结果"""
+    """Delete all cold-formed design results"""
     ret = model.DesignColdFormed.DeleteResults()
     return com_ret(ret)
 
 
 def get_cold_formed_results_available(model) -> bool:
-    """检查冷弯薄壁钢设计结果是否可用"""
+    """Whether cold-formed design results are available"""
     result = model.DesignColdFormed.GetResultsAvailable()
     return bool(com_data(result, 0, result))
 
 
 # ============================================================================
-# 设计组合
+# Load combinations
 # ============================================================================
 
 def get_cold_formed_combo_strength(model) -> List[str]:
-    """获取用于强度设计的荷载组合"""
+    """Load combinations used for strength design"""
     result = model.DesignColdFormed.GetComboStrength(0, [])
     names = com_data(result, 1)
     return list(names) if names else []
 
 
 def set_cold_formed_combo_strength(model, name: str, selected: bool = True) -> int:
-    """设置荷载组合是否用于强度设计"""
+    """Select a load combination for strength design"""
     ret = model.DesignColdFormed.SetComboStrength(name, selected)
     return com_ret(ret)
 
 
 def get_cold_formed_combo_deflection(model) -> List[str]:
-    """获取用于挠度设计的荷载组合"""
+    """Load combinations used for deflection design"""
     result = model.DesignColdFormed.GetComboDeflection(0, [])
     names = com_data(result, 1)
     return list(names) if names else []
 
 
 def set_cold_formed_combo_deflection(model, name: str, selected: bool = True) -> int:
-    """设置荷载组合是否用于挠度设计"""
+    """Select a load combination for deflection design"""
     ret = model.DesignColdFormed.SetComboDeflection(name, selected)
     return com_ret(ret)
 
 
 def get_cold_formed_combo_auto_generate(model) -> bool:
-    """获取是否自动生成设计组合"""
+    """Whether design combinations are auto-generated"""
     result = model.DesignColdFormed.GetComboAutoGenerate(False)
     return bool(com_data(result, 0, False))
 
 
 def set_cold_formed_combo_auto_generate(model, auto_generate: bool = True) -> int:
-    """设置是否自动生成设计组合"""
+    """Enable or disable auto-generation of design combinations"""
     ret = model.DesignColdFormed.SetComboAutoGenerate(auto_generate)
     return com_ret(ret)
 
 
 # ============================================================================
-# 设计组
+# DesignGroup
 # ============================================================================
 
 def get_cold_formed_design_group(model) -> List[str]:
-    """获取选中用于冷弯薄壁钢设计的组"""
+    """Groups selected for cold-formed design"""
     result = model.DesignColdFormed.GetGroup(0, [])
     names = com_data(result, 1)
     return list(names) if names else []
 
 
 def set_cold_formed_design_group(model, name: str, selected: bool = True) -> int:
-    """设置组是否用于冷弯薄壁钢设计"""
+    """Select or deselect a group for cold-formed design"""
     ret = model.DesignColdFormed.SetGroup(name, selected)
     return com_ret(ret)
 
 
 # ============================================================================
-# 设计截面
+# Design section
 # ============================================================================
 
 def get_cold_formed_design_section(model, name: str) -> str:
-    """获取框架对象的设计截面"""
+    """Get the design section assigned to a frame"""
     result = model.DesignColdFormed.GetDesignSection(name, "")
     return com_data(result, 0, "")
 
@@ -161,29 +161,29 @@ def set_cold_formed_design_section(
     last_analysis: bool = False,
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
-    """设置框架对象的设计截面"""
+    """Set the design section for frame objects"""
     ret = model.DesignColdFormed.SetDesignSection(name, prop_name, last_analysis, int(item_type))
     return com_ret(ret)
 
 
 def set_cold_formed_auto_select_null(model, name: str, item_type: ItemType = ItemType.OBJECT) -> int:
-    """将自动选择截面设为 None（移除自动选择）"""
+    """Clear auto-select section (set to None)"""
     ret = model.DesignColdFormed.SetAutoSelectNull(name, int(item_type))
     return com_ret(ret)
 
 
 # ============================================================================
-# 覆盖重置与验证
+# Overwrites and verification
 # ============================================================================
 
 def reset_cold_formed_overwrites(model) -> int:
-    """重置所有冷弯薄壁钢设计覆盖为默认值"""
+    """Reset all cold-formed design overwrites to defaults"""
     ret = model.DesignColdFormed.ResetOverwrites()
     return com_ret(ret)
 
 
 def verify_cold_formed_passed(model) -> VerifyPassedResult:
-    """验证冷弯薄壁钢设计是否通过"""
+    """Verify cold-formed design acceptance"""
     result = model.DesignColdFormed.VerifyPassed(0, 0, 0, [])
     total_count = com_data(result, 0, 0)
     failed_count = com_data(result, 1, 0)
@@ -200,14 +200,14 @@ def verify_cold_formed_passed(model) -> VerifyPassedResult:
 
 
 def verify_cold_formed_sections(model) -> List[str]:
-    """验证分析截面与设计截面是否一致"""
+    """Verify analysis vs. design section assignments"""
     result = model.DesignColdFormed.VerifySections(0, [])
     names = com_data(result, 1)
     return list(names) if names else []
 
 
 # ============================================================================
-# 汇总结果
+# Summary results
 # ============================================================================
 
 def get_cold_formed_summary_results(
@@ -215,17 +215,17 @@ def get_cold_formed_summary_results(
     name: str,
     item_type: ItemType = ItemType.OBJECT
 ) -> List[ColdFormedSummaryResult]:
-    """获取冷弯薄壁钢设计汇总结果
+    """Get cold-formed design summary results
 
-    注意：RatioType 仅有 1(PMM), 3(Major shear), 4(Minor shear)。
+    Note: only `RatioType` values 1 (PMM), 3 (major shear), and 4 (minor shear) apply.
 
     Args:
-        model: SapModel 对象
-        name: 对象名称、组名称或忽略（取决于 item_type）
-        item_type: 对象选择类型
+        model: SAP2000 SapModel object
+        name: Object name, group name, or ignored depending on `item_type`
+        item_type: Object selection mode
 
     Returns:
-        设计结果列表
+        List of design results
     """
     result = model.DesignColdFormed.GetSummaryResults(
         name, 0, [], [], [], [], [], [], [], int(item_type)

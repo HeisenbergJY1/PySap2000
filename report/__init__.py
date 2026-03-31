@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-report - 计算书生成模块
+report - Calculation report generation helpers.
 
-从 SAP2000 模型中提取数据，生成结构计算书表格。
+Extracts data from a SAP2000 model and builds structural report tables.
 
 Usage:
     from report import ReportGenerator

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-units.py - 单位系统
-对应 SAP2000 的 eUnits 枚举
+units.py - Unit systems.
+
+Maps to the SAP2000 `eUnits` enumeration.
 
 API Reference:
     - GetPresentUnits() -> eUnits
@@ -10,14 +11,14 @@ API Reference:
 
 Usage:
     from PySap2000.global_parameters import Units, UnitSystem
-    
-    # 获取当前单位
+
+    # Current display units
     current_units = Units.get_present_units(model)
-    
-    # 设置单位为 kN-m
+
+    # Set units to kN-m-C
     Units.set_present_units(model, UnitSystem.KN_M_C)
-    
-    # 获取数据库单位
+
+    # Database storage units
     db_units = Units.get_database_units(model)
 """
 
@@ -27,12 +28,13 @@ from typing import Optional
 
 class UnitSystem(IntEnum):
     """
-    单位系统枚举
-    对应 SAP2000 的 eUnits
-    
-    命名规则: 力_长度_温度
-    F = Fahrenheit (华氏度)
-    C = Celsius (摄氏度)
+    Unit system enumeration.
+
+    Matches SAP2000 `eUnits`.
+
+    Naming convention: force_length_temperature.
+    - F: Fahrenheit
+    - C: Celsius
     """
     LB_IN_F = 1       # lb, in, F
     LB_FT_F = 2       # lb, ft, F
@@ -52,7 +54,7 @@ class UnitSystem(IntEnum):
     TON_CM_C = 16     # Tonf, cm, C
 
 
-# 单位系统描述
+# Human-readable unit system labels (short form)
 UNIT_DESCRIPTIONS = {
     UnitSystem.LB_IN_F: "lb-in-F",
     UnitSystem.LB_FT_F: "lb-ft-F",
@@ -75,20 +77,18 @@ UNIT_DESCRIPTIONS = {
 
 class Units:
     """
-    单位系统管理类
-    
-    提供获取和设置 SAP2000 单位系统的静态方法
+    Helpers for reading and setting the SAP2000 unit system.
     """
     
     @staticmethod
     def get_present_units(model) -> UnitSystem:
         """
-        获取当前显示单位
-        
+        Get the current display units.
+
         API: GetPresentUnits() -> eUnits
-        
+
         Returns:
-            当前单位系统
+            Active `UnitSystem`.
         """
         result = model.GetPresentUnits()
         return UnitSystem(result)
@@ -96,30 +96,30 @@ class Units:
     @staticmethod
     def set_present_units(model, units: UnitSystem) -> int:
         """
-        设置当前显示单位
-        
+        Set the current display units.
+
         API: SetPresentUnits(Units) -> Long
-        
+
         Args:
-            model: SapModel 对象
-            units: 单位系统
-            
+            model: SAP2000 SapModel object
+            units: Target unit system
+
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         return model.SetPresentUnits(units)
     
     @staticmethod
     def get_database_units(model) -> UnitSystem:
         """
-        获取数据库单位
-        
-        所有数据在模型内部以此单位存储，需要时转换为当前显示单位
-        
+        Get the database (internal storage) units.
+
+        Model data is stored in this system and converted to display units when needed.
+
         API: GetDatabaseUnits() -> eUnits
-        
+
         Returns:
-            数据库单位系统
+            Database `UnitSystem`.
         """
         result = model.GetDatabaseUnits()
         return UnitSystem(result)
@@ -127,19 +127,19 @@ class Units:
     @staticmethod
     def get_unit_description(units: UnitSystem) -> str:
         """
-        获取单位系统的中文描述
-        
+        Get a short label for the unit system (e.g. ``kN-m-C``).
+
         Args:
-            units: 单位系统
-            
+            units: Unit system
+
         Returns:
-            中文描述字符串
+            Label string.
         """
         return UNIT_DESCRIPTIONS.get(units, str(units))
     
     @staticmethod
     def get_force_unit(units: UnitSystem) -> str:
-        """获取力单位"""
+        """Return the force unit symbol for the given system."""
         force_map = {
             UnitSystem.LB_IN_F: "lb",
             UnitSystem.LB_FT_F: "lb",
@@ -162,7 +162,7 @@ class Units:
     
     @staticmethod
     def get_length_unit(units: UnitSystem) -> str:
-        """获取长度单位"""
+        """Return the length unit symbol for the given system."""
         length_map = {
             UnitSystem.LB_IN_F: "in",
             UnitSystem.LB_FT_F: "ft",
@@ -185,7 +185,7 @@ class Units:
     
     @staticmethod
     def get_temp_unit(units: UnitSystem) -> str:
-        """获取温度单位"""
+        """Return the temperature unit symbol for the given system."""
         if units.value <= 4:
             return "°F"
         return "°C"

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-mass.py - 面单元质量函数
-对应 SAP2000 的 AreaObj 质量相关 API
+mass.py - Area mass helpers.
+
+Wraps SAP2000 `AreaObj` mass APIs.
 """
 
 from typing import Optional
@@ -19,20 +20,20 @@ def set_area_mass(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置面单元附加质量
+    Set additional mass for an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        mass_per_area: 单位面积质量
-        replace: 是否替换现有质量 (True=替换, False=叠加)
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        mass_per_area: Mass per unit area
+        replace: Whether to replace existing mass (`True`) or add to it (`False`)
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
         
     Example:
-        # 设置面单元 "1" 的附加质量为 100 kg/m²
+        # Set the additional mass of area "1" to 100 kg/m^2
         set_area_mass(model, "1", 100.0)
     """
     return model.AreaObj.SetMass(str(area_name), mass_per_area, replace, int(item_type))
@@ -43,19 +44,19 @@ def get_area_mass(
     area_name: str
 ) -> Optional[float]:
     """
-    获取面单元附加质量
+    Get the additional mass assigned to an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        单位面积质量，失败返回 None
+        Mass per unit area, or `None` if the query fails.
         
     Example:
         mass = get_area_mass(model, "1")
         if mass is not None:
-            print(f"附加质量: {mass} kg/m²")
+            print(f"Additional mass: {mass} kg/m^2")
     """
     try:
         result = model.AreaObj.GetMass(str(area_name), 0.0)
@@ -73,14 +74,14 @@ def get_area_mass_data(
     area_name: str
 ) -> Optional[AreaMassData]:
     """
-    获取面单元质量数据对象
+    Get area mass as a structured data object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        AreaMassData 对象，失败返回 None
+        `AreaMassData`, or `None` if the query fails.
     """
     mass = get_area_mass(model, area_name)
     if mass is not None:
@@ -94,15 +95,15 @@ def delete_area_mass(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    删除面单元附加质量
+    Delete additional mass assigned to an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     """
     return model.AreaObj.DeleteMass(str(area_name), int(item_type))
 
@@ -112,14 +113,14 @@ def has_area_mass(
     area_name: str
 ) -> bool:
     """
-    检查面单元是否有附加质量
+    Check whether an area object has additional mass assigned.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        True 表示有附加质量，False 表示没有
+        `True` if additional mass is assigned, otherwise `False`.
     """
     mass = get_area_mass(model, area_name)
     return mass is not None and mass > 0.0

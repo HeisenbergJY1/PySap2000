@@ -1,32 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-application.py - SAP2000 Application 连接管理器
-参考 dlubal.api 设计模式
+application.py - SAP2000 application connection manager.
+
+Design inspired by `dlubal.api`.
 
 Usage:
     from PySap2000 import Application
-    from PySap2000.structure_core import Point, Member
+    from PySap2000.structure_core import Point, Frame
     
     with Application() as app:
-        # 创建节点
+        # Create points
         app.create_object(Point(no=1, x=0, y=0, z=0))
         app.create_object(Point(no=2, x=10, y=0, z=0))
         
-        # 创建杆件
-        app.create_object(Member(no=1, start_point=1, end_point=2, section="W14X30"))
+        # Create a frame
+        app.create_object(Frame(no=1, start_point=1, end_point=2, section="W14X30"))
         
-        # 运行分析
+        # Run analysis
         app.calculate()
-        
-        # 获取结果
-        results = app.get_results()
 """
 
 import gc
-import threading
 import comtypes.client
 from typing import Optional, List, Union, TypeVar, Type, TYPE_CHECKING
-from PySap2000.exceptions import ConnectionError, ObjectError
+from PySap2000.exceptions import SAPConnectionError, ObjectError
 from PySap2000.logger import get_logger
 from PySap2000.com_helper import com_ret, com_data
 
@@ -37,123 +34,186 @@ _logger = get_logger("application")
 
 T = TypeVar('T')
 
-# SAP2000 最低支持版本
+# Minimum supported SAP2000 version
 MIN_SAP2000_VERSION = 20.0
 
 
 class Application:
     """
-    SAP2000 应用程序连接管理器
-    
-    参考 dlubal.api.rfem.Application 设计:
-    - Context Manager 管理连接生命周期
-    - 统一的 CRUD 接口
-    - 批量操作支持
+    SAP2000 application connection manager.
+
+    Design inspired by `dlubal.api.rfem.Application`:
+    - uses a context manager to manage the connection lifecycle
+    - provides a unified CRUD interface
+    - supports batch operations
+
+    Note:
+        This class is not thread-safe. The SAP2000 COM interface expects all
+        calls to run on the same thread. Do not share one `Application`
+        instance across multiple threads.
     
     Raises:
-        ConnectionError: 连接或启动 SAP2000 失败时抛出
+        SAPConnectionError: Raised when SAP2000 cannot be attached or started
     """
     
-    def __init__(self, attach_to_instance: bool = True, program_path: str = ""):
+    def __init__(
+        self,
+        attach_to_instance: bool = True,
+        program_path: str = "",
+        model_file: str = ""
+    ):
         """
-        初始化 SAP2000 连接
+        Initialize the SAP2000 connection.
 
         Args:
-            attach_to_instance: True 连接已运行的实例，False 启动新实例
-            program_path: SAP2000 程序路径（启动新实例时使用）
+            attach_to_instance: If True, attach to a running instance; otherwise
+                start a new one
+            program_path: SAP2000 executable path when starting a new instance
+            model_file: Model filename used to validate that the expected model
+                is open
+
+        Example:
+            # Option 1: attach to any already-open model
+            with Application() as app:
+                pass
+
+            # Option 2: attach to a specific open model by filename
+            with Application(model_file="bridge.sdb") as app:
+                # Raises if the current model is not bridge.sdb
+                app.calculate()
         """
         self._sap_object = None
         self._model = None
         self._in_modification = False
         self._owns_instance = not attach_to_instance
-        self._lock = threading.RLock()  # 线程安全锁
 
         if attach_to_instance:
             self._attach_to_instance()
         else:
             self._start_application(program_path)
 
-        # 检查 SAP2000 版本
+        # Check SAP2000 version
         self._check_version()
+
+        # Validate the model filename
+        if model_file:
+            self._verify_model_file(model_file)
 
     def _ensure_connected(self):
         """
-        检查 COM 连接是否有效，无效时抛出 ConnectionError。
+        Ensure the COM connection is still valid.
 
-        所有使用 self._model 的公共方法都应先调用此方法。
+        All public methods that use `self._model` should call this first.
 
         Raises:
-            ConnectionError: 当 COM 连接已断开时
+            SAPConnectionError: Raised when the COM connection is no longer valid
         """
         if self._model is None:
-            raise ConnectionError(
-                "SAP2000 连接已断开。请重新创建 Application 实例或检查 SAP2000 是否仍在运行。"
+            raise SAPConnectionError(
+                "SAP2000 connection is closed. Create a new Application instance or "
+                "verify that SAP2000 is still running."
             )
 
     def _check_version(self):
         """
-        检查 SAP2000 版本是否满足最低要求
+        Check that the connected SAP2000 version meets the minimum requirement.
 
         Raises:
-            ConnectionError: 版本过低时抛出
+            SAPConnectionError: Raised when the version is too old
         """
         try:
             version_info = self._model.GetVersion()
             version_number = com_data(version_info, 1, default=0.0)
             if version_number < MIN_SAP2000_VERSION:
-                raise ConnectionError(
-                    f"SAP2000 v{version_number} 不受支持。最低版本要求: v{MIN_SAP2000_VERSION}"
+                raise SAPConnectionError(
+                    f"SAP2000 v{version_number} is not supported. "
+                    f"Minimum required version: v{MIN_SAP2000_VERSION}"
                 )
-        except ConnectionError:
+        except SAPConnectionError:
             raise
         except Exception as e:
-            _logger.warning(f"无法检查 SAP2000 版本: {e}")
+            _logger.warning(f"Unable to verify SAP2000 version: {e}")
+
+    def _verify_model_file(self, expected_file: str):
+        """
+        Validate the filename of the currently open model.
+
+        Args:
+            expected_file: Expected file path or filename
+
+        Raises:
+            SAPConnectionError: Raised when the currently open model does not match
+        """
+        import os
+        current_file = self.get_model_filename(include_path=False)
+        expected_name = os.path.basename(expected_file)
+
+        if current_file != expected_name:
+            raise SAPConnectionError(
+                "Model file does not match.",
+                details={
+                    'expected': expected_name,
+                    'actual': current_file,
+                    'suggestion': f'Open {expected_name} in SAP2000.',
+                }
+            )
 
     def is_alive(self) -> bool:
         """
-        检查 COM 连接是否仍然有效
+        Check whether the COM connection is still alive.
 
         Returns:
-            True 表示连接有效，False 表示连接已断开
+            `True` if the connection is valid, `False` otherwise
         """
         try:
             if self._model is None:
                 return False
             _ = self._model.GetVersion()
             return True
-        except:
+        except Exception:
             return False
 
     def __del__(self):
         """
-        析构函数，确保资源释放
+        Destructor safety net for resource cleanup.
 
-        作为安全网，防止用户忘记调用 disconnect()
+        This helps when the user forgets to call `disconnect()`.
         """
         try:
             self.disconnect()
-        except:
+        except Exception:
             pass
     
     def _attach_to_instance(self):
-        """连接到已运行的 SAP2000 实例"""
-        try:
+        """Attach to a running SAP2000 instance, retrying up to three times."""
+        from PySap2000.utils.retry import retry_on_com_error
+
+        @retry_on_com_error(max_retries=3, delay=1.0, backoff=2.0)
+        def _connect():
             self._sap_object = comtypes.client.GetActiveObject('CSI.SAP2000.API.SapObject')
             self._model = self._sap_object.SapModel
+
+        try:
+            _connect()
             self._print_connection_info()
         except Exception as e:
-            raise ConnectionError(f"Cannot connect to SAP2000, please make sure it is running: {e}")
+            from PySap2000.exceptions import SAP2000NotRunningError
+            raise SAP2000NotRunningError(
+                "Could not connect to SAP2000. Ensure SAP2000 is running.",
+                details={'error': str(e)}
+            )
     
     def _start_application(self, program_path: str = ""):
-        """启动新的 SAP2000 实例"""
+        """Start a new SAP2000 instance."""
         try:
             helper = comtypes.client.CreateObject('SAP2000v1.Helper')
             try:
                 helper = helper.QueryInterface(comtypes.gen.SAP2000v1.cHelper)
             except AttributeError:
                 _logger.warning(
-                    "comtypes.gen.SAP2000v1 未生成，尝试使用默认 Helper 接口。"
-                    "如果失败，请先手动运行一次 comtypes.client.GetModule('SAP2000v1.tlb')"
+                    "comtypes.gen.SAP2000v1 is not available; trying the default "
+                    "Helper interface. If this fails, run "
+                    "comtypes.client.GetModule('SAP2000v1.tlb') once manually."
                 )
             if program_path:
                 self._sap_object = helper.CreateObject(program_path)
@@ -162,13 +222,13 @@ class Application:
             self._sap_object.ApplicationStart()
             self._model = self._sap_object.SapModel
             self._print_connection_info()
-        except ConnectionError:
+        except SAPConnectionError:
             raise
         except Exception as e:
-            raise ConnectionError(f"Cannot start SAP2000: {e}")
+            raise SAPConnectionError(f"Cannot start SAP2000: {e}")
     
     def _print_connection_info(self):
-        """打印连接信息并配置日志输出到模型文件夹"""
+        """Print connection info and configure logging in the model directory."""
         from PySap2000.logger import setup_logger
         import os
 
@@ -177,7 +237,7 @@ class Application:
         filename = self._model.GetModelFilename(False) or "Untitled"
         print(f"Connected to SAP2000 v{version} | {filename}")
 
-        # 自动将日志输出到模型所在文件夹
+        # Automatically place the log file next to the active model.
         model_path = self._model.GetModelFilepath()
         if model_path:
             log_file = os.path.join(model_path, "pysap2000.log")
@@ -185,37 +245,39 @@ class Application:
             _logger.info(f"Log file: {log_file}")
     
     def __enter__(self):
-        """Context Manager 入口"""
+        """Context manager entry point."""
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
         """
-        Context Manager 退出，确保：
-        1. 结束修改模式
-        2. 释放 COM 句柄
-        3. 如果是自己启动的实例，退出 SAP2000
+        Context manager exit handler.
+
+        Ensures that:
+        1. modification mode is finished
+        2. COM handles are released
+        3. owned SAP2000 instances are closed
         """
         self.disconnect()
         return False
     
     def disconnect(self):
         """
-        显式断开连接并释放 COM 资源。
-        
-        可在不使用 Context Manager 时手动调用。
-        多次调用是安全的（幂等）。
+        Explicitly disconnect and release COM resources.
+
+        This can be called manually when not using a context manager.
+        Repeated calls are safe and idempotent.
         """
-        # 1. 结束修改模式
+        # 1. Finish modification mode
         if self._in_modification and self._model is not None:
             try:
                 self.finish_modification()
             except Exception:
                 _logger.debug("finish_modification failed during disconnect", exc_info=True)
         
-        # 2. 释放 model 引用
+        # 2. Release the model reference
         self._model = None
         
-        # 3. 如果是自己启动的实例，退出 SAP2000
+        # 3. Close the SAP2000 instance if this object started it
         if self._owns_instance and self._sap_object is not None:
             try:
                 self._sap_object.ApplicationExit(False)
@@ -223,24 +285,25 @@ class Application:
             except Exception:
                 _logger.debug("ApplicationExit failed during disconnect", exc_info=True)
         
-        # 4. 释放 COM 对象引用
+        # 4. Release COM object references
         self._sap_object = None
         
-        # 5. 强制 GC 回收 COM ref-count
+        # 5. Force GC to release COM reference counts
         gc.collect()
     
     @property
     def model(self):
-        """获取原始 SapModel 对象（用于高级操作或兼容旧代码）"""
+        """Return the raw `SapModel` object for advanced or legacy usage."""
         self._ensure_connected()
         return self._model
 
-    # ==================== 修改模式管理 ====================
+    # ==================== Modification Mode ====================
     
     def begin_modification(self):
         """
-        开始批量修改模式
-        禁用视图刷新以提升性能
+        Begin batch modification mode.
+
+        View refreshing is disabled to improve performance.
         """
         self._ensure_connected()
         if not self._in_modification:
@@ -249,84 +312,89 @@ class Application:
     
     def finish_modification(self):
         """
-        结束批量修改模式
-        刷新视图
+        Finish batch modification mode and refresh the view.
         """
         self._ensure_connected()
         if self._in_modification:
             self._model.View.RefreshView(0, True)
             self._in_modification = False
     
-    # ==================== 统一 CRUD 接口 ====================
+    # ==================== Unified CRUD Interface ====================
     
-    def _obj_desc(self, obj) -> str:
-        """生成对象的简短描述，用于日志输出"""
+    @staticmethod
+    def _obj_desc(obj) -> str:
+        """Build a short object description for log messages."""
+        from PySap2000.structure_core.point import Point
+        from PySap2000.structure_core.frame import Frame
+        from PySap2000.structure_core.area import Area
+        from PySap2000.structure_core.cable import Cable
+        from PySap2000.structure_core.link import Link
+
         type_name = type(obj).__name__
-        no = getattr(obj, 'no', None)
-        if type_name == "Point":
+        no = getattr(obj, 'no', None) or getattr(obj, 'name', None)
+        if isinstance(obj, Point):
             x = getattr(obj, 'x', 0)
             y = getattr(obj, 'y', 0)
             z = getattr(obj, 'z', 0)
             return f"Point({no}, x={x}, y={y}, z={z})"
-        elif type_name == "Frame":
+        elif isinstance(obj, Frame):
             sp = getattr(obj, 'start_point', '')
             ep = getattr(obj, 'end_point', '')
             sec = getattr(obj, 'section', '')
             return f"Frame({no}, {sp}->{ep}, sec={sec})"
-        elif type_name == "Area":
+        elif isinstance(obj, Area):
             return f"Area({no})"
-        elif type_name == "Cable":
+        elif isinstance(obj, Cable):
             return f"Cable({no})"
-        elif type_name == "Link":
+        elif isinstance(obj, Link):
             return f"Link({no})"
         elif no is not None:
             return f"{type_name}({no})"
         return type_name
 
-    def create_object(self, obj) -> int:
+    def create_object(self, obj: 'Creatable') -> int:
         """
-        创建单个对象
+        Create a single object.
 
         Args:
-            obj: 要创建的对象 (Point, Member, Material, Section 等)
+            obj: Object to create, such as `Point`, `Frame`, or `Material`
 
         Returns:
-            0 表示成功
+            `0` on success
 
         Raises:
-            ConnectionError: COM 连接已断开
-            ObjectError: 对象不支持 create 操作
+            SAPConnectionError: The COM connection is no longer valid
+            ObjectError: The object does not support create operations
 
         Example:
             app.create_object(Point(no=1, x=0, y=0, z=0))
-            app.create_object(Member(no=1, start_point=1, end_point=2))
+            app.create_object(Frame(no=1, start_point=1, end_point=2))
         """
-        with self._lock:
-            self._ensure_connected()
-            if hasattr(obj, '_create'):
-                ret = obj._create(self._model)
-                desc = self._obj_desc(obj)
-                if ret == 0:
-                    _logger.info(f"Created {desc}")
-                elif ret == -1:
-                    pass  # already exists, skipped
-                else:
-                    _logger.warning(f"Failed to create {desc}, ret={ret}")
-                return ret
-            raise ObjectError(f"{type(obj).__name__} does not support create")
+        self._ensure_connected()
+        if hasattr(obj, '_create'):
+            ret = obj._create(self._model)
+            desc = self._obj_desc(obj)
+            if ret == 0:
+                _logger.info(f"Created {desc}")
+            elif ret == -1:
+                pass  # already exists, skipped
+            else:
+                _logger.warning(f"Failed to create {desc}, ret={ret}")
+            return ret
+        raise ObjectError(f"{type(obj).__name__} does not support create")
     
     def create_object_list(self, objs: List) -> int:
         """
-        批量创建对象
+        Create multiple objects in batch mode.
         
         Args:
-            objs: 对象列表
+            objs: List of objects to create
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         self.begin_modification()
@@ -340,23 +408,23 @@ class Application:
             self.finish_modification()
         return 0
     
-    def get_object(self, obj: T) -> T:
+    def get_object(self, obj: 'Gettable') -> T:
         """
-        获取单个对象
+        Retrieve a single object.
         
         Args:
-            obj: 带有 no 属性的对象，用于指定要获取的对象编号
+            obj: Object with a `no` attribute identifying the target item
             
         Returns:
-            填充了数据的对象
+            The same object populated with data
             
         Raises:
-            ConnectionError: COM 连接已断开
-            ObjectError: 对象不支持 get 操作
+            SAPConnectionError: The COM connection is no longer valid
+            ObjectError: The object does not support get operations
             
         Example:
-            node = app.get_object(Node(no=1))
-            print(node.x, node.y, node.z)
+            point = app.get_object(Point(no=1))
+            print(point.x, point.y, point.z)
         """
         self._ensure_connected()
         if hasattr(obj, '_get'):
@@ -368,37 +436,37 @@ class Application:
     
     def get_object_list(self, obj_type: Type[T], nos: List[Union[int, str]] = None) -> List[T]:
         """
-        批量获取对象
+        Retrieve multiple objects.
         
         Args:
-            obj_type: 对象类型
-            nos: 对象编号列表，None 表示获取所有
+            obj_type: Object class
+            nos: Optional list of object identifiers; `None` means fetch all
             
         Returns:
-            对象列表
+            A list of objects
             
         Raises:
-            ConnectionError: COM 连接已断开
-            ObjectError: 对象不支持 get_all 操作
+            SAPConnectionError: The COM connection is no longer valid
+            ObjectError: The object type does not support bulk retrieval
         """
         self._ensure_connected()
         if hasattr(obj_type, '_get_all'):
             return obj_type._get_all(self._model, nos)
         raise ObjectError(f"{obj_type.__name__} does not support get_all")
     
-    def update_object(self, obj) -> int:
+    def update_object(self, obj: 'Updatable') -> int:
         """
-        更新单个对象
+        Update a single object.
         
         Args:
-            obj: 要更新的对象
+            obj: Object to update
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
-            ObjectError: 对象不支持 update 操作
+            SAPConnectionError: The COM connection is no longer valid
+            ObjectError: The object does not support update operations
         """
         self._ensure_connected()
         if hasattr(obj, '_update'):
@@ -413,18 +481,18 @@ class Application:
 
     def rename_object(self, obj, new_name: str) -> int:
         """
-        重命名对象
+        Rename an object.
         
         Args:
-            obj: 要重命名的对象（需要 change_name 方法）
-            new_name: 新名称
+            obj: Object to rename; it must provide a `change_name` method
+            new_name: New object name
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
-            ObjectError: 对象不支持 rename 操作
+            SAPConnectionError: The COM connection is no longer valid
+            ObjectError: The object does not support rename operations
             
         Example:
             app.rename_object(Frame(no="1"), "F1")
@@ -441,78 +509,77 @@ class Application:
             return ret
         raise ObjectError(f"{type(obj).__name__} does not support rename")
     
-    def delete_object(self, obj) -> int:
+    def delete_object(self, obj: 'Deletable') -> int:
         """
-        删除单个对象
+        Delete a single object.
 
         Args:
-            obj: 要删除的对象（需要 no 属性）
+            obj: Object to delete; it must provide a `no` attribute
 
         Returns:
-            0 表示成功
+            `0` on success
 
         Raises:
-            ConnectionError: COM 连接已断开
-            ObjectError: 对象不支持 delete 操作
+            SAPConnectionError: The COM connection is no longer valid
+            ObjectError: The object does not support delete operations
         """
-        with self._lock:
-            self._ensure_connected()
-            if hasattr(obj, '_delete'):
-                ret = obj._delete(self._model)
-                desc = self._obj_desc(obj)
-                if ret == 0:
-                    _logger.info(f"Deleted {desc}")
-                else:
-                    _logger.warning(f"Failed to delete {desc}, ret={ret}")
-                return ret
-            raise ObjectError(f"{type(obj).__name__} does not support delete")
+        self._ensure_connected()
+        if hasattr(obj, '_delete'):
+            ret = obj._delete(self._model)
+            desc = self._obj_desc(obj)
+            if ret == 0:
+                _logger.info(f"Deleted {desc}")
+            else:
+                _logger.warning(f"Failed to delete {desc}, ret={ret}")
+            return ret
+        raise ObjectError(f"{type(obj).__name__} does not support delete")
 
-    # ==================== 模型操作 ====================
+    # ==================== Model Operations ====================
     
     def new_model(self, units: int = 6) -> int:
         """
-        创建新模型
+        Create a new model.
         
         Args:
-            units: 单位制 (6=kN_m_C, 9=N_mm_C, 10=kN_mm_C)
+            units: Unit system code
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         return com_ret(self._model.InitializeNewModel(units))
     
     def open_model(self, path: str) -> int:
         """
-        打开模型文件
+        Open a model file.
         
         Args:
-            path: 模型文件路径
+            path: Model file path
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         return com_ret(self._model.File.OpenFile(path))
     
     def save_model(self, path: str = "") -> int:
         """
-        保存模型
+        Save the current model.
         
         Args:
-            path: 保存路径，空字符串表示保存到当前位置
+            path: Save path; empty string saves to the current location
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         if path:
@@ -521,269 +588,236 @@ class Application:
     
     def close_model(self, save_changes: bool = False) -> int:
         """
-        关闭当前模型
+        Close the current model.
         
         Args:
-            save_changes: 是否保存更改（True 时先调用 save_model）
+            save_changes: Whether to save changes first
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         if save_changes:
             self.save_model()
-        # SAP2000 没有直接的 close model API，用 InitializeNewModel 重置
+        # SAP2000 does not expose a dedicated close-model API, so reset instead.
         return com_ret(self._model.InitializeNewModel(6))
     
-    # ==================== 分析操作 ====================
+    # ==================== Analysis Operations ====================
     
     def calculate(self) -> int:
         """
-        运行分析
+        Run analysis.
 
         Returns:
-            0 表示成功
+            `0` on success
 
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
-        with self._lock:
-            self._ensure_connected()
-            com_ret(self._model.Analyze.SetRunCaseFlag("", True, True))
-            return com_ret(self._model.Analyze.RunAnalysis())
+        self._ensure_connected()
+        com_ret(self._model.Analyze.SetRunCaseFlag("", True, True))
+        return com_ret(self._model.Analyze.RunAnalysis())
     
     def delete_results(self) -> int:
         """
-        删除分析结果
+        Delete analysis results.
         
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         return com_ret(self._model.Analyze.DeleteResults("", True))
     
-    # ==================== 结果获取 ====================
+    # ==================== Result Retrieval ====================
     
     def get_results(self, result_type: str, load_case: str = "", load_combo: str = ""):
         """
-        获取分析结果
+        Retrieve analysis results.
+        
+        This method is not implemented yet. Use functions from the
+        `results` module directly, for example::
+
+            from PySap2000.results import get_joint_displ, deselect_all_cases_and_combos
+            deselect_all_cases_and_combos(app.model)
+            displ = get_joint_displ(app.model, "1")
         
         Args:
-            result_type: 结果类型 ('displacement', 'reaction', 'member_force' 等)
-            load_case: 荷载工况名称
-            load_combo: 荷载组合名称
-            
-        Returns:
-            结果数据
+            result_type: Result type such as `'displacement'` or `'reaction'`
+            load_case: Load case name
+            load_combo: Load combination name
             
         Raises:
-            ConnectionError: COM 连接已断开
+            NotImplementedError: Always raised until this method is implemented
         """
-        self._ensure_connected()
-        self._model.Results.Setup.DeselectAllCasesAndCombosForOutput()
-        if load_case:
-            self._model.Results.Setup.SetCaseSelectedForOutput(load_case)
-        if load_combo:
-            self._model.Results.Setup.SetComboSelectedForOutput(load_combo)
-        
-        # 具体实现在 results 模块中
-        return None
+        raise NotImplementedError(
+            "Application.get_results() is not implemented yet. "
+            "Use functions in the PySap2000.results package to retrieve results."
+        )
     
-    # ==================== 辅助方法 ====================
+    # ==================== Helpers ====================
     
-    def set_units(self, units: int) -> int:
+    def set_units(self, units) -> int:
         """
-        设置单位制
+        Set the current unit system.
         
         Args:
-            units: 单位制代码
-                1 = lb_in_F
-                2 = lb_ft_F
-                3 = kip_in_F
-                4 = kip_ft_F
-                5 = kN_mm_C
-                6 = kN_m_C
-                7 = kgf_mm_C
-                8 = kgf_m_C
-                9 = N_mm_C
-                10 = N_m_C
-                11 = Ton_mm_C
-                12 = Ton_m_C
-                13 = kN_cm_C
-                14 = kgf_cm_C
-                15 = N_cm_C
-                16 = Ton_cm_C
+            units: A `UnitSystem` enum value or integer code
                 
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
-        return com_ret(self._model.SetPresentUnits(units))
+        return com_ret(self._model.SetPresentUnits(int(units)))
     
-    # 单位代码映射表
-    UNIT_NAMES = {
-        1: "lb_in_F",
-        2: "lb_ft_F",
-        3: "kip_in_F",
-        4: "kip_ft_F",
-        5: "kN_mm_C",
-        6: "kN_m_C",
-        7: "kgf_mm_C",
-        8: "kgf_m_C",
-        9: "N_mm_C",
-        10: "N_m_C",
-        11: "Ton_mm_C",
-        12: "Ton_m_C",
-        13: "kN_cm_C",
-        14: "kgf_cm_C",
-        15: "N_cm_C",
-        16: "Ton_cm_C",
-    }
-    
-    def get_units(self) -> int:
+    def get_units(self):
         """
-        获取当前单位制代码
+        Return the current unit system.
         
+        Returns:
+            A `UnitSystem` enum value
+            
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
+        from PySap2000.global_parameters.units import UnitSystem
         self._ensure_connected()
-        return self._model.GetPresentUnits()
+        return UnitSystem(self._model.GetPresentUnits())
     
     def get_units_name(self) -> str:
         """
-        获取当前单位制名称
+        Return a human-readable description of the current unit system.
         
         Returns:
-            单位名称如 "kN_m_C", "N_mm_C" 等
+            Description such as `"kN-m-C"` or `"N-mm-C"`
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
-        code = self.get_units()
-        return self.UNIT_NAMES.get(code, "Unknown")
+        from PySap2000.global_parameters.units import Units as _Units
+        return _Units.get_unit_description(self.get_units())
     
-    def get_database_units(self) -> int:
+    def get_database_units(self):
         """
-        获取数据库单位制
-        
-        注意: 所有数据在模型内部以数据库单位存储，
-        需要时转换为当前显示单位
+        Return the database unit system.
+
+        All model data is stored internally using database units and converted
+        to the active display units when needed.
         
         Returns:
-            单位制代码 (同 set_units)
+            A `UnitSystem` enum value
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
+        from PySap2000.global_parameters.units import UnitSystem
         self._ensure_connected()
-        return self._model.GetDatabaseUnits()
+        return UnitSystem(self._model.GetDatabaseUnits())
     
     def get_database_units_name(self) -> str:
         """
-        获取数据库单位制名称
+        Return a human-readable description of the database unit system.
         
         Returns:
-            单位名称如 "kN_m_C", "N_mm_C" 等
+            Description such as `"kN-m-C"` or `"N-mm-C"`
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
-        code = self.get_database_units()
-        return self.UNIT_NAMES.get(code, "Unknown")
+        from PySap2000.global_parameters.units import Units as _Units
+        return _Units.get_unit_description(self.get_database_units())
     
     def refresh_view(self):
         """
-        刷新视图
+        Refresh the model view.
         
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         self._model.View.RefreshView(0, True)
 
-    # ==================== 模型信息 ====================
+    # ==================== Model Information ====================
     
     def get_model_filename(self, include_path: bool = True) -> str:
         """
-        获取模型文件名
+        Return the active model filename.
         
         Args:
-            include_path: 是否包含完整路径
+            include_path: Whether to include the full path
             
         Returns:
-            模型文件名
+            The model filename
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         return self._model.GetModelFilename(include_path)
     
     def get_model_filepath(self) -> str:
         """
-        获取模型文件路径
+        Return the active model directory path.
         
         Returns:
-            模型文件所在目录路径
+            Directory containing the model file
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         return self._model.GetModelFilepath()
     
     def get_model_is_locked(self) -> bool:
         """
-        获取模型锁定状态
-        
-        注意: 模型锁定时，大部分定义和分配无法修改
+        Return the model lock state.
+
+        When the model is locked, most definitions and assignments cannot be edited.
         
         Returns:
-            True 表示已锁定
+            `True` if the model is locked
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         return self._model.GetModelIsLocked()
     
     def set_model_is_locked(self, lock_it: bool) -> int:
         """
-        设置模型锁定状态
+        Set the model lock state.
         
         Args:
-            lock_it: True 锁定模型，False 解锁模型
+            lock_it: `True` to lock the model, `False` to unlock it
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         return com_ret(self._model.SetModelIsLocked(lock_it))
     
-    # ==================== 合并容差 ====================
+    # ==================== Merge Tolerance ====================
     
     def get_merge_tol(self) -> float:
         """
-        获取自动合并容差
+        Return the automatic merge tolerance.
 
         Returns:
-            合并容差 [L]
+            Merge tolerance in model length units
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         result = self._model.GetMergeTol()
@@ -792,31 +826,31 @@ class Application:
     
     def set_merge_tol(self, merge_tol: float) -> int:
         """
-        设置自动合并容差
+        Set the automatic merge tolerance.
         
         Args:
-            merge_tol: 合并容差 [L]
+            merge_tol: Merge tolerance in model length units
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         return com_ret(self._model.SetMergeTol(merge_tol))
     
-    # ==================== 坐标系 ====================
+    # ==================== Coordinate Systems ====================
     
     def get_present_coord_system(self) -> str:
         """
-        获取当前坐标系名称
+        Return the current coordinate system name.
 
         Returns:
-            坐标系名称
+            Coordinate system name
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         result = self._model.GetPresentCoordSystem()
@@ -828,31 +862,31 @@ class Application:
     
     def set_present_coord_system(self, csys: str) -> int:
         """
-        设置当前坐标系
+        Set the current coordinate system.
         
         Args:
-            csys: 坐标系名称
+            csys: Coordinate system name
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         return com_ret(self._model.SetPresentCoordSystem(csys))
     
-    # ==================== 项目信息 ====================
+    # ==================== Project Information ====================
     
     def get_project_info(self) -> dict:
         """
-        获取项目信息
+        Return project information.
         
         Returns:
-            项目信息字典 {item_name: data}
+            Dictionary of project info items: `{item_name: data}`
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         result = self._model.GetProjectInfo()
@@ -866,32 +900,32 @@ class Application:
     
     def set_project_info(self, item: str, data: str) -> int:
         """
-        设置项目信息
+        Set a project information item.
         
         Args:
-            item: 项目信息项名称 (如 "Company Name", "Project Name")
-            data: 项目信息数据
+            item: Project info item name, for example `"Company Name"`
+            data: Project info value
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         return com_ret(self._model.SetProjectInfo(item, data))
     
-    # ==================== 用户注释 ====================
+    # ==================== User Comments ====================
     
     def get_user_comment(self) -> str:
         """
-        获取用户注释和日志
+        Return the user comment text.
         
         Returns:
-            用户注释内容
+            User comment content
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         result = self._model.GetUserComment()
@@ -906,33 +940,33 @@ class Application:
         replace: bool = False
     ) -> int:
         """
-        设置用户注释
+        Set the user comment text.
         
         Args:
-            comment: 注释内容
-            num_lines: 在注释前添加的空行数 (replace=True 时忽略)
-            replace: True 替换所有现有注释，False 追加
+            comment: Comment text
+            num_lines: Number of blank lines to insert before the comment
+            replace: If `True`, replace existing comments; otherwise append
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         return com_ret(self._model.SetUserComment(comment, num_lines, replace))
     
-    # ==================== 版本信息 ====================
+    # ==================== Version Information ====================
     
     def get_version(self) -> tuple:
         """
-        获取 SAP2000 版本信息
+        Return SAP2000 version information.
         
         Returns:
-            (版本名称, 版本号) 如 ("26.3.0", 26.3)
+            Tuple `(version_string, version_number)`, for example `("26.3.0", 26.3)`
             
         Raises:
-            ConnectionError: COM 连接已断开
+            SAPConnectionError: The COM connection is no longer valid
         """
         self._ensure_connected()
         result = self._model.GetVersion()

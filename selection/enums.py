@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-enums.py - 选择相关枚举
+enums.py - Selection-related enums.
 
-SAP2000 API 中选择相关的枚举定义
+Defines selection enums used by the SAP2000 API.
 """
 
 from enum import IntEnum
@@ -10,10 +10,10 @@ from enum import IntEnum
 
 class SelectObjectType(IntEnum):
     """
-    选择对象类型
-    
-    用于 GetSelected 返回的 ObjectType
-    
+    Selected object type.
+
+    Used for the `ObjectType` values returned by `GetSelected`.
+
     SAP2000 API:
         1 = Point object
         2 = Frame object

@@ -1,177 +1,178 @@
 # -*- coding: utf-8 -*-
 """
-database_tables - SAP2000 交互式表格编辑模块
+database_tables - SAP2000 interactive table editing.
 
-对应 SAP2000 的 DatabaseTables 接口，用于读取和编辑模型数据表格。
+Wraps the SAP2000 `DatabaseTables` interface for reading and editing model
+data tables.
 
-主要功能:
-- 获取可用表格列表
-- 读取表格数据 (Array/CSV/XML)
-- 编辑表格数据
-- 导出到 Excel
+Main features:
+- Get available table lists
+- Read table data (Array / CSV / XML)
+- Edit table data
+- Export tables to Excel
 
-用法:
+Usage:
     from database_tables import DatabaseTables
     
-    # 获取所有可用表格
+    # Get all available tables
     tables = DatabaseTables.get_available_tables(model)
     
-    # 读取表格数据
+    # Read table data
     data = DatabaseTables.get_table_for_display(model, "Frame Section Assignments")
     
-    # 编辑表格 (方式1: 标准流程)
+    # Edit table (method 1: standard workflow)
     data = DatabaseTables.get_table_for_editing(model, "Joint Coordinates")
     data.set_value(0, "XorR", "100")
     DatabaseTables.set_table_for_editing(model, data)
     result = DatabaseTables.apply_edited_tables(model)
     
-    # 编辑表格 (方式2: 便捷方法)
+    # Edit table (method 2: convenience helper)
     result = DatabaseTables.edit_table(model, "Joint Coordinates", {
         0: {"XorR": "100"}
     })
 
-API 分类:
-    DATABASE_TABLES_API_CATEGORIES - 供 AI Agent 发现功能
+API categories:
+    `DATABASE_TABLES_API_CATEGORIES` - for capability discovery
 """
 
 from .tables import (
-    # 主类
+    # Main class
     DatabaseTables,
     
-    # 数据类
+    # Dataclasses
     TableData,
     TableField,
     TableInfo,
     ApplyResult,
     
-    # 枚举
+    # Enums
     TableExportFormat,
     TableImportType,
 )
 
 from .table_keys import (
-    # 常用表格键名常量
+    # Common table-key constants
     TABLE_KEYS,
     
-    # 分类表格键名
+    # Grouped table-key lists
     MODEL_DEFINITION_TABLES,
     ANALYSIS_RESULTS_TABLES,
     DESIGN_TABLES,
 )
 
 
-# ==================== API 分类索引 (供 AI Agent 发现功能) ====================
+# ==================== API category index (for discoverability) ====================
 
 DATABASE_TABLES_API_CATEGORIES = {
-    "表格查询": {
-        "description": "获取可用表格和字段信息",
+    "table_query": {
+        "description": "Get available tables and field metadata",
         "functions": [
-            "get_available_tables",      # 获取可用表格列表 (有数据的)
-            "get_available_table_keys",  # 获取可用表格键名列表
-            "get_all_tables",            # 获取所有表格列表
-            "get_all_table_keys",        # 获取所有表格键名列表
-            "get_fields_in_table",       # 获取表格中的所有字段
-            "get_all_fields_in_table",   # 获取表格中的所有字段 (原始格式)
-            "find_tables",               # 搜索表格 (便捷方法)
-            "get_obsolete_table_keys",   # 获取废弃表格键名映射
+            "get_available_tables",      # Get available table list (with data)
+            "get_available_table_keys",  # Get available table-key list
+            "get_all_tables",            # Get all table list
+            "get_all_table_keys",        # Get all table-key list
+            "get_fields_in_table",       # Get all fields in a table
+            "get_all_fields_in_table",   # Get all fields in raw form
+            "find_tables",               # Find tables (convenience helper)
+            "get_obsolete_table_keys",   # Get obsolete table-key mapping
         ]
     },
-    "读取表格 (Array)": {
-        "description": "读取表格数据 (Array 格式)",
+    "read_tables_array": {
+        "description": "Read table data (Array format)",
         "functions": [
-            "get_table_for_display",     # 获取显示用表格数据
-            "get_table_for_editing",     # 获取编辑用表格数据
-            "read_table",                # 读取表格 (便捷方法)
+            "get_table_for_display",     # Get display-table data
+            "get_table_for_editing",     # Get editable table data
+            "read_table",                # Read table (convenience helper)
         ]
     },
-    "读取表格 (CSV)": {
-        "description": "读取表格数据 (CSV 格式)",
+    "read_tables_csv": {
+        "description": "Read table data (CSV format)",
         "functions": [
-            "get_table_for_display_csv_file",    # 获取显示用表格并保存为 CSV 文件
-            "get_table_for_display_csv_string",  # 获取显示用表格为 CSV 字符串
-            "get_table_for_editing_csv_file",    # 获取编辑用表格并保存为 CSV 文件
-            "get_table_for_editing_csv_string",  # 获取编辑用表格为 CSV 字符串
-            "export_to_csv",                     # 导出表格到 CSV (便捷方法)
+            "get_table_for_display_csv_file",    # Get display table and save as CSV file
+            "get_table_for_display_csv_string",  # Get display table as CSV string
+            "get_table_for_editing_csv_file",    # Get editing table and save as CSV file
+            "get_table_for_editing_csv_string",  # Get editing table as CSV string
+            "export_to_csv",                     # Export table to CSV (convenience helper)
         ]
     },
-    "编辑表格": {
-        "description": "编辑和应用表格数据",
+    "edit_tables": {
+        "description": "Edit and apply table data",
         "functions": [
-            "set_table_for_editing",         # 设置编辑表格数据 (TableData)
-            "set_table_for_editing_array",   # 设置编辑表格数据 (原始参数)
-            "set_table_for_editing_csv_file",    # 从 CSV 文件设置编辑数据
-            "set_table_for_editing_csv_string",  # 从 CSV 字符串设置编辑数据
-            "apply_edited_tables",           # 应用已编辑的表格
-            "cancel_table_editing",          # 取消表格编辑
-            "edit_table",                    # 编辑表格 (便捷方法)
-            "import_from_dataframe",         # 从 DataFrame 导入
-            "import_from_csv",               # 从 CSV 文件导入 (便捷方法)
+            "set_table_for_editing",         # Set editable table data (TableData)
+            "set_table_for_editing_array",   # Set editable table data (raw args)
+            "set_table_for_editing_csv_file",    # Set editing data from CSV file
+            "set_table_for_editing_csv_string",  # Set editing data from CSV string
+            "apply_edited_tables",           # Apply edited tables
+            "cancel_table_editing",          # Cancel table editing
+            "edit_table",                    # Edit table (convenience helper)
+            "import_from_dataframe",         # Import from DataFrame
+            "import_from_csv",               # Import from CSV file (convenience helper)
         ]
     },
-    "显示选项 - 荷载": {
-        "description": "设置荷载显示选项",
+    "display_options_loads": {
+        "description": "Set load display options",
         "functions": [
-            "get_load_patterns_selected",    # 获取选中的荷载模式
-            "set_load_patterns_selected",    # 设置显示的荷载模式
-            "get_load_cases_selected",       # 获取选中的荷载工况
-            "set_load_cases_selected",       # 设置显示的荷载工况
-            "get_load_combinations_selected", # 获取选中的荷载组合
-            "set_load_combinations_selected", # 设置显示的荷载组合
+            "get_load_patterns_selected",    # Get selected load patterns
+            "set_load_patterns_selected",    # Set displayed load patterns
+            "get_load_cases_selected",       # Get selected load cases
+            "set_load_cases_selected",       # Set displayed load cases
+            "get_load_combinations_selected", # Get selected load combinations
+            "set_load_combinations_selected", # Set displayed load combinations
         ]
     },
-    "显示选项 - Named Sets": {
-        "description": "设置命名集显示选项",
+    "display_options_named_sets": {
+        "description": "Set named-set display options",
         "functions": [
-            "get_section_cuts_selected",                 # 获取选中的截面切割
-            "set_section_cuts_selected",                 # 设置显示的截面切割
-            "get_generalized_displacements_selected",    # 获取选中的广义位移
-            "set_generalized_displacements_selected",    # 设置显示的广义位移
-            "get_pushover_named_sets_selected",          # 获取选中的 Pushover 命名集
-            "set_pushover_named_sets_selected",          # 设置显示的 Pushover 命名集
-            "get_joint_response_spectra_named_sets_selected",   # 获取选中的节点反应谱命名集
-            "set_joint_response_spectra_named_sets_selected",   # 设置显示的节点反应谱命名集
-            "get_plot_function_traces_named_sets_selected",     # 获取选中的绘图函数轨迹命名集
-            "set_plot_function_traces_named_sets_selected",     # 设置显示的绘图函数轨迹命名集
-            "get_element_virtual_work_named_sets_selected",     # 获取选中的单元虚功命名集
-            "set_element_virtual_work_named_sets_selected",     # 设置显示的单元虚功命名集
+            "get_section_cuts_selected",                 # Get selected section cuts
+            "set_section_cuts_selected",                 # Set displayed section cuts
+            "get_generalized_displacements_selected",    # Get selected generalized displacements
+            "set_generalized_displacements_selected",    # Set displayed generalized displacements
+            "get_pushover_named_sets_selected",          # Get selected pushover named sets
+            "set_pushover_named_sets_selected",          # Set displayed pushover named sets
+            "get_joint_response_spectra_named_sets_selected",   # Get selected joint response spectra named sets
+            "set_joint_response_spectra_named_sets_selected",   # Set displayed joint response spectra named sets
+            "get_plot_function_traces_named_sets_selected",     # Get selected plot-function trace named sets
+            "set_plot_function_traces_named_sets_selected",     # Set displayed plot-function trace named sets
+            "get_element_virtual_work_named_sets_selected",     # Get selected element virtual-work named sets
+            "set_element_virtual_work_named_sets_selected",     # Set displayed element virtual-work named sets
         ]
     },
-    "输出选项": {
-        "description": "设置表格输出选项",
+    "output_options": {
+        "description": "Set table output options",
         "functions": [
-            "get_table_output_options",      # 获取表格输出选项
-            "set_table_output_options",      # 设置表格输出选项
+            "get_table_output_options",      # Get table output options
+            "set_table_output_options",      # Set table output options
         ]
     },
-    "导出": {
-        "description": "导出表格到外部格式",
+    "export": {
+        "description": "Export tables to external formats",
         "functions": [
-            "show_tables_in_excel",          # 在 Excel 中显示表格
+            "show_tables_in_excel",          # Show tables in Excel
         ]
     },
 }
 
 
 __all__ = [
-    # 主类
+    # Main class
     'DatabaseTables',
     
-    # 数据类
+    # Dataclasses
     'TableData',
     'TableField',
     'TableInfo',
     'ApplyResult',
     
-    # 枚举
+    # Enums
     'TableExportFormat',
     'TableImportType',
     
-    # 表格键名
+    # Table keys
     'TABLE_KEYS',
     'MODEL_DEFINITION_TABLES',
     'ANALYSIS_RESULTS_TABLES',
     'DESIGN_TABLES',
     
-    # API 分类索引
+    # API category index
     'DATABASE_TABLES_API_CATEGORIES',
 ]

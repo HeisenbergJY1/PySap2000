@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
 """
-load_pattern.py - 荷载模式定义
+load_pattern.py - Load pattern definitions.
 
-对应 SAP2000 的 LoadPatterns API
+Wraps the SAP2000 `LoadPatterns` API.
 
-荷载模式是定义荷载的基础，如 DEAD（恒载）、LIVE（活载）等。
-每个荷载模式可以自动创建对应的线性静力荷载工况。
+Load patterns are the basis for load assignment, such as `DEAD` and `LIVE`.
+Each load pattern can optionally create a corresponding linear static load case.
 
 SAP2000 API:
-- LoadPatterns.Add - 添加荷载模式
-- LoadPatterns.ChangeName - 重命名荷载模式
-- LoadPatterns.Count - 获取荷载模式数量
-- LoadPatterns.Delete - 删除荷载模式
-- LoadPatterns.GetLoadType - 获取荷载类型
-- LoadPatterns.GetNameList - 获取所有荷载模式名称
-- LoadPatterns.GetSelfWtMultiplier - 获取自重系数
-- LoadPatterns.SetLoadType - 设置荷载类型
-- LoadPatterns.SetSelfWtMultiplier - 设置自重系数
+- `LoadPatterns.Add` - add a load pattern
+- `LoadPatterns.ChangeName` - rename a load pattern
+- `LoadPatterns.Count` - get the number of load patterns
+- `LoadPatterns.Delete` - delete a load pattern
+- `LoadPatterns.GetLoadType` - get the load type
+- `LoadPatterns.GetNameList` - get all load pattern names
+- `LoadPatterns.GetSelfWtMultiplier` - get the self-weight multiplier
+- `LoadPatterns.SetLoadType` - set the load type
+- `LoadPatterns.SetSelfWtMultiplier` - set the self-weight multiplier
 
 Usage:
     from PySap2000.loading import LoadPattern, LoadPatternType
     
-    # 创建荷载模式
+    # Create a load pattern
     dead = LoadPattern(
         name="DEAD",
         load_type=LoadPatternType.DEAD,
@@ -29,11 +29,11 @@ Usage:
     )
     dead._create(model)
     
-    # 获取荷载模式
+    # Get a load pattern
     lp = LoadPattern.get_by_name(model, "DEAD")
     print(f"Type: {lp.load_type.name}, SW: {lp.self_weight_multiplier}")
     
-    # 获取所有荷载模式
+    # Get all load patterns
     all_patterns = LoadPattern.get_all(model)
 """
 
@@ -46,63 +46,63 @@ from PySap2000.com_helper import com_ret, com_data
 
 class LoadPatternType(IntEnum):
     """
-    荷载模式类型
-    
-    对应 SAP2000 的 eLoadPatternType 枚举
+    Load pattern type.
+
+    Matches the SAP2000 `eLoadPatternType` enum.
     """
-    DEAD = 1                        # 恒载
-    SUPERDEAD = 2                   # 超恒载
-    LIVE = 3                        # 活载
-    REDUCELIVE = 4                  # 可折减活载
-    QUAKE = 5                       # 地震
-    WIND = 6                        # 风载
-    SNOW = 7                        # 雪载
-    OTHER = 8                       # 其他
-    MOVE = 9                        # 移动荷载
-    TEMPERATURE = 10                # 温度
-    ROOFLIVE = 11                   # 屋面活载
-    NOTIONAL = 12                   # 名义荷载
-    PATTERNLIVE = 13                # 模式活载
-    WAVE = 14                       # 波浪
-    BRAKING = 15                    # 制动力
-    CENTRIFUGAL = 16                # 离心力
-    FRICTION = 17                   # 摩擦力
-    ICE = 18                        # 冰载
-    WINDONLIVELOAD = 19             # 活载上的风
-    HORIZONTALEARTHPRESSURE = 20    # 水平土压力
-    VERTICALEARTHPRESSURE = 21      # 垂直土压力
-    EARTHSURCHARGE = 22             # 土超载
-    DOWNDRAG = 23                   # 下拉力
-    VEHICLECOLLISION = 24           # 车辆碰撞
-    VESSELCOLLISION = 25            # 船舶碰撞
-    TEMPERATUREGRADIENT = 26        # 温度梯度
-    SETTLEMENT = 27                 # 沉降
-    SHRINKAGE = 28                  # 收缩
-    CREEP = 29                      # 徐变
-    WATERLOADPRESSURE = 30          # 水压力
-    LIVELOADSURCHARGE = 31          # 活载超载
-    LOCKEDINFORCES = 32             # 锁定力
-    PEDESTRIANLL = 33               # 人行活载
-    PRESTRESS = 34                  # 预应力
-    HYPERSTATIC = 35                # 超静定
-    BOUYANCY = 36                   # 浮力
-    STREAMFLOW = 37                 # 水流
-    IMPACT = 38                     # 冲击
-    CONSTRUCTION = 39               # 施工
+    DEAD = 1                        # Dead load
+    SUPERDEAD = 2                   # Super dead load
+    LIVE = 3                        # Live load
+    REDUCELIVE = 4                  # Reducible live load
+    QUAKE = 5                       # Earthquake
+    WIND = 6                        # Wind load
+    SNOW = 7                        # Snow load
+    OTHER = 8                       # Other
+    MOVE = 9                        # Moving load
+    TEMPERATURE = 10                # Temperature
+    ROOFLIVE = 11                   # Roof live load
+    NOTIONAL = 12                   # Notional load
+    PATTERNLIVE = 13                # Pattern live load
+    WAVE = 14                       # Wave
+    BRAKING = 15                    # Braking force
+    CENTRIFUGAL = 16                # Centrifugal force
+    FRICTION = 17                   # Friction
+    ICE = 18                        # Ice load
+    WINDONLIVELOAD = 19             # Wind on live load
+    HORIZONTALEARTHPRESSURE = 20    # Horizontal earth pressure
+    VERTICALEARTHPRESSURE = 21      # Vertical earth pressure
+    EARTHSURCHARGE = 22             # Earth surcharge
+    DOWNDRAG = 23                   # Downdrag
+    VEHICLECOLLISION = 24           # Vehicle collision
+    VESSELCOLLISION = 25            # Vessel collision
+    TEMPERATUREGRADIENT = 26        # Temperature gradient
+    SETTLEMENT = 27                 # Settlement
+    SHRINKAGE = 28                  # Shrinkage
+    CREEP = 29                      # Creep
+    WATERLOADPRESSURE = 30          # Water pressure
+    LIVELOADSURCHARGE = 31          # Live load surcharge
+    LOCKEDINFORCES = 32             # Locked-in forces
+    PEDESTRIANLL = 33               # Pedestrian live load
+    PRESTRESS = 34                  # Prestress
+    HYPERSTATIC = 35                # Hyperstatic
+    BOUYANCY = 36                   # Buoyancy
+    STREAMFLOW = 37                 # Stream flow
+    IMPACT = 38                     # Impact
+    CONSTRUCTION = 39               # Construction
 
 
 @dataclass
 class LoadPattern:
     """
-    荷载模式定义
-    
-    对应 SAP2000 的 LoadPatterns
+    Load pattern definition.
+
+    Wraps SAP2000 `LoadPatterns`.
     
     Attributes:
-        name: 荷载模式名称
-        load_type: 荷载类型 (LoadPatternType)
-        self_weight_multiplier: 自重系数
-        add_load_case: 创建时是否自动创建对应的线性静力工况
+        name: Load pattern name
+        load_type: Load type (`LoadPatternType`)
+        self_weight_multiplier: Self-weight multiplier
+        add_load_case: Whether to automatically create a corresponding linear static load case
     """
     name: str = ""
     load_type: LoadPatternType = LoadPatternType.OTHER
@@ -113,15 +113,15 @@ class LoadPattern:
     
     def _create(self, model) -> int:
         """
-        创建荷载模式
+        Create a load pattern.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功，-1 表示已存在
+            `0` if successful, `-1` if it already exists.
         """
-        # 检查是否已存在
+        # Check whether the load pattern already exists.
         if self.name:
             try:
                 existing = self.get_name_list(model)
@@ -140,15 +140,15 @@ class LoadPattern:
     
     def _get(self, model) -> int:
         """
-        从模型获取荷载模式数据
+        Retrieve load pattern data from the model.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
-        # 获取荷载类型
+        # Get the load pattern type.
         result = model.LoadPatterns.GetLoadType(self.name, 0)
         try:
             self.load_type = LoadPatternType(com_data(result, 0, 0))
@@ -156,7 +156,7 @@ class LoadPattern:
             self.load_type = LoadPatternType.OTHER
         ret1 = com_ret(result)
         
-        # 获取自重系数
+        # Get the self-weight multiplier.
         result = model.LoadPatterns.GetSelfWtMultiplier(self.name, 0.0)
         self.self_weight_multiplier = com_data(result, 0, 0.0)
         ret2 = com_ret(result)
@@ -165,28 +165,29 @@ class LoadPattern:
     
     def _delete(self, model) -> int:
         """
-        删除荷载模式
-        
-        注意: 不能删除被荷载工况引用的荷载模式，也不能删除唯一的荷载模式
+        Delete a load pattern.
+
+        Note: A load pattern cannot be deleted if it is referenced by a load case
+        or if it is the only remaining load pattern.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         return model.LoadPatterns.Delete(self.name)
     
     def change_name(self, model, new_name: str) -> int:
         """
-        重命名荷载模式
+        Rename a load pattern.
         
         Args:
-            model: SapModel 对象
-            new_name: 新名称
+            model: SAP2000 SapModel object
+            new_name: New name
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         ret = model.LoadPatterns.ChangeName(self.name, new_name)
         if ret == 0:
@@ -195,14 +196,14 @@ class LoadPattern:
     
     def set_load_type(self, model, load_type: LoadPatternType) -> int:
         """
-        设置荷载类型
+        Set the load pattern type.
         
         Args:
-            model: SapModel 对象
-            load_type: 荷载类型
+            model: SAP2000 SapModel object
+            load_type: Load pattern type
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         ret = model.LoadPatterns.SetLoadType(self.name, int(load_type))
         if ret == 0:
@@ -211,14 +212,14 @@ class LoadPattern:
     
     def set_self_weight_multiplier(self, model, multiplier: float) -> int:
         """
-        设置自重系数
+        Set the self-weight multiplier.
         
         Args:
-            model: SapModel 对象
-            multiplier: 自重系数
+            model: SAP2000 SapModel object
+            multiplier: Self-weight multiplier
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         ret = model.LoadPatterns.SetSelfWtMultiplier(self.name, multiplier)
         if ret == 0:
@@ -228,26 +229,26 @@ class LoadPattern:
     @staticmethod
     def get_count(model) -> int:
         """
-        获取荷载模式数量
+        Get the number of load patterns.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            荷载模式数量
+            Load pattern count.
         """
         return model.LoadPatterns.Count()
     
     @staticmethod
     def get_name_list(model) -> List[str]:
         """
-        获取所有荷载模式名称
+        Get the names of all load patterns.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            荷载模式名称列表
+            List of load pattern names.
         """
         result = model.LoadPatterns.GetNameList(0, [])
         names = com_data(result, 1)
@@ -258,14 +259,14 @@ class LoadPattern:
     @classmethod
     def get_by_name(cls, model, name: str) -> Optional["LoadPattern"]:
         """
-        按名称获取荷载模式
+        Get a load pattern by name.
         
         Args:
-            model: SapModel 对象
-            name: 荷载模式名称
+            model: SAP2000 SapModel object
+            name: Load pattern name
             
         Returns:
-            LoadPattern 对象，如果不存在返回 None
+            `LoadPattern` instance, or `None` if it does not exist.
         """
         lp = cls(name=name)
         ret = lp._get(model)
@@ -276,13 +277,13 @@ class LoadPattern:
     @classmethod
     def get_all(cls, model) -> List["LoadPattern"]:
         """
-        获取所有荷载模式
+        Get all load patterns.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            LoadPattern 对象列表
+            List of `LoadPattern`.
         """
         names = cls.get_name_list(model)
         result = []

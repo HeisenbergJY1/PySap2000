@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-design/aluminum.py - 铝结构设计函数
+design/aluminum.py - Aluminum design helpers
 
-SAP2000 DesignAluminum API 的 Python 封装。
-API 路径: SapModel.DesignAluminum
+Python wrapper for the SAP2000 `DesignAluminum` API.
+API path: `SapModel.DesignAluminum`
 """
 
 from typing import List, Union
@@ -15,36 +15,36 @@ from .enums import (
 from .data_classes import SteelSummaryResult, VerifyPassedResult
 from PySap2000.com_helper import com_ret, com_data
 
-# 铝结构汇总结果复用 SteelSummaryResult（API 签名完全相同）
+# Reuse `SteelSummaryResult` for aluminum (same API layout)
 AluminumSummaryResult = SteelSummaryResult
 
 
 # ============================================================================
-# 规范设置
+# Code selection
 # ============================================================================
 
 def get_aluminum_code(model) -> str:
-    """获取当前铝结构设计规范
+    """Get the active aluminum design code
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        规范名称字符串
+        Code name string
     """
     result = model.DesignAluminum.GetCode("")
     return com_data(result, 0, "")
 
 
 def set_aluminum_code(model, code: Union[AluminumDesignCode, str]) -> int:
-    """设置铝结构设计规范
+    """Set the aluminum design code
 
     Args:
-        model: SapModel 对象
-        code: 规范枚举或规范名称字符串
+        model: SAP2000 SapModel object
+        code: Code enum or code name string
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     if isinstance(code, AluminumDesignCode):
         code_name = ALUMINUM_CODE_NAMES.get(code, "AA-ASD 2000")
@@ -55,115 +55,115 @@ def set_aluminum_code(model, code: Union[AluminumDesignCode, str]) -> int:
 
 
 # ============================================================================
-# 设计执行
+# Run design
 # ============================================================================
 
 def start_aluminum_design(model) -> int:
-    """开始铝结构设计
+    """Run aluminum design
 
-    注意：需要先运行分析，且模型中存在铝框架对象。
+    Requires analysis to be run and aluminum frame objects in the model.
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignAluminum.StartDesign()
     return com_ret(ret)
 
 
 def delete_aluminum_results(model) -> int:
-    """删除所有铝结构设计结果
+    """Delete all aluminum design results
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignAluminum.DeleteResults()
     return com_ret(ret)
 
 
 def get_aluminum_results_available(model) -> bool:
-    """检查铝结构设计结果是否可用
+    """Whether aluminum design results are available
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        True 表示结果可用
+        `True` if results are available
     """
     result = model.DesignAluminum.GetResultsAvailable()
     return bool(com_data(result, 0, result))
 
 
 # ============================================================================
-# 设计组合
+# Load combinations
 # ============================================================================
 
 def get_aluminum_combo_strength(model) -> List[str]:
-    """获取用于强度设计的荷载组合"""
+    """Load combinations used for strength design"""
     result = model.DesignAluminum.GetComboStrength(0, [])
     names = com_data(result, 1)
     return list(names) if names else []
 
 
 def set_aluminum_combo_strength(model, name: str, selected: bool = True) -> int:
-    """设置荷载组合是否用于强度设计"""
+    """Select a load combination for strength design"""
     ret = model.DesignAluminum.SetComboStrength(name, selected)
     return com_ret(ret)
 
 
 def get_aluminum_combo_deflection(model) -> List[str]:
-    """获取用于挠度设计的荷载组合"""
+    """Load combinations used for deflection design"""
     result = model.DesignAluminum.GetComboDeflection(0, [])
     names = com_data(result, 1)
     return list(names) if names else []
 
 
 def set_aluminum_combo_deflection(model, name: str, selected: bool = True) -> int:
-    """设置荷载组合是否用于挠度设计"""
+    """Select a load combination for deflection design"""
     ret = model.DesignAluminum.SetComboDeflection(name, selected)
     return com_ret(ret)
 
 
 def get_aluminum_combo_auto_generate(model) -> bool:
-    """获取是否自动生成设计组合"""
+    """Whether design combinations are auto-generated"""
     result = model.DesignAluminum.GetComboAutoGenerate(False)
     return bool(com_data(result, 0, False))
 
 
 def set_aluminum_combo_auto_generate(model, auto_generate: bool = True) -> int:
-    """设置是否自动生成设计组合"""
+    """Enable or disable auto-generation of design combinations"""
     ret = model.DesignAluminum.SetComboAutoGenerate(auto_generate)
     return com_ret(ret)
 
 
 # ============================================================================
-# 设计组
+# DesignGroup
 # ============================================================================
 
 def get_aluminum_design_group(model) -> List[str]:
-    """获取选中用于铝结构设计的组"""
+    """Groups selected for aluminum design"""
     result = model.DesignAluminum.GetGroup(0, [])
     names = com_data(result, 1)
     return list(names) if names else []
 
 
 def set_aluminum_design_group(model, name: str, selected: bool = True) -> int:
-    """设置组是否用于铝结构设计"""
+    """Select or deselect a group for aluminum design"""
     ret = model.DesignAluminum.SetGroup(name, selected)
     return com_ret(ret)
 
 
 # ============================================================================
-# 设计截面
+# Design section
 # ============================================================================
 
 def get_aluminum_design_section(model, name: str) -> str:
-    """获取框架对象的设计截面"""
+    """Get the design section assigned to a frame"""
     result = model.DesignAluminum.GetDesignSection(name, "")
     return com_data(result, 0, "")
 
@@ -175,38 +175,38 @@ def set_aluminum_design_section(
     last_analysis: bool = False,
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
-    """设置框架对象的设计截面"""
+    """Set the design section for frame objects"""
     ret = model.DesignAluminum.SetDesignSection(name, prop_name, last_analysis, int(item_type))
     return com_ret(ret)
 
 
 def set_aluminum_auto_select_null(model, name: str, item_type: ItemType = ItemType.OBJECT) -> int:
-    """将自动选择截面设为 None（移除自动选择）
+    """Clear auto-select section (set to None)
 
     Args:
-        model: SapModel 对象
-        name: 对象名称
-        item_type: 对象选择类型
+        model: SAP2000 SapModel object
+        name: Object name
+        item_type: Object selection mode
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignAluminum.SetAutoSelectNull(name, int(item_type))
     return com_ret(ret)
 
 
 # ============================================================================
-# 覆盖重置与验证
+# Overwrites and verification
 # ============================================================================
 
 def reset_aluminum_overwrites(model) -> int:
-    """重置所有铝结构设计覆盖为默认值"""
+    """Reset all aluminum design overwrites to defaults"""
     ret = model.DesignAluminum.ResetOverwrites()
     return com_ret(ret)
 
 
 def verify_aluminum_passed(model) -> VerifyPassedResult:
-    """验证铝结构设计是否通过"""
+    """Verify aluminum design acceptance"""
     result = model.DesignAluminum.VerifyPassed(0, 0, 0, [])
     total_count = com_data(result, 0, 0)
     failed_count = com_data(result, 1, 0)
@@ -223,14 +223,14 @@ def verify_aluminum_passed(model) -> VerifyPassedResult:
 
 
 def verify_aluminum_sections(model) -> List[str]:
-    """验证分析截面与设计截面是否一致"""
+    """Verify analysis vs. design section assignments"""
     result = model.DesignAluminum.VerifySections(0, [])
     names = com_data(result, 1)
     return list(names) if names else []
 
 
 # ============================================================================
-# 汇总结果
+# Summary results
 # ============================================================================
 
 def get_aluminum_summary_results(
@@ -238,17 +238,17 @@ def get_aluminum_summary_results(
     name: str,
     item_type: ItemType = ItemType.OBJECT
 ) -> List[AluminumSummaryResult]:
-    """获取铝结构设计汇总结果
+    """Get aluminum design summary results
 
-    注意：RatioType 仅有 1(PMM), 3(Major shear), 4(Minor shear)。
+    Note: only `RatioType` values 1 (PMM), 3 (major shear), and 4 (minor shear) apply.
 
     Args:
-        model: SapModel 对象
-        name: 对象名称、组名称或忽略（取决于 item_type）
-        item_type: 对象选择类型
+        model: SAP2000 SapModel object
+        name: Object name, group name, or ignored depending on `item_type`
+        item_type: Object selection mode
 
     Returns:
-        设计结果列表
+        List of design results
     """
     result = model.DesignAluminum.GetSummaryResults(
         name, 0, [], [], [], [], [], [], [], int(item_type)

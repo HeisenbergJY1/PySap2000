@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-loading - 荷载模式、工况、组合和质量源
+loading - Load patterns, cases, combinations, and mass sources.
 
-SAP2000 术语:
-    LoadPattern - 荷载模式 (如 DEAD, LIVE)
-    LoadCase - 荷载工况/分析工况 (如 线性静力、模态、反应谱)
-    LoadCombination - 荷载组合
-    MassSource - 质量源 (动力分析质量来源)
+SAP2000 terms:
+    LoadPattern - load pattern (for example `DEAD`, `LIVE`)
+    LoadCase - load case / analysis case (for example linear static, modal, response spectrum)
+    LoadCombination - load combination
+    MassSource - mass source used in dynamic analysis
 """
 
 from .load_pattern import LoadPattern, LoadPatternType
@@ -17,7 +17,7 @@ from .load_case import (
     ModalSubType,
     TimeHistorySubType,
     DesignTypeOption,
-    # 创建函数
+    # Creation helpers
     create_static_linear_case,
     create_static_nonlinear_case,
     create_modal_eigen_case,
@@ -35,15 +35,15 @@ from .load_case import (
     create_static_linear_multistep_case,
     create_static_nonlinear_multistep_case,
     create_staged_construction_case,
-    # 荷载设置函数
+    # Load-setting helpers
     get_static_linear_loads,
     set_static_linear_loads,
 )
 from .load_combination import (
-    # 枚举
+    # Enums
     ComboCaseType,
     ComboType,
-    # 函数
+    # Functions
     add_combo,
     add_design_default_combos,
     change_combo_name,
@@ -61,13 +61,13 @@ from .load_combination import (
 )
 from .mass_source import MassSource, MassSourceLoad
 
-# 函数定义 (时程函数、反应谱函数)
+# Function definitions (time-history and response-spectrum functions)
 from .functions import (
-    # 枚举
+    # Enums
     FuncType,
     Chinese2010SiteClass,
     Chinese2010DesignGroup,
-    # 通用管理
+    # Common management
     change_func_name,
     convert_func_to_user,
     get_func_count,
@@ -75,16 +75,16 @@ from .functions import (
     get_func_name_list,
     get_func_type,
     get_func_values,
-    # 时程数据类
+    # Time-history data classes
     CosineParams,
     RampParams,
     SawtoothParams,
     SineParams,
     TriangularParams,
     FromFileParams,
-    # 反应谱数据类
+    # Response-spectrum data classes
     Chinese2010Params,
-    # 时程函数
+    # Time-history functions
     get_func_th_cosine,
     set_func_th_cosine,
     get_func_th_from_file,
@@ -101,7 +101,7 @@ from .functions import (
     set_func_th_user,
     get_func_th_user_periodic,
     set_func_th_user_periodic,
-    # 反应谱函数
+    # Response-spectrum functions
     get_func_rs_chinese_2010,
     set_func_rs_chinese_2010,
     get_func_rs_user,
@@ -111,17 +111,17 @@ from .functions import (
 )
 
 __all__ = [
-    # 荷载模式
+    # Load patterns
     "LoadPattern",
     "LoadPatternType",
-    # 荷载工况
+    # Load cases
     "LoadCase",
     "LoadCaseType",
     "LoadCaseLoad",
     "ModalSubType",
     "TimeHistorySubType",
     "DesignTypeOption",
-    # 工况创建函数
+    # Load case creation helpers
     "create_static_linear_case",
     "create_static_nonlinear_case",
     "create_modal_eigen_case",
@@ -139,10 +139,10 @@ __all__ = [
     "create_static_linear_multistep_case",
     "create_static_nonlinear_multistep_case",
     "create_staged_construction_case",
-    # 荷载设置函数
+    # Load-setting helpers
     "get_static_linear_loads",
     "set_static_linear_loads",
-    # 荷载组合
+    # Load combinations
     "ComboCaseType",
     "ComboType",
     "add_combo",
@@ -159,14 +159,14 @@ __all__ = [
     "set_combo_note",
     "get_combo_type",
     "set_combo_type",
-    # 质量源
+    # Mass sources
     "MassSource",
     "MassSourceLoad",
-    # 函数定义 - 枚举
+    # Function definitions - enums
     "FuncType",
     "Chinese2010SiteClass",
     "Chinese2010DesignGroup",
-    # 函数定义 - 通用管理
+    # Function definitions - common management
     "change_func_name",
     "convert_func_to_user",
     "get_func_count",
@@ -174,16 +174,16 @@ __all__ = [
     "get_func_name_list",
     "get_func_type",
     "get_func_values",
-    # 函数定义 - 时程数据类
+    # Function definitions - time-history data classes
     "CosineParams",
     "RampParams",
     "SawtoothParams",
     "SineParams",
     "TriangularParams",
     "FromFileParams",
-    # 函数定义 - 反应谱数据类
+    # Function definitions - response-spectrum data classes
     "Chinese2010Params",
-    # 函数定义 - 时程函数
+    # Function definitions - time-history functions
     "get_func_th_cosine",
     "set_func_th_cosine",
     "get_func_th_from_file",
@@ -200,7 +200,7 @@ __all__ = [
     "set_func_th_user",
     "get_func_th_user_periodic",
     "set_func_th_user_periodic",
-    # 函数定义 - 反应谱函数
+    # Function definitions - response-spectrum functions
     "get_func_rs_chinese_2010",
     "set_func_rs_chinese_2010",
     "get_func_rs_user",
@@ -209,15 +209,15 @@ __all__ = [
     "set_func_rs_from_file",
 ]
 
-# AI Agent 友好的 API 分类
+# API categories for discoverability
 LOADING_API_CATEGORIES = {
     "load_pattern": {
-        "description": "荷载模式 (DEAD, LIVE 等)",
+        "description": "Load patterns such as DEAD and LIVE",
         "classes": ["LoadPattern"],
         "enums": ["LoadPatternType"],
     },
     "load_case": {
-        "description": "荷载工况/分析工况",
+        "description": "Load cases and analysis cases",
         "classes": ["LoadCase", "LoadCaseLoad"],
         "enums": ["LoadCaseType", "ModalSubType", "TimeHistorySubType", "DesignTypeOption"],
         "functions": {
@@ -247,15 +247,15 @@ LOADING_API_CATEGORIES = {
         },
     },
     "load_combination": {
-        "description": "荷载组合",
+        "description": "Load combinations",
         "classes": ["LoadCombination"],
     },
     "mass_source": {
-        "description": "质量源 (动力分析质量来源)",
+        "description": "Mass sources used in dynamic analysis",
         "classes": ["MassSource", "MassSourceLoad"],
     },
     "functions_common": {
-        "description": "函数通用管理 (创建、删除、查询)",
+        "description": "Common function management such as rename, delete, and query",
         "enums": ["FuncType"],
         "functions": [
             "change_func_name",
@@ -268,7 +268,7 @@ LOADING_API_CATEGORIES = {
         ],
     },
     "functions_time_history": {
-        "description": "时程函数 (正弦、余弦、斜坡、锯齿波、三角波、用户定义、从文件)",
+        "description": "Time-history functions including sine, cosine, ramp, sawtooth, triangular, user-defined, and file-based",
         "classes": ["CosineParams", "RampParams", "SawtoothParams", "SineParams", "TriangularParams", "FromFileParams"],
         "functions": [
             "get_func_th_cosine", "set_func_th_cosine",
@@ -282,7 +282,7 @@ LOADING_API_CATEGORIES = {
         ],
     },
     "functions_response_spectrum": {
-        "description": "反应谱函数 (中国规范 GB 50011-2010、用户定义、从文件)",
+        "description": "Response-spectrum functions including GB 50011-2010, user-defined, and file-based",
         "enums": ["Chinese2010SiteClass", "Chinese2010DesignGroup"],
         "classes": ["Chinese2010Params"],
         "functions": [

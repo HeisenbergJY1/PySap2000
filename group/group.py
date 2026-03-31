@@ -1,50 +1,50 @@
 # -*- coding: utf-8 -*-
 """
-group.py - 组定义数据对象
+group.py - Group definition data objects
 
-对应 SAP2000 的 GroupDef API
+Wraps the SAP2000 `GroupDef` API.
 
-这是组的定义和管理模块，用于:
-- 创建/删除/重命名组
-- 获取组属性
-- 获取组内所有对象
-- 清空组内对象
+This module manages group definitions and supports:
+- Creating, deleting, and renaming groups
+- Reading group properties
+- Getting all objects assigned to a group
+- Clearing all assignments from a group
 
-注意: 将对象添加到组请使用 types_for_xxx/xx_group.py
+Note: To assign objects into groups, use each module's `group.py` (for example `frame/group.py`).
 
 SAP2000 API:
-- SetGroup(Name, color, SpecifiedForSelection, ...) - 创建/修改组
-- GetGroup(Name, color, SpecifiedForSelection, ...) - 获取组属性
-- GetNameList(NumberNames, MyName[]) - 获取所有组名称
-- GetAssignments(Name, NumberItems, ObjectType[], ObjectName[]) - 获取组内对象
-- Count() - 获取组数量
-- Delete(Name) - 删除组 (不能删除 "ALL")
-- ChangeName(Name, NewName) - 重命名组 (不能重命名 "ALL")
-- Clear(Name) - 清空组内对象
+- `SetGroup(Name, color, SpecifiedForSelection, ...)` - Create or update a group
+- GetGroup(Name, color, SpecifiedForSelection, ...) - Reading group properties
+- `GetNameList(NumberNames, MyName[])` - Get all group names
+- `GetAssignments(Name, NumberItems, ObjectType[], ObjectName[])` - Get group assignments
+- `Count()` - Get the number of groups
+- `Delete(Name)` - Delete a group (cannot delete `"ALL"`)
+- `ChangeName(Name, NewName)` - Rename a group (cannot rename `"ALL"`)
+- Clear(Name) - Clearing all assignments from a group
 
 Usage:
     from PySap2000.group import Group, GroupObjectType
     
-    # 创建组
+    # Create a group
     group = Group(name="Beams", for_steel_design=True)
     group._create(model)
     
-    # 获取组
+    # Get a group
     group = Group.get_by_name(model, "Beams")
-    print(f"颜色: {group.color}")
+    print(f"Color: {group.color}")
     
-    # 获取组内所有对象
+    # Get all objects in the group
     assignments = group.get_assignments(model)
     for obj_type, obj_name in assignments:
         print(f"{GroupObjectType(obj_type).name}: {obj_name}")
     
-    # 清空组
+    # Clear the group
     group.clear(model)
     
-    # 重命名组
+    # Rename the group
     group.change_name(model, "NewName")
     
-    # 删除组
+    # Delete the group
     group._delete(model)
 """
 
@@ -58,11 +58,11 @@ from PySap2000.com_helper import com_data
 @dataclass
 class GroupAssignment:
     """
-    组内对象分配
+    Group assignment entry
     
     Attributes:
-        object_type: 对象类型 (GroupObjectType)
-        object_name: 对象名称
+        object_type: Object type (`GroupObjectType`)
+        object_name: Object name
     """
     object_type: GroupObjectType
     object_name: str
@@ -71,33 +71,33 @@ class GroupAssignment:
 @dataclass
 class Group:
     """
-    组定义数据对象
+    Group definition data object
     
-    对应 SAP2000 的 GroupDef
+    Wraps SAP2000 `GroupDef`.
     
     Attributes:
-        name: 组名称
-        color: 显示颜色 (-1 表示自动选择)
-        for_selection: 用于选择
-        for_section_cut: 用于截面切割定义
-        for_steel_design: 用于钢结构设计组
-        for_concrete_design: 用于混凝土设计组
-        for_aluminum_design: 用于铝结构设计组
-        for_cold_formed_design: 用于冷弯型钢设计组
-        for_static_nl_stage: 用于非线性静力分析阶段
-        for_bridge_output: 用于桥梁响应输出
-        for_auto_seismic_output: 用于自动地震荷载输出
-        for_auto_wind_output: 用于自动风荷载输出
-        for_mass_and_weight: 用于质量和重量报告
+        name: Group name
+        color: Display color (`-1` means auto-select)
+        for_selection: Used for selection
+        for_section_cut: Used for section cut definitions
+        for_steel_design: Used for steel design groups
+        for_concrete_design: Used for concrete design groups
+        for_aluminum_design: Used for aluminum design groups
+        for_cold_formed_design: Used for cold-formed design groups
+        for_static_nl_stage: Used for static nonlinear stages
+        for_bridge_output: Used for bridge response output
+        for_auto_seismic_output: Used for auto seismic output
+        for_auto_wind_output: Used for auto wind output
+        for_mass_and_weight: Used for mass and weight reporting
     """
     
-    # 必填属性
+    # Required fields
     name: str = ""
     
-    # 显示颜色
+    # Display color
     color: int = -1
     
-    # 用途标志 (默认值与 SAP2000 API 一致)
+    # Usage flags (defaults match the SAP2000 API)
     for_selection: bool = True
     for_section_cut: bool = True
     for_steel_design: bool = True
@@ -110,19 +110,19 @@ class Group:
     for_auto_wind_output: bool = False
     for_mass_and_weight: bool = True
     
-    # 类属性
+    # Class metadata
     _object_type: ClassVar[str] = "GroupDef"
     
-    # ==================== 核心 CRUD 方法 ====================
+    # ==================== Core CRUD methods ====================
     
     def _create(self, model) -> int:
         """
-        在 SAP2000 中创建或修改组
+        Create or update the group in SAP2000
         
-        如果组已存在则修改，否则创建新组
+        Updates the group if it exists; otherwise creates a new one.
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         return model.GroupDef.SetGroup(
             self.name,
@@ -142,7 +142,7 @@ class Group:
     
     def _get(self, model) -> 'Group':
         """
-        从 SAP2000 获取组数据
+        Load group data from SAP2000
         
         Returns:
             self
@@ -177,40 +177,40 @@ class Group:
             self.for_auto_seismic_output = com_data(result, 9, False)
             self.for_auto_wind_output = com_data(result, 10, False)
             self.for_mass_and_weight = com_data(result, 11, True)
-            # result[12] 是返回码
+            # `result[12]` is the return code.
         
         return self
     
     def _delete(self, model) -> int:
         """
-        从 SAP2000 删除组
+        Delete the group from SAP2000
         
-        注意: 不能删除 "ALL" 组
+        Note: the `"ALL"` group cannot be deleted.
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         return model.GroupDef.Delete(self.name)
     
-    # ==================== 静态方法 ====================
+    # ==================== Static methods ====================
     
     @staticmethod
     def get_count(model) -> int:
         """
-        获取组总数
+        Get the total number of groups
         
         Returns:
-            组数量
+            Number of groups
         """
         return model.GroupDef.Count()
     
     @staticmethod
     def get_name_list(model) -> List[str]:
         """
-        获取所有组名称列表
+        Get the list of all group names
         
         Returns:
-            组名称列表
+            List of group names
         """
         result = model.GroupDef.GetNameList(0, [])
         num_names = com_data(result, 0, 0)
@@ -218,23 +218,23 @@ class Group:
             return list(com_data(result, 1))
         return []
     
-    # ==================== 类方法 ====================
+    # ==================== Class methods ====================
     
     @classmethod
     def get_by_name(cls, model, name: str) -> 'Group':
         """
-        获取指定名称的组
+        Get a group by name
         
         Args:
-            model: SapModel 对象
-            name: 组名称
+            model: SAP2000 SapModel object
+            name: Group name
             
         Returns:
-            Group 对象
+            `Group` instance
             
         Example:
             group = Group.get_by_name(model, "Beams")
-            print(f"用于钢结构设计: {group.for_steel_design}")
+            print(f"Used for steel design: {group.for_steel_design}")
         """
         group = cls(name=name)
         group._get(model)
@@ -243,14 +243,14 @@ class Group:
     @classmethod
     def get_all(cls, model, names: List[str] = None) -> List['Group']:
         """
-        获取所有组
+        Get all groups
         
         Args:
-            model: SapModel 对象
-            names: 组名称列表，None 表示获取全部
+            model: SAP2000 SapModel object
+            names: List of group names, or `None` for all groups
             
         Returns:
-            Group 对象列表
+            List of `Group` instances
             
         Example:
             groups = Group.get_all(model)
@@ -261,20 +261,20 @@ class Group:
             names = cls.get_name_list(model)
         return [cls.get_by_name(model, name) for name in names]
     
-    # ==================== 实例方法 ====================
+    # ==================== Instance methods ====================
     
     def change_name(self, model, new_name: str) -> int:
         """
-        重命名组
+        Rename the group
         
-        注意: 不能重命名 "ALL" 组
+        Note: the `"ALL"` group cannot be renamed.
         
         Args:
-            model: SapModel 对象
-            new_name: 新名称
+            model: SAP2000 SapModel object
+            new_name: New group name
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Example:
             group.change_name(model, "NewGroupName")
@@ -286,15 +286,15 @@ class Group:
     
     def clear(self, model) -> int:
         """
-        清空组内所有对象
+        Clear all objects from the group
         
-        移除组内所有对象分配，但保留组定义
+        Removes all assignments while keeping the group definition.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Example:
             group.clear(model)
@@ -303,13 +303,13 @@ class Group:
     
     def get_assignments(self, model) -> List[GroupAssignment]:
         """
-        获取组内所有对象
+        Get all objects assigned to the group
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            GroupAssignment 列表
+            List of `GroupAssignment`
             
         Example:
             assignments = group.get_assignments(model)
@@ -335,13 +335,13 @@ class Group:
     
     def get_assignments_raw(self, model) -> List[Tuple[int, str]]:
         """
-        获取组内所有对象 (原始格式)
+        Get all objects assigned to the group in raw form
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            (object_type, object_name) 元组列表
+            List of `(object_type, object_name)` tuples
             
         Example:
             assignments = group.get_assignments_raw(model)
@@ -361,13 +361,13 @@ class Group:
     
     def get_member_count(self, model) -> int:
         """
-        获取组内对象数量
+        Get the number of objects in the group
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            对象数量
+            Number of objects
         """
         result = model.GroupDef.GetAssignments(self.name, 0, [], [])
         return com_data(result, 0, 0)
@@ -378,48 +378,48 @@ class Group:
         object_type: GroupObjectType
     ) -> List[str]:
         """
-        获取组内指定类型的对象
+        Get group members of a specific type
         
         Args:
-            model: SapModel 对象
-            object_type: 对象类型
+            model: SAP2000 SapModel object
+            object_type: Object type
             
         Returns:
-            对象名称列表
+            List of object names
             
         Example:
-            # 获取组内所有杆件
+            # Get all frames in the group
             frames = group.get_members_by_type(model, GroupObjectType.FRAME)
         """
         assignments = self.get_assignments_raw(model)
         return [name for obj_type, name in assignments if obj_type == int(object_type)]
     
-    # ==================== 便捷方法 ====================
+    # ==================== Convenience methods ====================
     
     def get_points(self, model) -> List[str]:
-        """获取组内所有节点"""
+        """Get all points in the group"""
         return self.get_members_by_type(model, GroupObjectType.POINT)
     
     def get_frames(self, model) -> List[str]:
-        """获取组内所有杆件"""
+        """Get all frames in the group"""
         return self.get_members_by_type(model, GroupObjectType.FRAME)
     
     def get_cables(self, model) -> List[str]:
-        """获取组内所有索"""
+        """Get all cables in the group"""
         return self.get_members_by_type(model, GroupObjectType.CABLE)
     
     def get_tendons(self, model) -> List[str]:
-        """获取组内所有预应力筋"""
+        """Get all tendons in the group"""
         return self.get_members_by_type(model, GroupObjectType.TENDON)
     
     def get_areas(self, model) -> List[str]:
-        """获取组内所有面"""
+        """Get all areas in the group"""
         return self.get_members_by_type(model, GroupObjectType.AREA)
     
     def get_solids(self, model) -> List[str]:
-        """获取组内所有实体"""
+        """Get all solids in the group"""
         return self.get_members_by_type(model, GroupObjectType.SOLID)
     
     def get_links(self, model) -> List[str]:
-        """获取组内所有连接单元"""
+        """Get all links in the group"""
         return self.get_members_by_type(model, GroupObjectType.LINK)

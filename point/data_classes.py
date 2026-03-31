@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-data_classes.py - Point 属性相关数据类
+data_classes.py - Data classes for point-related assignments.
 """
 
 from dataclasses import dataclass
@@ -10,7 +10,7 @@ from .enums import PanelZonePropType, PanelZoneConnectivity, PanelZoneLocalAxisF
 
 @dataclass
 class PointConstraintAssignment:
-    """节点约束分配数据"""
+    """Point constraint assignment data."""
     point_name: str
     constraint_name: str
 
@@ -18,13 +18,13 @@ class PointConstraintAssignment:
 @dataclass
 class PointSpringData:
     """
-    节点弹簧数据
+    Point spring data.
     
     Attributes:
-        point_name: 节点名称
-        u1, u2, u3: 平动刚度 [F/L]
-        r1, r2, r3: 转动刚度 [FL/rad]
-        is_local_csys: 是否使用局部坐标系
+        point_name: Point name
+        u1, u2, u3: Translational stiffness [F/L]
+        r1, r2, r3: Rotational stiffness [FL/rad]
+        is_local_csys: Whether local coordinates are used
     """
     point_name: str
     u1: float = 0.0
@@ -39,13 +39,13 @@ class PointSpringData:
 @dataclass
 class PointMassData:
     """
-    节点质量数据
+    Point mass data.
     
     Attributes:
-        point_name: 节点名称
-        m1, m2, m3: 平动质量
-        mr1, mr2, mr3: 转动惯量
-        is_local_csys: 是否使用局部坐标系
+        point_name: Point name
+        m1, m2, m3: Translational mass
+        mr1, mr2, mr3: Rotational inertia
+        is_local_csys: Whether local coordinates are used
     """
     point_name: str
     m1: float = 0.0
@@ -60,16 +60,16 @@ class PointMassData:
 @dataclass
 class PanelZoneData:
     """
-    节点域数据
+    Panel-zone data.
     
     Attributes:
-        prop_type: 属性类型
-        thickness: 加劲板厚度
-        k1, k2: 弹簧刚度
-        link_prop: 连接单元属性名称
-        connectivity: 连接类型
-        local_axis_from: 局部轴来源
-        local_axis_angle: 局部轴角度
+        prop_type: Property type
+        thickness: Doubler-plate thickness
+        k1, k2: Spring stiffness values
+        link_prop: Link property name
+        connectivity: Connectivity type
+        local_axis_from: Local-axis source
+        local_axis_angle: Local-axis angle
     """
     prop_type: PanelZonePropType = PanelZonePropType.ELASTIC_FROM_COLUMN
     thickness: float = 0.0

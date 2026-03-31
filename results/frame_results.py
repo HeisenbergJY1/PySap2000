@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-frame_results.py - 框架单元结果函数
+frame_results.py - Frame result helpers.
 
-SAP2000 Results API 的框架单元结果函数封装
+Wraps frame-result functions from the SAP2000 Results API.
 
 SAP2000 API:
-- Results.FrameForce - 框架内力
-- Results.FrameJointForce - 框架节点力
+- `Results.FrameForce` - frame internal forces
+- `Results.FrameJointForce` - frame joint forces
 """
 
 from typing import List
@@ -21,27 +21,27 @@ def get_frame_force(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[FrameForceResult]:
     """
-    获取框架单元内力结果
+    Get internal force results for frame elements.
     
     Args:
-        model: SapModel 对象
-        name: 线对象名、线元素名或组名
-        item_type: 元素类型
-            - OBJECT_ELM: 指定对象对应的元素
-            - ELEMENT: 指定元素
-            - GROUP_ELM: 组内所有元素
-            - SELECTION_ELM: 所有选中元素 (忽略name)
+        model: SAP2000 SapModel object
+        name: Line object name, line element name, or group name
+        item_type: Element scope
+            - `OBJECT_ELM`: elements associated with the specified object
+            - `ELEMENT`: the specified element
+            - `GROUP_ELM`: all elements in the group
+            - `SELECTION_ELM`: all selected elements, ignoring `name`
             
     Returns:
-        FrameForceResult 列表
+        List of `FrameForceResult`.
         
     Example:
-        # 获取单个杆件的内力
+        # Get internal forces for a single frame object
         results = get_frame_force(model, "1", ItemTypeElm.OBJECT_ELM)
         for r in results:
-            print(f"位置: {r.obj_sta}, P={r.p}, V2={r.v2}, M3={r.m3}")
+            print(f"Station: {r.obj_sta}, P={r.p}, V2={r.v2}, M3={r.m3}")
         
-        # 获取所有杆件的内力
+        # Get internal forces for all frame objects
         results = get_frame_force(model, "ALL", ItemTypeElm.GROUP_ELM)
     """
     result = model.Results.FrameForce(
@@ -95,15 +95,15 @@ def get_frame_joint_force(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[FrameJointForceResult]:
     """
-    获取框架单元节点力结果
+    Get joint force results for frame elements.
     
     Args:
-        model: SapModel 对象
-        name: 线对象名、线元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Line object name, line element name, or group name
+        item_type: Element scope
             
     Returns:
-        FrameJointForceResult 列表
+        List of `FrameJointForceResult`.
     """
     result = model.Results.FrameJointForce(
         name, int(item_type),

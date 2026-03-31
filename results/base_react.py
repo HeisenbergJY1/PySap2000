@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-base_react.py - 基底反力结果函数
+base_react.py - Base reaction result helpers.
 
-SAP2000 Results API 的基底反力函数封装
+Wraps base reaction functions from the SAP2000 Results API.
 
 SAP2000 API:
-- Results.BaseReact - 基底反力
+- `Results.BaseReact` - base reactions
 """
 
 from typing import List
@@ -15,15 +15,15 @@ from PySap2000.com_helper import com_ret, com_data
 
 def get_base_react(model) -> List[BaseReactResult]:
     """
-    获取结构基底反力
-    
-    返回所有选中工况/组合的基底总反力。
+    Get base reactions for the structure.
+
+    Returns the total base reactions for all selected cases and combinations.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        BaseReactResult 列表
+        List of `BaseReactResult`.
         
     Example:
         from results import deselect_all_cases_and_combos, set_case_selected_for_output

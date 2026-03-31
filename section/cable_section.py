@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-cable_section.py - 缆索截面属性定义
-对应 SAP2000 的 PropCable
+cable_section.py - Cable section property definitions.
+Wraps SAP2000 `PropCable`.
 
-本模块用于定义截面属性（是什么），而非分配截面到缆索（怎么用）。
-截面分配功能请使用 types_for_cables 模块。
+This module defines cable section properties themselves. Use the `cable`
+module to assign those properties to cable objects.
 
 Usage:
     from section import CableSection
     
-    # 获取缆索截面
+    # Get a cable section
     cable = CableSection.get_by_name(model, "C1")
-    print(f"材料: {cable.material}, 面积: {cable.area}")
+    print(f"Material: {cable.material}, area: {cable.area}")
     
-    # 创建缆索截面
+    # Create a cable section
     cable = CableSection(name="C1", material="A416Gr270", area=0.001)
     cable._create(model)
     
-    # 设置修改系数
+    # Set modifiers
     cable.set_modifiers(model, area_modifier=1.0, mass_modifier=1.5, weight_modifier=1.5)
 """
 
@@ -30,61 +30,61 @@ from PySap2000.com_helper import com_ret, com_data
 @dataclass
 class CableSection:
     """
-    缆索截面属性 - 对应 SAP2000 PropCable
+    Cable section property wrapper for SAP2000 `PropCable`.
     
     Attributes:
-        name: 截面名称
-        material: 材料名称
-        area: 截面面积 [L²]
+        name: Section name
+        material: Material name
+        area: Section area [L^2]
         
-        # 修改系数(默认值为1.0)
-        area_modifier: 截面面积修改系数
-        mass_modifier: 质量修改系数
-        weight_modifier: 重量修改系数
+        # Modifiers (default `1.0`)
+        area_modifier: Area modifier
+        mass_modifier: Mass modifier
+        weight_modifier: Weight modifier
         
-        # 可选属性
-        color: 显示颜色
-        notes: 备注
-        guid: 全局唯一标识符
+        # Optional properties
+        color: Display color
+        notes: Notes
+        guid: Globally unique identifier
     """
     
-    # 标识
+    # Identifier
     name: str = ""
     
-    # 属性
+    # Core properties
     material: str = ""
     area: float = 0.0
     
-    # 修改系数(默认值为1.0)
+    # Modifiers (default `1.0`)
     area_modifier: float = 1.0
     mass_modifier: float = 1.0
     weight_modifier: float = 1.0
     
-    # 可选属性
+    # Optional properties
     color: int = -1
     notes: str = ""
     guid: Optional[str] = None
     
-    # 类属性
+    # Class metadata
     _object_type: ClassVar[str] = "PropCable"
 
-    # ==================== 公开方法 ====================
+    # ==================== Public helpers ====================
     
     @classmethod
     def get_by_name(cls, model, name: str) -> 'CableSection':
         """
-        获取指定名称的缆索截面
+        Get a cable section by name.
         
         Args:
-            model: SapModel 对象
-            name: 截面名称
+            model: SAP2000 SapModel object
+            name: Section name
             
         Returns:
-            填充了数据的 CableSection 对象
+            Populated `CableSection` instance.
             
         Example:
             cable = CableSection.get_by_name(model, "C1")
-            print(f"面积: {cable.area}")
+            print(f"Area: {cable.area}")
         """
         prop = cls(name=name)
         prop._get(model)
@@ -93,13 +93,13 @@ class CableSection:
     @classmethod
     def get_all(cls, model) -> List['CableSection']:
         """
-        获取所有缆索截面
+        Get all cable sections.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            CableSection 对象列表
+            List of `CableSection`.
         """
         names = cls.get_name_list(model)
         props = []
@@ -113,12 +113,12 @@ class CableSection:
     
     @staticmethod
     def get_count(model) -> int:
-        """获取缆索截面总数"""
+        """Get the total number of cable sections."""
         return model.PropCable.Count()
     
     @staticmethod
     def get_name_list(model) -> List[str]:
-        """获取缆索截面名称列表"""
+        """Get the list of cable section names."""
         result = model.PropCable.GetNameList(0, [])
         names = com_data(result, 1)
         return list(names) if names else []
@@ -127,16 +127,16 @@ class CableSection:
                       mass_modifier: float = None, 
                       weight_modifier: float = None) -> int:
         """
-        设置缆索截面修改系数
+        Set cable section modifiers.
         
         Args:
-            model: SapModel 对象
-            area_modifier: 截面面积修改系数(默认1.0)
-            mass_modifier: 质量修改系数(默认1.0)
-            weight_modifier: 重量修改系数(默认1.0)
+            model: SAP2000 SapModel object
+            area_modifier: Area modifier (default `1.0`)
+            mass_modifier: Mass modifier (default `1.0`)
+            weight_modifier: Weight modifier (default `1.0`)
             
         Returns:
-            0 表示成功，非0 表示失败
+            `0` if successful, non-zero otherwise.
         """
         if area_modifier is not None:
             self.area_modifier = area_modifier
@@ -149,7 +149,7 @@ class CableSection:
         return model.PropCable.SetModifiers(self.name, modifiers)
     
     def get_modifiers(self, model) -> 'CableSection':
-        """获取缆索截面修改系数"""
+        """Get cable section modifiers."""
         result = model.PropCable.GetModifiers(self.name, [0.0, 0.0, 0.0])
         modifiers = com_data(result, 0)
         if isinstance(modifiers, (list, tuple)) and len(modifiers) >= 3:
@@ -159,16 +159,16 @@ class CableSection:
         return self
     
     def change_name(self, model, new_name: str) -> int:
-        """修改缆索截面名称"""
+        """Rename the cable section."""
         ret = model.PropCable.ChangeName(self.name, new_name)
         if ret == 0:
             self.name = new_name
         return ret
 
-    # ==================== 内部方法 ====================
+    # ==================== Internal helpers ====================
     
     def _get(self, model) -> 'CableSection':
-        """从 SAP2000 获取缆索截面数据"""
+        """Load cable section data from SAP2000."""
         result = model.PropCable.GetProp(self.name)
         
         if com_data(result, 0) is not None and com_data(result, 5) is not None:
@@ -180,17 +180,17 @@ class CableSection:
             ret = com_data(result, 5, default=-1)
             
             if ret != 0:
-                from exceptions import SectionError
-                raise SectionError(f"缆索截面 {self.name} 不存在")
+                from PySap2000.exceptions import SectionError
+                raise SectionError(f"Cable section {self.name} does not exist")
         else:
-            from exceptions import SectionError
-            raise SectionError(f"获取缆索截面 {self.name} 失败")
+            from PySap2000.exceptions import SectionError
+            raise SectionError(f"Failed to get cable section {self.name}")
         
         self.get_modifiers(model)
         return self
     
     def _create(self, model) -> int:
-        """在 SAP2000 中创建缆索截面"""
+        """Create the cable section in SAP2000."""
         from PySap2000.logger import get_logger
         _log = get_logger("cable_section")
         if self.name:
@@ -214,25 +214,25 @@ class CableSection:
         )
     
     def _delete(self, model) -> int:
-        """删除缆索截面"""
+        """Delete the cable section."""
         return model.PropCable.Delete(self.name)
     
     def _update(self, model) -> int:
-        """更新缆索截面"""
+        """Update the cable section."""
         return self._create(model)
 
     @property
     def standard_name(self) -> str:
         """
-        获取标准化截面名称
+        Get a normalized section name.
         
-        索截面使用 Φ + 等效直径:
-        - Φ32 表示等效直径 32mm 的索
+        Cable sections use an equivalent diameter naming style:
+        - `CAB32` means an equivalent diameter of about 32 mm
         
-        注意: 调用前需确保单位为 N-mm-C，这样 area 单位是 mm²
+        Note: Call this when units are `N-mm-C` so `area` is in mm^2.
         
         Returns:
-            标准化的截面名称，格式为 Φ + 直径(mm)
+            Normalized section name.
             
         Example:
             cable = CableSection.get_by_name(model, "Cable1")
@@ -241,10 +241,10 @@ class CableSection:
         import math
         
         if self.area > 0:
-            # 根据面积计算等效直径 (假设圆形截面)
+            # Compute equivalent diameter from area (assuming a circular section).
             # area = π * (d/2)² => d = 2 * sqrt(area / π)
             diameter = 2 * math.sqrt(self.area / math.pi)
             return f"CAB{diameter:.0f}"
         
-        # 面积为 0，返回原名称
+        # If area is zero, return the original name.
         return self.name

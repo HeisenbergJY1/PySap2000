@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-enums.py - Link 对象相关枚举类型
-对应 SAP2000 的 LinkObj 相关枚举
+enums.py - Link-related enums.
+
+Contains enums used by the SAP2000 `LinkObj` API.
 """
 
 from enum import IntEnum
@@ -9,9 +10,9 @@ from enum import IntEnum
 
 class LinkType(IntEnum):
     """
-    连接单元类型
-    
-    对应 SAP2000 PropLink 的类型
+    Link property type.
+
+    Matches the types used by SAP2000 `PropLink`.
     """
     LINEAR = 1
     DAMPER = 2
@@ -26,23 +27,24 @@ class LinkType(IntEnum):
 
 
 class LinkDirectionalType(IntEnum):
-    """连接单元方向类型"""
-    TWO_JOINT = 1       # 两节点连接
-    ONE_JOINT = 2       # 单节点连接（接地）
+    """Link directional type."""
+    TWO_JOINT = 1       # Two-joint link
+    ONE_JOINT = 2       # One-joint grounded link
 
 
 class LinkItemType(IntEnum):
     """
-    eItemType 枚举
-    用于 SetLocalAxes, SetPropertyFD 等方法
+    `eItemType` enum.
+
+    Used by methods such as `SetLocalAxes` and `SetPropertyFD`.
     """
-    OBJECT = 0           # 单个对象
-    GROUP = 1            # 组内所有对象
-    SELECTED_OBJECTS = 2 # 所有选中的对象
+    OBJECT = 0           # Single object
+    GROUP = 1            # All objects in a group
+    SELECTED_OBJECTS = 2 # All selected objects
 
 
 class AxisVectorOption(IntEnum):
-    """轴/平面参考向量选项"""
-    COORDINATE_DIRECTION = 1  # 坐标方向
-    TWO_JOINTS = 2            # 两节点
-    USER_VECTOR = 3           # 用户向量
+    """Axis or plane reference-vector option."""
+    COORDINATE_DIRECTION = 1  # Coordinate direction
+    TWO_JOINTS = 2            # Two joints
+    USER_VECTOR = 3           # User-defined vector

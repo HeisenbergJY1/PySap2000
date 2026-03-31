@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-area_section.py - 面单元截面属性定义
-对应 SAP2000 的 PropArea
+area_section.py - Area section property definitions.
+Wraps SAP2000 `PropArea`.
 
-本模块用于定义截面属性（是什么），而非分配截面到面单元（怎么用）。
-截面分配功能请使用 types_for_areas 模块。
+This module defines area section properties themselves rather than assigning
+them to area objects. Use the `area` module for section assignments.
 
-包含三种类型：
-- Shell (壳): 薄壳、厚壳、薄板、厚板、膜、分层壳
-- Plane (平面): 平面应力、平面应变
-- Asolid (轴对称实体)
+Includes three property families:
+- `Shell`: thin shell, thick shell, thin plate, thick plate, membrane, layered shell
+- `Plane`: plane stress and plane strain
+- `Asolid`: axisymmetric solid
 
 Usage:
     from section import AreaSection, AreaSectionType, ShellType
     
-    # 获取面属性
+    # Get an area property
     prop = AreaSection.get_by_name(model, "SLAB1")
-    print(f"类型: {prop.prop_type}, 厚度: {prop.membrane_thickness}")
+    print(f"Type: {prop.prop_type}, thickness: {prop.membrane_thickness}")
     
-    # 创建壳截面
+    # Create a shell section
     shell = AreaSection(
         name="SLAB1",
         shell_type=ShellType.SHELL_THIN,
@@ -36,7 +36,7 @@ from PySap2000.com_helper import com_ret, com_data
 
 
 class AreaSectionType(IntEnum):
-    """面属性类型 - GetNameList 的 PropType 参数"""
+    """Area property type used by `GetNameList(..., PropType)`."""
     ALL = 0
     SHELL = 1
     PLANE = 2
@@ -44,7 +44,7 @@ class AreaSectionType(IntEnum):
 
 
 class ShellType(IntEnum):
-    """壳类型 - GetShell_1 的 ShellType 参数"""
+    """Shell type used by `GetShell_1(..., ShellType)`."""
     SHELL_THIN = 1
     SHELL_THICK = 2
     PLATE_THIN = 3
@@ -54,14 +54,14 @@ class ShellType(IntEnum):
 
 
 class PlaneType(IntEnum):
-    """平面类型 - GetPlane 的 MyType 参数"""
+    """Plane type used by `GetPlane(..., MyType)`."""
     PLANE_STRESS = 1
     PLANE_STRAIN = 2
 
 
 @dataclass
 class AreaModifiers:
-    """面属性修正系数(10个)"""
+    """Area property modifiers (10 values)."""
     f11: float = 1.0
     f22: float = 1.0
     f12: float = 1.0
@@ -74,13 +74,13 @@ class AreaModifiers:
     weight: float = 1.0
     
     def to_list(self) -> List[float]:
-        """转换为列表"""
+        """Return modifiers as a list."""
         return [self.f11, self.f22, self.f12, self.m11, self.m22, 
                 self.m12, self.v13, self.v23, self.mass, self.weight]
     
     @classmethod
     def from_list(cls, values: List[float]) -> 'AreaModifiers':
-        """从列表创建"""
+        """Build modifiers from a list."""
         if len(values) >= 10:
             return cls(
                 f11=values[0], f22=values[1], f12=values[2],
@@ -93,7 +93,7 @@ class AreaModifiers:
 
 @dataclass
 class AreaSection:
-    """面单元截面属性 - 对应 SAP2000 PropArea"""
+    """Area section property wrapper for SAP2000 `PropArea`."""
     
     name: str = ""
     prop_type: Optional[AreaSectionType] = None
@@ -113,14 +113,14 @@ class AreaSection:
 
     @classmethod
     def get_by_name(cls, model, name: str) -> 'AreaSection':
-        """获取指定名称的面属性"""
+        """Get an area property by name."""
         prop = cls(name=name)
         prop._get(model)
         return prop
     
     @classmethod
     def get_all(cls, model, prop_type: AreaSectionType = AreaSectionType.ALL) -> List['AreaSection']:
-        """获取所有面属性"""
+        """Get all area properties."""
         names = cls.get_name_list(model, prop_type)
         props = []
         for name in names:
@@ -133,25 +133,25 @@ class AreaSection:
     
     @staticmethod
     def get_count(model) -> int:
-        """获取面属性总数"""
+        """Get the total number of area properties."""
         return model.PropArea.Count()
     
     @staticmethod
     def get_name_list(model, prop_type: AreaSectionType = AreaSectionType.ALL) -> List[str]:
-        """获取面属性名称列表"""
+        """Get the list of area property names."""
         result = model.PropArea.GetNameList(0, [], prop_type.value)
         names = com_data(result, 1)
         return list(names) if names else []
     
     def change_name(self, model, new_name: str) -> int:
-        """修改属性名称"""
+        """Rename the property."""
         ret = model.PropArea.ChangeName(self.name, new_name)
         if ret == 0:
             self.name = new_name
         return ret
     
     def get_modifiers(self, model) -> AreaModifiers:
-        """获取修正系数"""
+        """Get property modifiers."""
         result = model.PropArea.GetModifiers(self.name, [])
         values = com_data(result, 0)
         if values and len(values) >= 10:
@@ -159,20 +159,20 @@ class AreaSection:
         return AreaModifiers()
     
     def set_modifiers(self, model, modifiers: AreaModifiers) -> int:
-        """设置修正系数"""
+        """Set property modifiers."""
         return model.PropArea.SetModifiers(self.name, modifiers.to_list())
 
     def _get(self, model) -> 'AreaSection':
-        """从 SAP2000 获取面属性数据"""
+        """Load area property data from SAP2000."""
         result = model.PropArea.GetTypeOAPI(self.name)
         type_val = com_data(result, 0)
         ret = com_ret(result)
         if type_val is None:
-            from exceptions import SectionError
-            raise SectionError(f"获取面属性 {self.name} 类型失败")
+            from PySap2000.exceptions import SectionError
+            raise SectionError(f"Failed to get type for area property {self.name}")
         if ret != 0:
-            from exceptions import SectionError
-            raise SectionError(f"面属性 {self.name} 不存在")
+            from PySap2000.exceptions import SectionError
+            raise SectionError(f"Area property {self.name} does not exist")
         try:
             self.prop_type = AreaSectionType(type_val)
         except ValueError:
@@ -187,7 +187,7 @@ class AreaSection:
         return self
     
     def _get_shell(self, model):
-        """获取壳属性数据"""
+        """Load shell property data."""
         result = model.PropArea.GetShell_1(self.name)
         if com_data(result, 0) is not None:
             try:
@@ -204,7 +204,7 @@ class AreaSection:
             self.guid = com_data(result, 8) or None
     
     def _get_plane(self, model):
-        """获取平面属性数据"""
+        """Load plane property data."""
         result = model.PropArea.GetPlane(self.name)
         if com_data(result, 0) is not None:
             try:
@@ -220,7 +220,7 @@ class AreaSection:
             self.guid = com_data(result, 7) or None
     
     def _get_asolid(self, model):
-        """获取轴对称实体属性数据"""
+        """Load axisymmetric solid property data."""
         result = model.PropArea.GetAsolid(self.name)
         if com_data(result, 0) is not None:
             self.material = com_data(result, 0, default="") or ""
@@ -232,7 +232,7 @@ class AreaSection:
             self.guid = com_data(result, 6) or None
 
     def _create(self, model) -> int:
-        """在 SAP2000 中创建面属性"""
+        """Create the area property in SAP2000."""
         from PySap2000.logger import get_logger
         _log = get_logger("area_section")
         if self.name:
@@ -254,7 +254,7 @@ class AreaSection:
             return self._create_shell(model)
     
     def _create_shell(self, model) -> int:
-        """创建壳属性"""
+        """Create a shell property."""
         return model.PropArea.SetShell_1(
             self.name,
             self.shell_type.value if self.shell_type else ShellType.SHELL_THIN.value,
@@ -269,7 +269,7 @@ class AreaSection:
         )
     
     def _create_plane(self, model) -> int:
-        """创建平面属性"""
+        """Create a plane property."""
         return model.PropArea.SetPlane(
             self.name,
             self.plane_type.value if self.plane_type else PlaneType.PLANE_STRESS.value,
@@ -283,7 +283,7 @@ class AreaSection:
         )
     
     def _create_asolid(self, model) -> int:
-        """创建轴对称实体属性"""
+        """Create an axisymmetric solid property."""
         return model.PropArea.SetAsolid(
             self.name,
             self.material,
@@ -296,9 +296,9 @@ class AreaSection:
         )
     
     def _delete(self, model) -> int:
-        """删除面属性"""
+        """Delete the area property."""
         return model.PropArea.Delete(self.name)
     
     def _update(self, model) -> int:
-        """更新面属性"""
+        """Update the area property."""
         return self._create(model)

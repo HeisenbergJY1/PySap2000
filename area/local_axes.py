@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-local_axes.py - 面单元局部坐标轴函数
-对应 SAP2000 的 AreaObj 局部坐标轴相关 API
+local_axes.py - Area local-axis helpers.
+
+Wraps SAP2000 `AreaObj` local-axis APIs.
 """
 
 from typing import Optional, List, Tuple
@@ -18,19 +19,19 @@ def set_area_local_axes(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置面单元局部坐标轴角度
+    Set the local-axis angle of an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        angle: 局部坐标轴角度 [deg]
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        angle: Local-axis angle [deg]
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
         
     Example:
-        # 设置面单元 "1" 的局部轴角度为 45 度
+        # Set the local-axis angle of area "1" to 45 degrees
         set_area_local_axes(model, "1", 45.0)
     """
     return model.AreaObj.SetLocalAxes(str(area_name), angle, int(item_type))
@@ -41,19 +42,19 @@ def get_area_local_axes(
     area_name: str
 ) -> Optional[AreaLocalAxesData]:
     """
-    获取面单元局部坐标轴角度
+    Get the local-axis angle of an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        AreaLocalAxesData 对象，失败返回 None
+        `AreaLocalAxesData`, or `None` if the query fails.
         
     Example:
         result = get_area_local_axes(model, "1")
         if result:
-            print(f"角度: {result.angle}°, 高级设置: {result.advanced}")
+            print(f"Angle: {result.angle} deg, advanced: {result.advanced}")
     """
     try:
         result = model.AreaObj.GetLocalAxes(str(area_name), 0.0, False)
@@ -82,28 +83,28 @@ def set_area_local_axes_advanced(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置面单元高级局部坐标轴
+    Set advanced local-axis options for an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        active: 是否启用高级局部坐标轴
-        plane2: 31=3-1平面, 32=3-2平面
-        pl_vect_opt: 平面参考向量选项
-            - COORDINATE_DIRECTION (1): 坐标方向
-            - TWO_JOINTS (2): 两节点
-            - USER_VECTOR (3): 用户向量
-        pl_csys: 坐标系名称
-        pl_dir: 主方向和次方向 (用于 pl_vect_opt=1)
-        pl_pt: 两个节点名称 (用于 pl_vect_opt=2)
-        pl_vect: 用户向量 (用于 pl_vect_opt=3)
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        active: Whether advanced local axes are enabled
+        plane2: `31` for the 3-1 plane, `32` for the 3-2 plane
+        pl_vect_opt: Plane reference-vector option
+            - `COORDINATE_DIRECTION (1)`: coordinate direction
+            - `TWO_JOINTS (2)`: two joints
+            - `USER_VECTOR (3)`: user vector
+        pl_csys: Coordinate system name
+        pl_dir: Primary and secondary directions, used when `pl_vect_opt=1`
+        pl_pt: Two point names, used when `pl_vect_opt=2`
+        pl_vect: User vector, used when `pl_vect_opt=3`
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
         
     Example:
-        # 使用坐标方向定义
+        # Define the plane using a coordinate direction
         set_area_local_axes_advanced(model, "1", True, 31, 
             PlaneRefVectorOption.COORDINATE_DIRECTION, "Global", (2, 3))
     """
@@ -118,19 +119,19 @@ def get_area_local_axes_advanced(
     area_name: str
 ) -> Optional[AreaLocalAxesAdvancedData]:
     """
-    获取面单元高级局部坐标轴设置
+    Get advanced local-axis settings for an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        AreaLocalAxesAdvancedData 对象，失败返回 None
+        `AreaLocalAxesAdvancedData`, or `None` if the query fails.
         
     Example:
         data = get_area_local_axes_advanced(model, "1")
         if data and data.active:
-            print(f"平面: {data.plane2}, 选项: {data.pl_vect_opt}")
+            print(f"Plane: {data.plane2}, option: {data.pl_vect_opt}")
     """
     try:
         result = model.AreaObj.GetLocalAxesAdvanced(
@@ -165,24 +166,25 @@ def get_area_transformation_matrix(
     is_global: bool = True
 ) -> Optional[List[float]]:
     """
-    获取面单元变换矩阵
-    
-    变换矩阵用于将局部坐标系转换为全局坐标系（或当前坐标系）。
-    矩阵包含9个方向余弦值。
+    Get the transformation matrix of an area object.
+
+    The matrix converts local coordinates to global coordinates, or to the
+    current coordinate system. It contains 9 direction cosine values.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        is_global: True=全局坐标系, False=当前坐标系
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        is_global: `True` for the global system, `False` for the current system
         
     Returns:
-        9个方向余弦值的列表 [c0, c1, c2, c3, c4, c5, c6, c7, c8]，失败返回 None
+        List of 9 direction-cosine values
+        `[c0, c1, c2, c3, c4, c5, c6, c7, c8]`, or `None` if the query fails.
         
     Example:
         matrix = get_area_transformation_matrix(model, "1")
         if matrix:
-            # 矩阵方程: [GlobalX, GlobalY, GlobalZ] = [c0-c8] * [Local1, Local2, Local3]
-            print(f"变换矩阵: {matrix}")
+            # Matrix form: [GlobalX, GlobalY, GlobalZ] = [c0-c8] * [Local1, Local2, Local3]
+            print(f"Transformation matrix: {matrix}")
     """
     try:
         result = model.AreaObj.GetTransformationMatrix(str(area_name), [], is_global)

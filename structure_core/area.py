@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-area.py - 面单元数据对象
-对应 SAP2000 的 AreaObj
+area.py - Area element data object.
+
+Maps to SAP2000 `AreaObj`.
 
 API Reference:
-    创建:
+    Create:
     - AddByCoord(NumberPoints, x[], y[], z[], Name, PropName="Default", UserName="", CSys="Global")
     - AddByPoint(NumberPoints, Point[], Name, PropName="Default", UserName="")
     
-    获取:
+    Get:
     - GetPoints(Name, NumberPoints, Point[])
     - GetProperty(Name, PropName)
     - GetThickness(Name, ThicknessType, ThicknessPattern, ThicknessPatternSF, Thickness[])
@@ -28,7 +29,7 @@ API Reference:
     - GetEdgeConstraint(Name, ConstraintExists)
     - GetTransformationMatrix(Name, Value[], IsGlobal)
     
-    设置:
+    Set:
     - SetProperty(Name, PropName, ItemType)
     - SetThickness(Name, ThicknessType, ThicknessPattern, ThicknessPatternSF, Thickness[], ItemType)
     - SetLocalAxes(Name, Ang, ItemType)
@@ -45,7 +46,7 @@ API Reference:
     - SetGUID(Name, GUID)
     - SetEdgeConstraint(Name, ConstraintExists, ItemType)
     
-    荷载:
+    Loads:
     - SetLoadGravity / GetLoadGravity / DeleteLoadGravity
     - SetLoadUniform / GetLoadUniform / DeleteLoadUniform
     - SetLoadSurfacePressure / GetLoadSurfacePressure / DeleteLoadSurfacePressure
@@ -65,14 +66,14 @@ from PySap2000.com_helper import com_ret, com_data
 
 
 class AreaType(IntEnum):
-    """面单元类型"""
+    """Area element type."""
     SHELL = 1
     PLANE = 2
     ASOLID = 3
 
 
 class AreaMeshType(IntEnum):
-    """面单元自动网格划分类型"""
+    """Automatic meshing type for area elements."""
     NO_MESH = 0
     MESH_BY_NUMBER = 1
     MESH_BY_MAX_SIZE = 2
@@ -83,47 +84,47 @@ class AreaMeshType(IntEnum):
 
 
 class AreaThicknessType(IntEnum):
-    """面单元厚度覆盖类型"""
+    """Thickness overwrite type for area elements."""
     NO_OVERWRITE = 0
     BY_JOINT_PATTERN = 1
     BY_POINT = 2
 
 
 class AreaOffsetType(IntEnum):
-    """面单元偏移类型"""
+    """Offset type for area elements."""
     NO_OFFSET = 0
     BY_JOINT_PATTERN = 1
     BY_POINT = 2
 
 
 class AreaSpringType(IntEnum):
-    """面单元弹簧类型"""
+    """Spring type for area elements."""
     SIMPLE_SPRING = 1
     LINK_PROPERTY = 2
 
 
 class AreaSimpleSpringType(IntEnum):
-    """面单元简单弹簧类型"""
+    """Simple spring type for area elements."""
     TENSION_COMPRESSION = 1
     COMPRESSION_ONLY = 2
     TENSION_ONLY = 3
 
 
 class AreaSpringLocalOneType(IntEnum):
-    """面单元弹簧局部1轴方向类型"""
+    """Local-1-axis direction type for area springs."""
     PARALLEL_TO_LOCAL_AXIS = 1
     NORMAL_TO_FACE = 2
     USER_VECTOR = 3
 
 
 class AreaFace(IntEnum):
-    """面单元面"""
+    """Area face."""
     BOTTOM = -1
     TOP = -2
 
 
 class AreaLoadDir(IntEnum):
-    """面单元荷载方向"""
+    """Area load direction."""
     LOCAL_1 = 1
     LOCAL_2 = 2
     LOCAL_3 = 3
@@ -138,13 +139,13 @@ class AreaLoadDir(IntEnum):
 
 
 class AreaTempLoadType(IntEnum):
-    """面单元温度荷载类型"""
+    """Area temperature-load type."""
     TEMPERATURE = 1
     TEMPERATURE_GRADIENT = 3
 
 
 class AreaStrainComponent(IntEnum):
-    """面单元应变分量"""
+    """Area strain component."""
     STRAIN_11 = 1
     STRAIN_22 = 2
     STRAIN_12 = 3
@@ -154,26 +155,26 @@ class AreaStrainComponent(IntEnum):
 
 
 class AreaWindPressureType(IntEnum):
-    """面单元风压类型"""
+    """Area wind-pressure type."""
     FROM_CP = 1
     FROM_CODE = 2
 
 
 class AreaDistType(IntEnum):
-    """面单元荷载分布类型"""
+    """Area load distribution type."""
     ONE_WAY = 1
     TWO_WAY = 2
 
 
 class PlaneRefVectorOption(IntEnum):
-    """平面参考向量选项"""
+    """Plane reference vector option."""
     COORDINATE_DIRECTION = 1
     TWO_JOINTS = 2
     USER_VECTOR = 3
 
 
 class ItemType(IntEnum):
-    """eItemType 枚举"""
+    """`eItemType` enum."""
     OBJECT = 0
     GROUP = 1
     SELECTED_OBJECTS = 2
@@ -181,7 +182,7 @@ class ItemType(IntEnum):
 
 @dataclass
 class AreaLoadGravity:
-    """面单元重力荷载数据"""
+    """Gravity load data for area elements."""
     area_name: str
     load_pattern: str
     x: float = 0.0
@@ -192,7 +193,7 @@ class AreaLoadGravity:
 
 @dataclass
 class AreaLoadUniform:
-    """面单元均布荷载数据"""
+    """Uniform load data for area elements."""
     area_name: str
     load_pattern: str
     value: float = 0.0
@@ -202,7 +203,7 @@ class AreaLoadUniform:
 
 @dataclass
 class AreaLoadSurfacePressure:
-    """面单元表面压力荷载数据"""
+    """Surface-pressure load data for area elements."""
     area_name: str
     load_pattern: str
     face: int = -1
@@ -212,7 +213,7 @@ class AreaLoadSurfacePressure:
 
 @dataclass
 class AreaLoadTemperature:
-    """面单元温度荷载数据"""
+    """Temperature-load data for area elements."""
     area_name: str
     load_pattern: str
     load_type: AreaTempLoadType = AreaTempLoadType.TEMPERATURE
@@ -222,7 +223,7 @@ class AreaLoadTemperature:
 
 @dataclass
 class AreaSpring:
-    """面单元弹簧数据"""
+    """Spring data for area elements."""
     spring_type: AreaSpringType = AreaSpringType.SIMPLE_SPRING
     stiffness: float = 0.0
     simple_spring_type: AreaSimpleSpringType = AreaSimpleSpringType.TENSION_COMPRESSION
@@ -237,7 +238,7 @@ class AreaSpring:
 
 @dataclass
 class AreaAutoMesh:
-    """面单元自动网格划分设置"""
+    """Automatic meshing settings for area elements."""
     mesh_type: AreaMeshType = AreaMeshType.NO_MESH
     n1: int = 2
     n2: int = 2
@@ -259,103 +260,104 @@ class AreaAutoMesh:
 
 @dataclass
 class AreaLocalAxesAdvanced:
-    """面单元高级局部坐标轴设置"""
+    """Advanced local-axis settings for area elements."""
     active: bool = False
-    plane2: int = 31  # 31=3-1平面, 32=3-2平面
+    plane2: int = 31  # 31=3-1 plane, 32=3-2 plane
     pl_vect_opt: PlaneRefVectorOption = PlaneRefVectorOption.COORDINATE_DIRECTION
     pl_csys: str = "Global"
-    pl_dir: Tuple[int, int] = (1, 2)  # 主方向和次方向
-    pl_pt: Tuple[str, str] = ("", "")  # 两个节点名称
-    pl_vect: Tuple[float, float, float] = (0.0, 0.0, 0.0)  # 用户向量
+    pl_dir: Tuple[int, int] = (1, 2)  # Primary and secondary directions
+    pl_pt: Tuple[str, str] = ("", "")  # Two point names
+    pl_vect: Tuple[float, float, float] = (0.0, 0.0, 0.0)  # User vector
 
 
 
 @dataclass
 class Area:
     """
-    面单元数据对象
-    对应 SAP2000 的 AreaObj
+    Area element data object.
+
+    Maps to SAP2000 `AreaObj`.
     """
     
-    # 必填属性
+    # Required attribute
     no: Union[int, str] = None
     
-    # 节点定义 (二选一)
-    points: Optional[List[str]] = None  # 节点名称列表
-    x_coords: Optional[List[float]] = None  # X 坐标列表
-    y_coords: Optional[List[float]] = None  # Y 坐标列表
-    z_coords: Optional[List[float]] = None  # Z 坐标列表
+    # Definition by points or coordinates (choose one)
+    points: Optional[List[str]] = None  # Point name list
+    x_coords: Optional[List[float]] = None  # X-coordinate list
+    y_coords: Optional[List[float]] = None  # Y-coordinate list
+    z_coords: Optional[List[float]] = None  # Z-coordinate list
     
-    # 截面属性
+    # Section property
     section: str = "Default"
     
-    # 厚度覆盖
+    # Thickness overwrite
     thickness_type: AreaThicknessType = AreaThicknessType.NO_OVERWRITE
     thickness_pattern: str = ""
     thickness_pattern_sf: float = 1.0
     thickness: Optional[List[float]] = None
     
-    # 局部坐标轴
+    # Local axes
     local_axis_angle: float = 0.0
     local_axes_advanced: Optional[AreaLocalAxesAdvanced] = None
     
-    # 自动网格划分
+    # Automatic meshing
     auto_mesh: Optional[AreaAutoMesh] = None
     
-    # 修改系数 (10个值)
+    # Modifiers (10 values)
     modifiers: Optional[List[float]] = None
     
-    # 附加质量
+    # Additional mass
     mass_per_area: float = 0.0
     
-    # 材料覆盖
+    # Material overwrite
     material_overwrite: Optional[str] = None
     
-    # 材料温度
+    # Material temperature
     mat_temp: float = 0.0
     mat_temp_pattern: str = ""
     
-    # 偏移
+    # Offsets
     offset_type: AreaOffsetType = AreaOffsetType.NO_OFFSET
     offset_pattern: str = ""
     offset_pattern_sf: float = 1.0
     offsets: Optional[List[float]] = None
     
-    # 弹簧
+    # Springs
     springs: Optional[List[AreaSpring]] = None
     
-    # 边缘约束
+    # Edge constraint
     edge_constraint: bool = False
     
-    # 组
+    # Groups
     groups: Optional[List[str]] = None
     
-    # 选择状态
+    # Selection state
     selected: bool = False
     
-    # 其他
+    # Other metadata
     coordinate_system: str = "Global"
     comment: str = ""
     guid: Optional[str] = None
     
-    # 类属性
+    # Class metadata
     _object_type: ClassVar[str] = "AreaObj"
 
-    # ==================== 创建方法 ====================
+    # ==================== Creation methods ====================
     
     def _create(self, model) -> int:
         """
-        在 SAP2000 中创建面单元
+        Create an area object in SAP2000.
         
         Returns:
-            0 表示成功，非 0 表示失败
+            `0` on success, nonzero on failure
         """
         from PySap2000.logger import get_logger
         _log = get_logger("area")
 
         user_name = str(self.no) if self.no is not None else ""
 
-        # 检查是否已存在
+        # Check whether it already exists
         if user_name:
             try:
                 existing = self.get_name_list(model)
@@ -374,7 +376,7 @@ class Area:
             raise AreaError("Area creation requires points or coordinates")
     
     def _create_by_point(self, model, user_name: str) -> int:
-        """通过节点名称创建面单元"""
+        """Create an area object from point names"""
         num_points = len(self.points)
         result = model.AreaObj.AddByPoint(
             num_points,
@@ -386,7 +388,7 @@ class Area:
         return self._parse_create_result(result)
     
     def _create_by_coord(self, model, user_name: str) -> int:
-        """通过坐标创建面单元"""
+        """Create an area object from coordinates"""
         num_points = len(self.x_coords)
         result = model.AreaObj.AddByCoord(
             num_points,
@@ -401,9 +403,9 @@ class Area:
         return self._parse_create_result(result)
     
     def _parse_create_result(self, result) -> int:
-        """解析创建结果"""
+        """Parse creation result"""
         ret = com_ret(result)
-        # assigned name: 3个以上元素时在倒数第二个位置，否则在第一个位置
+        # assigned name: 3if there are 3+ elements it is at the second-to-last index, otherwise the first index
         if com_data(result, 2) is not None:
             assigned_name = com_data(result, -2)
         else:
@@ -412,10 +414,10 @@ class Area:
             self.no = assigned_name
         return ret
 
-    # ==================== 获取方法 ====================
+    # ==================== Fetch methods ====================
     
     def _get(self, model) -> 'Area':
-        """从 SAP2000 获取面单元数据"""
+        """Fetch area-object data from SAP2000."""
         self._get_points(model)
         self._get_property(model)
         self._get_local_axes(model)
@@ -429,7 +431,7 @@ class Area:
     
     def _get_points(self, model) -> Optional[List[str]]:
         """
-        获取面单元的节点
+        Get area-object point names
         API: GetPoints(Name, NumberPoints, Point[])
         """
         try:
@@ -445,7 +447,7 @@ class Area:
         return None
     
     def _get_property(self, model) -> Optional[str]:
-        """获取面单元截面属性名称"""
+        """Get area section-property name"""
         try:
             result = model.AreaObj.GetProperty(str(self.no), "")
             prop = com_data(result, 0)
@@ -457,7 +459,7 @@ class Area:
         return None
     
     def _get_local_axes(self, model) -> Optional[float]:
-        """获取局部坐标轴角度"""
+        """Get local-axis angle"""
         try:
             result = model.AreaObj.GetLocalAxes(str(self.no), 0.0, False)
             angle = com_data(result, 0)
@@ -473,7 +475,7 @@ class Area:
     
     def _get_local_axes_advanced(self, model) -> Optional[AreaLocalAxesAdvanced]:
         """
-        获取高级局部坐标轴设置
+        Get advanced local-axis settings
         API: GetLocalAxesAdvanced(Name, Active, Plane2, PlVectOpt, PlCSys, PlDir[], PlPt[], PlVect[])
         """
         try:
@@ -506,7 +508,7 @@ class Area:
         return None
     
     def _get_auto_mesh(self, model) -> Optional[AreaAutoMesh]:
-        """获取自动网格划分设置"""
+        """Get automatic meshing settings"""
         try:
             result = model.AreaObj.GetAutoMesh(
                 str(self.no), 0, 0, 0, 0.0, 0.0, False, False, False, 0.0, 0.0,
@@ -538,7 +540,7 @@ class Area:
         return None
     
     def _get_modifiers(self, model) -> Optional[List[float]]:
-        """获取修改系数"""
+        """Get modifiers"""
         try:
             result = model.AreaObj.GetModifiers(str(self.no), [])
             modifiers = com_data(result, 0)
@@ -551,7 +553,7 @@ class Area:
         return None
     
     def _get_mass(self, model) -> Optional[float]:
-        """获取附加质量"""
+        """Get added mass"""
         try:
             result = model.AreaObj.GetMass(str(self.no), 0.0)
             mass = com_data(result, 0)
@@ -563,7 +565,7 @@ class Area:
         return None
     
     def _get_group_assign(self, model) -> Optional[List[str]]:
-        """获取面单元所属组"""
+        """Get groups containing this area object"""
         try:
             result = model.AreaObj.GetGroupAssign(str(self.no), 0, [])
             num_groups = com_data(result, 0, 0)
@@ -576,7 +578,7 @@ class Area:
         return None
     
     def _get_selected(self, model) -> bool:
-        """获取选择状态"""
+        """Get selection state"""
         try:
             result = model.AreaObj.GetSelected(str(self.no), False)
             selected = com_data(result, 0)
@@ -588,7 +590,7 @@ class Area:
         return False
     
     def _get_guid(self, model):
-        """获取面单元 GUID"""
+        """Get area-object GUID"""
         try:
             result = model.AreaObj.GetGUID(str(self.no), "")
             guid = com_data(result, 0)
@@ -598,27 +600,27 @@ class Area:
             pass
 
 
-    # ==================== 公开查询方法 ====================
+    # ==================== Public query methods ====================
     
     @classmethod
     def get_all(cls, model, names: List[str] = None) -> List['Area']:
         """
-        获取所有面单元
+        Get all area objects
         
         Args:
-            model: SapModel 对象
-            names: 可选，指定面单元名称列表。如果为 None，获取所有面单元
+            model: SapModel object
+            names: Optional list of area-object names. If `None`, gets all area objects
             
         Returns:
-            Area 对象列表，每个对象已填充完整数据
+            List of `Area` objects with populated data
             
         Example:
-            # 获取所有面单元
+            # Get all area objects
             areas = Area.get_all(model)
             for a in areas:
                 print(f"{a.no}: section={a.section}, points={a.points}")
             
-            # 获取指定面单元
+            # Get specific area objects
             areas = Area.get_all(model, ["1", "2", "3"])
         """
         if names is None:
@@ -635,18 +637,18 @@ class Area:
     @classmethod
     def get_by_name(cls, model, name: str) -> 'Area':
         """
-        获取指定名称的面单元
+        Get area object by name
         
         Args:
-            model: SapModel 对象
-            name: 面单元名称
+            model: SapModel object
+            name: Area object name
             
         Returns:
-            填充了数据的 Area 对象
+            Populated `Area` object
             
         Example:
             area = Area.get_by_name(model, "1")
-            print(f"截面: {area.section}, 节点: {area.points}")
+            print(f"Section: {area.section}, Points: {area.points}")
         """
         area = cls(no=name)
         area._get(model)
@@ -655,26 +657,26 @@ class Area:
     @staticmethod
     def get_count(model) -> int:
         """
-        获取面单元总数
+        Get total number of area objects
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
             
         Returns:
-            面单元数量
+            Area-object count
         """
         return model.AreaObj.Count()
     
     @staticmethod
     def get_name_list(model) -> List[str]:
         """
-        获取所有面单元名称列表
+        Get all area-object names
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
             
         Returns:
-            面单元名称列表
+            List of area-object names
         """
         result = model.AreaObj.GetNameList(0, [])
         
@@ -686,13 +688,13 @@ class Area:
     @staticmethod
     def get_section_name_list(model) -> List[str]:
         """
-        获取所有面截面属性名称列表
+        Get all area section-property names
         
         Args:
-            model: SapModel 对象
+            model: SapModel object
             
         Returns:
-            截面属性名称列表
+            List of section-property names
         """
         result = model.PropArea.GetNameList(0, [])
         
@@ -701,19 +703,19 @@ class Area:
             return list(names)
         return []
 
-    # ==================== 删除和更新方法 ====================
+    # ==================== Delete and update methods ====================
     
     def _delete(self, model) -> int:
         """
-        从 SAP2000 删除面单元
+        Delete area object from SAP2000.
         
         Returns:
-            0 表示成功，非 0 表示失败
+            `0` on success, nonzero on failure
         """
         return model.AreaObj.Delete(str(self.no), ItemType.OBJECT)
     
     def _update(self, model) -> int:
-        """更新面单元属性到 SAP2000"""
+        """Update area-object properties to SAP2000"""
         from PySap2000.logger import get_logger
         _log = get_logger("area")
         ret = 0
@@ -727,7 +729,7 @@ class Area:
             ret = model.AreaObj.SetProperty(str(self.no), self.section, ItemType.OBJECT)
         return ret
 
-    # ==================== 截面属性方法 ====================
+    # ==================== Section-property methods ====================
     
     def set_property(
         self,
@@ -736,24 +738,24 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元截面属性
+        Set area section property
         
         Args:
-            model: SapModel 对象
-            prop_name: 截面属性名称
-            item_type: 项目类型
+            model: SapModel object
+            prop_name: Section-property name
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         self.section = prop_name
         return model.AreaObj.SetProperty(str(self.no), prop_name, item_type)
     
     def get_property(self, model) -> Optional[str]:
-        """获取面单元截面属性名称"""
+        """Get area section-property name"""
         return self._get_property(model)
 
-    # ==================== 厚度方法 ====================
+    # ==================== Thickness methods ====================
     
     def set_thickness(
         self,
@@ -765,18 +767,18 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元厚度覆盖
+        Set area thickness override
         
         Args:
-            model: SapModel 对象
-            thickness_type: 厚度类型
-            thickness_pattern: 厚度模式名称
-            thickness_pattern_sf: 厚度模式比例因子
-            thickness: 厚度值列表 (每个节点一个值)
-            item_type: 项目类型
+            model: SapModel object
+            thickness_type: Thickness type
+            thickness_pattern: Thickness-pattern name
+            thickness_pattern_sf: Thickness-pattern scale factor
+            thickness: Thickness values (one value per point)
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         self.thickness_type = thickness_type
         self.thickness_pattern = thickness_pattern
@@ -790,10 +792,10 @@ class Area:
     
     def get_thickness(self, model) -> Optional[dict]:
         """
-        获取面单元厚度覆盖
+        Get area thickness override
         
         Returns:
-            包含厚度信息的字典，失败返回 None
+            Dictionary with thickness info, or `None` on failure
         """
         try:
             result = model.AreaObj.GetThickness(str(self.no), 0, "", 0.0, [])
@@ -812,7 +814,7 @@ class Area:
             pass
         return None
 
-    # ==================== 局部坐标轴方法 ====================
+    # ==================== Local-axis methods ====================
     
     def set_local_axes(
         self,
@@ -821,25 +823,25 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元局部坐标轴角度
+        Set area local-axis angle
         
         Args:
-            model: SapModel 对象
-            angle: 局部坐标轴角度 [deg]
-            item_type: 项目类型
+            model: SapModel object
+            angle: Local-axis angle [deg]
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         self.local_axis_angle = angle
         return model.AreaObj.SetLocalAxes(str(self.no), angle, item_type)
     
     def get_local_axes(self, model) -> Optional[Tuple[float, bool]]:
         """
-        获取面单元局部坐标轴角度
+        Get area local-axis angle
         
         Returns:
-            (角度, 是否有高级设置) 元组，失败返回 None
+            (Angle, whether advanced settings exist) tuple, or `None` on failure
         """
         try:
             result = model.AreaObj.GetLocalAxes(str(self.no), 0.0, False)
@@ -865,24 +867,24 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元高级局部坐标轴
+        Set advanced area local axes
         
         Args:
-            model: SapModel 对象
-            active: 是否启用高级局部坐标轴
-            plane2: 31=3-1平面, 32=3-2平面
-            pl_vect_opt: 平面参考向量选项 (1=坐标方向, 2=两节点, 3=用户向量)
-            pl_csys: 坐标系名称
-            pl_dir: 主方向和次方向 (用于 pl_vect_opt=1)
-            pl_pt: 两个节点名称 (用于 pl_vect_opt=2)
-            pl_vect: 用户向量 (用于 pl_vect_opt=3)
-            item_type: 项目类型
+            model: SapModel object
+            active: Whether advanced local axes are enabled
+            plane2: 31=3-1plane, 32=3-2plane
+            pl_vect_opt: plane reference-vector option (1=coordinate direction, 2=two points, 3=user vector)
+            pl_csys: Coordinate-system name
+            pl_dir: primary and secondary directions (used for pl_vect_opt=1)
+            pl_pt: two point names (used for pl_vect_opt=2)
+            pl_vect: user vector (used for pl_vect_opt=3)
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
             
         Example:
-            # 使用坐标方向定义
+            # Define by coordinate direction
             area.set_local_axes_advanced(model, True, 31, PlaneRefVectorOption.COORDINATE_DIRECTION,
                                          "Global", (2, 3))
         """
@@ -903,34 +905,34 @@ class Area:
     
     def get_local_axes_advanced(self, model) -> Optional[AreaLocalAxesAdvanced]:
         """
-        获取面单元高级局部坐标轴设置
+        Get advanced area local-axis settings
         
         Returns:
-            AreaLocalAxesAdvanced 对象，失败返回 None
+            AreaLocalAxesAdvanced object, or `None` on failure
         """
         return self._get_local_axes_advanced(model)
 
-    # ==================== 变换矩阵方法 ====================
+    # ==================== Transformation-matrix methods ====================
     
     def get_transformation_matrix(self, model, is_global: bool = True) -> Optional[List[float]]:
         """
-        获取面单元变换矩阵
+        Get area transformation matrix
         
-        变换矩阵用于将局部坐标系转换为全局坐标系（或当前坐标系）。
-        矩阵包含9个方向余弦值。
+        The transformation matrix maps local coordinates to global (or current) coordinates.
+        The matrix includes 9 direction-cosine values.
         
         Args:
-            model: SapModel 对象
-            is_global: True=全局坐标系, False=当前坐标系
+            model: SapModel object
+            is_global: True=global coordinate system, False=current coordinate system
             
         Returns:
-            9个方向余弦值的列表 [c0, c1, c2, c3, c4, c5, c6, c7, c8]，失败返回 None
+            List of 9 direction-cosine values `[c0, c1, c2, c3, c4, c5, c6, c7, c8]`, or `None` on failure
             
         Example:
             matrix = area.get_transformation_matrix(model)
             if matrix:
-                # 矩阵方程: [GlobalX, GlobalY, GlobalZ] = [c0-c8] * [Local1, Local2, Local3]
-                print(f"变换矩阵: {matrix}")
+                # Matrix equation: [GlobalX, GlobalY, GlobalZ] = [c0-c8] * [Local1, Local2, Local3]
+                print(f"Transformation matrix: {matrix}")
         """
         try:
             result = model.AreaObj.GetTransformationMatrix(str(self.no), [], is_global)
@@ -943,7 +945,7 @@ class Area:
         return None
 
 
-    # ==================== 自动网格划分方法 ====================
+    # ==================== Auto-mesh methods ====================
     
     def set_auto_mesh(
         self,
@@ -968,18 +970,18 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元自动网格划分
+        Set area automatic meshing
         
         Args:
-            model: SapModel 对象
-            mesh_type: 网格划分类型
-            n1, n2: 划分数量 (用于 MESH_BY_NUMBER)
-            max_size1, max_size2: 最大尺寸 (用于 MESH_BY_MAX_SIZE)
-            其他参数: 参见 SAP2000 API 文档
-            item_type: 项目类型
+            model: SapModel object
+            mesh_type: Mesh type
+            n1, n2: Division counts (used for MESH_BY_NUMBER)
+            max_size1, max_size2: Maximum size (used for MESH_BY_MAX_SIZE)
+            Other parameters: see SAP2000 API documentation
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         self.auto_mesh = AreaAutoMesh(
             mesh_type=mesh_type,
@@ -1009,10 +1011,10 @@ class Area:
         )
     
     def get_auto_mesh(self, model) -> Optional[AreaAutoMesh]:
-        """获取面单元自动网格划分设置"""
+        """Get area automatic-meshing settings."""
         return self._get_auto_mesh(model)
 
-    # ==================== 修改系数方法 ====================
+    # ==================== Modifier methods ====================
     
     def set_modifiers(
         self,
@@ -1021,37 +1023,37 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元修改系数
+        Set area modifiers
         
         Args:
-            model: SapModel 对象
-            modifiers: 10个修改系数值
+            model: SapModel object
+            modifiers: 10modifier values
                 [f11, f22, f12, m11, m22, m12, v13, v23, mass, weight]
-            item_type: 项目类型
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
-        # 确保有10个值
+        # Ensure there are10values
         mod_list = list(modifiers)
         while len(mod_list) < 10:
             mod_list.append(1.0)
         
         self.modifiers = mod_list[:10]
         result = model.AreaObj.SetModifiers(str(self.no), mod_list[:10], item_type)
-        # 解析返回值
+        # Parse return value
         return com_ret(result)
     
     def get_modifiers(self, model) -> Optional[List[float]]:
-        """获取面单元修改系数"""
+        """Get area modifiers."""
         return self._get_modifiers(model)
     
     def delete_modifiers(self, model, item_type: ItemType = ItemType.OBJECT) -> int:
-        """删除面单元修改系数 (恢复默认值)"""
+        """Delete area modifiers (restore defaults)"""
         self.modifiers = None
         return model.AreaObj.DeleteModifiers(str(self.no), item_type)
 
-    # ==================== 质量方法 ====================
+    # ==================== Mass methods ====================
     
     def set_mass(
         self,
@@ -1061,30 +1063,30 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元附加质量
+        Set added area mass
         
         Args:
-            model: SapModel 对象
-            mass_per_area: 单位面积质量
-            replace: 是否替换现有质量 (True=替换, False=叠加)
-            item_type: 项目类型
+            model: SapModel object
+            mass_per_area: Mass per unit area
+            replace: Whether to replace existing mass (True=replace, False=add)
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         self.mass_per_area = mass_per_area
         return model.AreaObj.SetMass(str(self.no), mass_per_area, replace, item_type)
     
     def get_mass(self, model) -> Optional[float]:
-        """获取面单元附加质量"""
+        """Get added area mass"""
         return self._get_mass(model)
     
     def delete_mass(self, model, item_type: ItemType = ItemType.OBJECT) -> int:
-        """删除面单元附加质量"""
+        """Delete added area mass"""
         self.mass_per_area = 0.0
         return model.AreaObj.DeleteMass(str(self.no), item_type)
 
-    # ==================== 材料覆盖方法 ====================
+    # ==================== Material-override methods ====================
     
     def set_material_overwrite(
         self,
@@ -1093,21 +1095,21 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元材料覆盖
+        Set area material override
         
         Args:
-            model: SapModel 对象
-            prop_name: 材料名称
-            item_type: 项目类型
+            model: SapModel object
+            prop_name: Material name
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         self.material_overwrite = prop_name
         return model.AreaObj.SetMaterialOverwrite(str(self.no), prop_name, item_type)
     
     def get_material_overwrite(self, model) -> Optional[str]:
-        """获取面单元材料覆盖"""
+        """Get area material override"""
         try:
             result = model.AreaObj.GetMaterialOverwrite(str(self.no), "")
             mat = com_data(result, 0)
@@ -1118,7 +1120,7 @@ class Area:
             pass
         return None
 
-    # ==================== 材料温度方法 ====================
+    # ==================== Material-temperature methods ====================
     
     def set_mat_temp(
         self,
@@ -1128,23 +1130,23 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元材料温度
+        Set area material temperature
         
         Args:
-            model: SapModel 对象
-            temp: 温度值
-            pattern_name: 温度模式名称
-            item_type: 项目类型
+            model: SapModel object
+            temp: Temperature value
+            pattern_name: Temperature-pattern name
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         self.mat_temp = temp
         self.mat_temp_pattern = pattern_name
         return model.AreaObj.SetMatTemp(str(self.no), temp, pattern_name, item_type)
     
     def get_mat_temp(self, model) -> Optional[Tuple[float, str]]:
-        """获取面单元材料温度"""
+        """Get area material temperature"""
         try:
             result = model.AreaObj.GetMatTemp(str(self.no), 0.0, "")
             if com_data(result, 2) is not None:
@@ -1155,7 +1157,7 @@ class Area:
             pass
         return None
 
-    # ==================== 偏移方法 ====================
+    # ==================== Offset methods ====================
     
     def set_offsets(
         self,
@@ -1167,18 +1169,18 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元偏移
+        Set area offsets
         
         Args:
-            model: SapModel 对象
-            offset_type: 偏移类型
-            offset_pattern: 偏移模式名称
-            offset_pattern_sf: 偏移模式比例因子
-            offsets: 偏移值列表 (每个节点一个值)
-            item_type: 项目类型
+            model: SapModel object
+            offset_type: Offset type
+            offset_pattern: Offset-pattern name
+            offset_pattern_sf: Offset-pattern scale factor
+            offsets: Offset values (one value per point)
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         self.offset_type = offset_type
         self.offset_pattern = offset_pattern
@@ -1191,7 +1193,7 @@ class Area:
         )
     
     def get_offsets(self, model) -> Optional[dict]:
-        """获取面单元偏移"""
+        """Get area offsets"""
         try:
             result = model.AreaObj.GetOffsets(str(self.no), 0, "", 0.0, [])
             if com_data(result, 4) is not None:
@@ -1209,7 +1211,7 @@ class Area:
             pass
         return None
 
-    # ==================== 弹簧方法 ====================
+    # ==================== Spring methods ====================
     
     def set_spring(
         self,
@@ -1229,26 +1231,26 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元弹簧
+        Set area springs
         
         Args:
-            model: SapModel 对象
-            spring_type: 弹簧类型
-            stiffness: 弹簧刚度
-            simple_spring_type: 简单弹簧类型
-            link_prop: 连接属性名称 (用于 LINK_PROPERTY 类型)
-            face: 面 (-1=底面, -2=顶面)
-            local_one_type: 局部1轴方向类型
-            direction: 方向
-            outward: 是否向外
-            vector: 用户向量
-            angle: 角度
-            replace: 是否替换现有弹簧
-            csys: 坐标系
-            item_type: 项目类型
+            model: SapModel object
+            spring_type: Spring type
+            stiffness: Spring stiffness
+            simple_spring_type: Simple spring type
+            link_prop: Link-property name (used for LINK_PROPERTY type)
+            face: Face (-1=bottom face, -2=top face)
+            local_one_type: local-1 direction type
+            direction: Direction
+            outward: Whether outward
+            vector: user vector
+            angle: Angle
+            replace: Whether to replace existing springs
+            csys: Coordinate system
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         return model.AreaObj.SetSpring(
             str(self.no), int(spring_type), stiffness, int(simple_spring_type),
@@ -1257,7 +1259,7 @@ class Area:
         )
     
     def get_spring(self, model) -> Optional[List[AreaSpring]]:
-        """获取面单元弹簧"""
+        """Get area springs."""
         try:
             result = model.AreaObj.GetSpring(
                 str(self.no), 0, [], [], [], [], [], [], [], [], [], []
@@ -1297,12 +1299,12 @@ class Area:
         return None
     
     def delete_spring(self, model, item_type: ItemType = ItemType.OBJECT) -> int:
-        """删除面单元弹簧"""
+        """Delete area springs."""
         self.springs = None
         return model.AreaObj.DeleteSpring(str(self.no), item_type)
 
 
-    # ==================== 边缘约束方法 ====================
+    # ==================== Edge-constraint methods ====================
     
     def set_edge_constraint(
         self,
@@ -1311,21 +1313,21 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元边缘约束
+        Set area edge constraints
         
         Args:
-            model: SapModel 对象
-            constraint_exists: 是否存在边缘约束
-            item_type: 项目类型
+            model: SapModel object
+            constraint_exists: Whether edge constraints exist
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         self.edge_constraint = constraint_exists
         return model.AreaObj.SetEdgeConstraint(str(self.no), constraint_exists, item_type)
     
     def get_edge_constraint(self, model) -> bool:
-        """获取面单元边缘约束"""
+        """Get area edge constraints."""
         try:
             result = model.AreaObj.GetEdgeConstraint(str(self.no), False)
             ec = com_data(result, 0)
@@ -1336,7 +1338,7 @@ class Area:
             pass
         return False
 
-    # ==================== 组方法 ====================
+    # ==================== Group methods ====================
     
     def set_group_assign(
         self,
@@ -1346,16 +1348,16 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元组分配
+        Set area group assignment
         
         Args:
-            model: SapModel 对象
-            group_name: 组名称
-            remove: 是否从组中移除 (True=移除, False=添加)
-            item_type: 项目类型
+            model: SapModel object
+            group_name: Group name
+            remove: Whether to remove from group (True=remove, False=add)
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         ret = model.AreaObj.SetGroupAssign(str(self.no), group_name, remove, item_type)
         if ret == 0:
@@ -1370,10 +1372,10 @@ class Area:
         return ret
     
     def get_group_assign(self, model) -> Optional[List[str]]:
-        """获取面单元所属组"""
+        """Get groups containing this area object"""
         return self._get_group_assign(model)
 
-    # ==================== 选择方法 ====================
+    # ==================== Selection methods ====================
     
     def set_selected(
         self,
@@ -1381,26 +1383,26 @@ class Area:
         selected: bool = True,
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
-        """设置选择状态"""
+        """Set selection state"""
         self.selected = selected
         return model.AreaObj.SetSelected(str(self.no), selected, item_type)
     
     def get_selected(self, model) -> bool:
-        """获取选择状态"""
+        """Get selection state"""
         return self._get_selected(model)
 
-    # ==================== GUID 方法 ====================
+    # ==================== GUID methods ====================
     
     def set_guid(self, model, guid: str = "") -> int:
         """
-        设置面单元 GUID
+        Set area GUID
         
         Args:
-            model: SapModel 对象
-            guid: GUID 字符串。如果为空字符串，程序将自动创建新的 GUID
+            model: SapModel object
+            guid: GUID string. If empty, SAP2000 creates a new GUID
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         ret = model.AreaObj.SetGUID(str(self.no), guid)
         if ret == 0:
@@ -1408,18 +1410,18 @@ class Area:
         return ret
     
     def get_guid(self, model) -> Optional[str]:
-        """获取面单元 GUID"""
+        """Get area-object GUID"""
         self._get_guid(model)
         return self.guid
 
-    # ==================== 单元方法 ====================
+    # ==================== Element methods ====================
     
     def get_elements(self, model) -> Optional[List[str]]:
         """
-        获取面单元对应的分析单元名称列表
+        Get analysis-element names corresponding to this area object
         
         Returns:
-            分析单元名称列表，失败返回 None
+            List of analysis-element names, or `None` on failure
         """
         try:
             result = model.AreaObj.GetElm(str(self.no), 0, [])
@@ -1431,25 +1433,25 @@ class Area:
             pass
         return None
 
-    # ==================== 其他方法 ====================
+    # ==================== Other methods ====================
     
     def change_name(self, model, new_name: str) -> int:
         """
-        更改面单元名称
+        Change area-object name
         
         Args:
-            model: SapModel 对象
-            new_name: 新名称
+            model: SapModel object
+            new_name: New name
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         ret = model.AreaObj.ChangeName(str(self.no), new_name)
         if ret == 0:
             self.no = new_name
         return ret
 
-    # ==================== 荷载方法 ====================
+    # ==================== Load methods ====================
     
     def set_load_gravity(
         self,
@@ -1463,18 +1465,18 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元重力荷载
+        Set area gravity load
         
         Args:
-            model: SapModel 对象
-            load_pattern: 荷载模式名称
-            x, y, z: 重力加速度分量 (通常 z=-1 表示向下)
-            replace: 是否替换现有荷载
-            csys: 坐标系名称
-            item_type: 项目类型
+            model: SapModel object
+            load_pattern: Load-pattern name
+            x, y, z: gravity acceleration components (typically z=-1 indicates downward)
+            replace: Whether to replace existing loads
+            csys: Coordinate-system name
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         return model.AreaObj.SetLoadGravity(
             str(self.no), load_pattern, x, y, z, replace, csys, item_type
@@ -1485,7 +1487,7 @@ class Area:
         model,
         item_type: ItemType = ItemType.OBJECT
     ) -> List[AreaLoadGravity]:
-        """获取面单元重力荷载"""
+        """Get area gravity loads"""
         loads = []
         try:
             result = model.AreaObj.GetLoadGravity(
@@ -1519,7 +1521,7 @@ class Area:
         load_pattern: str,
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
-        """删除面单元重力荷载"""
+        """Delete area gravity load"""
         return model.AreaObj.DeleteLoadGravity(str(self.no), load_pattern, item_type)
     
     def set_load_uniform(
@@ -1533,19 +1535,19 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元均布荷载
+        Set area uniform load
         
         Args:
-            model: SapModel 对象
-            load_pattern: 荷载模式名称
-            value: 荷载值 (力/面积)
-            direction: 荷载方向
-            replace: 是否替换现有荷载
-            csys: 坐标系名称
-            item_type: 项目类型
+            model: SapModel object
+            load_pattern: Load-pattern name
+            value: Load value (force per area)
+            direction: Load direction
+            replace: Whether to replace existing loads
+            csys: Coordinate-system name
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         return model.AreaObj.SetLoadUniform(
             str(self.no), load_pattern, value, int(direction), replace, csys, item_type
@@ -1556,7 +1558,7 @@ class Area:
         model,
         item_type: ItemType = ItemType.OBJECT
     ) -> List[AreaLoadUniform]:
-        """获取面单元均布荷载"""
+        """Get area uniform loads"""
         loads = []
         try:
             result = model.AreaObj.GetLoadUniform(
@@ -1588,7 +1590,7 @@ class Area:
         load_pattern: str,
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
-        """删除面单元均布荷载"""
+        """Delete area uniform load"""
         return model.AreaObj.DeleteLoadUniform(str(self.no), load_pattern, item_type)
     
     def set_load_surface_pressure(
@@ -1602,19 +1604,19 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元表面压力荷载
+        Set area surface-pressure load
         
         Args:
-            model: SapModel 对象
-            load_pattern: 荷载模式名称
-            face: 面 (-1=底面, -2=顶面)
-            value: 压力值
-            pattern_name: 模式名称
-            replace: 是否替换现有荷载
-            item_type: 项目类型
+            model: SapModel object
+            load_pattern: Load-pattern name
+            face: Face (-1=bottom face, -2=top face)
+            value: Pressure value
+            pattern_name: Pattern name
+            replace: Whether to replace existing loads
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         return model.AreaObj.SetLoadSurfacePressure(
             str(self.no), load_pattern, face, value, pattern_name, replace, item_type
@@ -1625,7 +1627,7 @@ class Area:
         model,
         item_type: ItemType = ItemType.OBJECT
     ) -> List[AreaLoadSurfacePressure]:
-        """获取面单元表面压力荷载"""
+        """Get area surface-pressure loads"""
         loads = []
         try:
             result = model.AreaObj.GetLoadSurfacePressure(
@@ -1657,7 +1659,7 @@ class Area:
         load_pattern: str,
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
-        """删除面单元表面压力荷载"""
+        """Delete area surface-pressure load"""
         return model.AreaObj.DeleteLoadSurfacePressure(str(self.no), load_pattern, item_type)
 
 
@@ -1672,19 +1674,19 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元温度荷载
+        Set area temperature load
         
         Args:
-            model: SapModel 对象
-            load_pattern: 荷载模式名称
-            load_type: 温度荷载类型 (1=温度, 3=温度梯度)
-            value: 温度值
-            pattern_name: 模式名称
-            replace: 是否替换现有荷载
-            item_type: 项目类型
+            model: SapModel object
+            load_pattern: Load-pattern name
+            load_type: Temperature-load type (1=temperature, 3=temperature gradient)
+            value: Temperature value
+            pattern_name: Pattern name
+            replace: Whether to replace existing loads
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         return model.AreaObj.SetLoadTemperature(
             str(self.no), load_pattern, int(load_type), value, pattern_name, replace, item_type
@@ -1695,7 +1697,7 @@ class Area:
         model,
         item_type: ItemType = ItemType.OBJECT
     ) -> List[AreaLoadTemperature]:
-        """获取面单元温度荷载"""
+        """Get area temperature loads"""
         loads = []
         try:
             result = model.AreaObj.GetLoadTemperature(
@@ -1727,7 +1729,7 @@ class Area:
         load_pattern: str,
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
-        """删除面单元温度荷载"""
+        """Delete area temperature load"""
         return model.AreaObj.DeleteLoadTemperature(str(self.no), load_pattern, item_type)
     
     def set_load_pore_pressure(
@@ -1740,18 +1742,18 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元孔隙压力荷载
+        Set area pore-pressure load
         
         Args:
-            model: SapModel 对象
-            load_pattern: 荷载模式名称
-            value: 孔隙压力值
-            pattern_name: 模式名称
-            replace: 是否替换现有荷载
-            item_type: 项目类型
+            model: SapModel object
+            load_pattern: Load-pattern name
+            value: Pore-pressure value
+            pattern_name: Pattern name
+            replace: Whether to replace existing loads
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         return model.AreaObj.SetLoadPorePressure(
             str(self.no), load_pattern, value, pattern_name, replace, item_type
@@ -1762,7 +1764,7 @@ class Area:
         model,
         item_type: ItemType = ItemType.OBJECT
     ) -> List[dict]:
-        """获取面单元孔隙压力荷载"""
+        """Get area pore-pressure loads"""
         loads = []
         try:
             result = model.AreaObj.GetLoadPorePressure(
@@ -1792,7 +1794,7 @@ class Area:
         load_pattern: str,
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
-        """删除面单元孔隙压力荷载"""
+        """Delete area pore-pressure load"""
         return model.AreaObj.DeleteLoadPorePressure(str(self.no), load_pattern, item_type)
     
     def set_load_strain(
@@ -1806,19 +1808,19 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元应变荷载
+        Set area strain load
         
         Args:
-            model: SapModel 对象
-            load_pattern: 荷载模式名称
-            component: 应变分量
-            value: 应变值
-            replace: 是否替换现有荷载
-            pattern_name: 模式名称
-            item_type: 项目类型
+            model: SapModel object
+            load_pattern: Load-pattern name
+            component: Strain component
+            value: Strain value
+            replace: Whether to replace existing loads
+            pattern_name: Pattern name
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         return model.AreaObj.SetLoadStrain(
             str(self.no), load_pattern, int(component), value, replace, pattern_name, item_type
@@ -1829,7 +1831,7 @@ class Area:
         model,
         item_type: ItemType = ItemType.OBJECT
     ) -> List[dict]:
-        """获取面单元应变荷载"""
+        """Get area strain loads"""
         loads = []
         try:
             result = model.AreaObj.GetLoadStrain(
@@ -1862,7 +1864,7 @@ class Area:
         component: AreaStrainComponent,
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
-        """删除面单元应变荷载"""
+        """Delete area strain load"""
         return model.AreaObj.DeleteLoadStrain(str(self.no), load_pattern, int(component), item_type)
     
     def set_load_rotate(
@@ -1874,17 +1876,17 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元旋转荷载
+        Set area rotation load
         
         Args:
-            model: SapModel 对象
-            load_pattern: 荷载模式名称
-            value: 旋转速度 (rad/s)
-            replace: 是否替换现有荷载
-            item_type: 项目类型
+            model: SapModel object
+            load_pattern: Load-pattern name
+            value: rotation speed (rad/s)
+            replace: Whether to replace existing loads
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         return model.AreaObj.SetLoadRotate(
             str(self.no), load_pattern, value, replace, item_type
@@ -1895,7 +1897,7 @@ class Area:
         model,
         item_type: ItemType = ItemType.OBJECT
     ) -> List[dict]:
-        """获取面单元旋转荷载"""
+        """Get area rotation loads"""
         loads = []
         try:
             result = model.AreaObj.GetLoadRotate(
@@ -1923,7 +1925,7 @@ class Area:
         load_pattern: str,
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
-        """删除面单元旋转荷载"""
+        """Delete area rotation load"""
         return model.AreaObj.DeleteLoadRotate(str(self.no), load_pattern, item_type)
     
     def set_load_uniform_to_frame(
@@ -1938,20 +1940,20 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元均布荷载传递到框架
+        Set area uniform load transferred to frame
         
         Args:
-            model: SapModel 对象
-            load_pattern: 荷载模式名称
-            value: 荷载值 (力/面积)
-            direction: 荷载方向
-            dist_type: 分布类型 (单向/双向)
-            replace: 是否替换现有荷载
-            csys: 坐标系名称
-            item_type: 项目类型
+            model: SapModel object
+            load_pattern: Load-pattern name
+            value: Load value (force per area)
+            direction: Load direction
+            dist_type: distribution type (one-way / two-way)
+            replace: Whether to replace existing loads
+            csys: Coordinate-system name
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         return model.AreaObj.SetLoadUniformToFrame(
             str(self.no), load_pattern, value, int(direction), int(dist_type),
@@ -1963,7 +1965,7 @@ class Area:
         model,
         item_type: ItemType = ItemType.OBJECT
     ) -> List[dict]:
-        """获取面单元均布荷载传递到框架"""
+        """Get area uniform loads transferred to frame."""
         loads = []
         try:
             result = model.AreaObj.GetLoadUniformToFrame(
@@ -1997,7 +1999,7 @@ class Area:
         load_pattern: str,
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
-        """删除面单元均布荷载传递到框架"""
+        """Delete area uniform load transferred to frame."""
         return model.AreaObj.DeleteLoadUniformToFrame(str(self.no), load_pattern, item_type)
     
     def set_load_wind_pressure(
@@ -2009,17 +2011,17 @@ class Area:
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
         """
-        设置面单元风压荷载
+        Set area wind-pressure load
         
         Args:
-            model: SapModel 对象
-            load_pattern: 荷载模式名称
-            wind_pressure_type: 风压类型
-            cp: 风压系数 (用于 FROM_CP 类型)
-            item_type: 项目类型
+            model: SapModel object
+            load_pattern: Load-pattern name
+            wind_pressure_type: Wind-pressure type
+            cp: Wind-pressure coefficient (used for `FROM_CP`)
+            item_type: Item type
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         return model.AreaObj.SetLoadWindPressure_1(
             str(self.no), load_pattern, int(wind_pressure_type), cp, item_type
@@ -2030,7 +2032,7 @@ class Area:
         model,
         item_type: ItemType = ItemType.OBJECT
     ) -> List[dict]:
-        """获取面单元风压荷载"""
+        """Get area wind-pressure loads"""
         loads = []
         try:
             result = model.AreaObj.GetLoadWindPressure_1(
@@ -2060,5 +2062,5 @@ class Area:
         load_pattern: str,
         item_type: ItemType = ItemType.OBJECT
     ) -> int:
-        """删除面单元风压荷载"""
+        """Delete area wind-pressure load"""
         return model.AreaObj.DeleteLoadWindPressure(str(self.no), load_pattern, item_type)

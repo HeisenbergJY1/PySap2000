@@ -1,81 +1,82 @@
 # -*- coding: utf-8 -*-
 """
-enums.py - Area 对象相关枚举类型
-对应 SAP2000 的 AreaObj 相关枚举
+enums.py - Area-related enums.
 
-注意: 荷载相关枚举已移至 loads/area_load.py
+Contains enums used by the SAP2000 `AreaObj` API.
+
+Note: Load-related enums have been moved to `loads/area_load.py`.
 """
 
 from enum import IntEnum
 
 
 class AreaType(IntEnum):
-    """面单元类型"""
-    SHELL = 1      # 壳单元
-    PLANE = 2      # 平面单元
-    ASOLID = 3     # 轴对称实体
+    """Area object type."""
+    SHELL = 1      # Shell element
+    PLANE = 2      # Plane element
+    ASOLID = 3     # Axisymmetric solid
 
 
 class AreaMeshType(IntEnum):
-    """面单元自动网格划分类型"""
-    NO_MESH = 0                 # 不划分
-    MESH_BY_NUMBER = 1          # 按数量划分
-    MESH_BY_MAX_SIZE = 2        # 按最大尺寸划分
-    MESH_BY_POINTS_ON_EDGE = 3  # 按边上点划分
-    COOKIE_CUT_BY_LINES = 4     # 按线切割
-    COOKIE_CUT_BY_POINTS = 5    # 按点切割
-    GENERAL_DIVIDE = 6          # 通用划分
+    """Automatic meshing type for area objects."""
+    NO_MESH = 0                 # No meshing
+    MESH_BY_NUMBER = 1          # Divide by count
+    MESH_BY_MAX_SIZE = 2        # Divide by maximum size
+    MESH_BY_POINTS_ON_EDGE = 3  # Divide by edge points
+    COOKIE_CUT_BY_LINES = 4     # Cookie-cut by lines
+    COOKIE_CUT_BY_POINTS = 5    # Cookie-cut by points
+    GENERAL_DIVIDE = 6          # General divide
 
 
 class AreaThicknessType(IntEnum):
-    """面单元厚度覆盖类型"""
-    NO_OVERWRITE = 0     # 不覆盖
-    BY_JOINT_PATTERN = 1 # 按节点模式
-    BY_POINT = 2         # 按节点
+    """Thickness override type for area objects."""
+    NO_OVERWRITE = 0     # No override
+    BY_JOINT_PATTERN = 1 # By joint pattern
+    BY_POINT = 2         # By point
 
 
 class AreaOffsetType(IntEnum):
-    """面单元偏移类型"""
-    NO_OFFSET = 0        # 无偏移
-    BY_JOINT_PATTERN = 1 # 按节点模式
-    BY_POINT = 2         # 按节点
+    """Offset type for area objects."""
+    NO_OFFSET = 0        # No offset
+    BY_JOINT_PATTERN = 1 # By joint pattern
+    BY_POINT = 2         # By point
 
 
 class AreaSpringType(IntEnum):
-    """面单元弹簧类型"""
-    SIMPLE_SPRING = 1   # 简单弹簧
-    LINK_PROPERTY = 2   # 连接属性
+    """Spring type for area objects."""
+    SIMPLE_SPRING = 1   # Simple spring
+    LINK_PROPERTY = 2   # Link property
 
 
 class AreaSimpleSpringType(IntEnum):
-    """面单元简单弹簧类型"""
-    TENSION_COMPRESSION = 1  # 拉压
-    COMPRESSION_ONLY = 2     # 仅压
-    TENSION_ONLY = 3         # 仅拉
+    """Simple spring behavior type for area objects."""
+    TENSION_COMPRESSION = 1  # Tension and compression
+    COMPRESSION_ONLY = 2     # Compression only
+    TENSION_ONLY = 3         # Tension only
 
 
 class AreaSpringLocalOneType(IntEnum):
-    """面单元弹簧局部1轴方向类型"""
-    PARALLEL_TO_LOCAL_AXIS = 1  # 平行于局部轴
-    NORMAL_TO_FACE = 2          # 垂直于面
-    USER_VECTOR = 3             # 用户向量
+    """Local-1 axis direction type for area springs."""
+    PARALLEL_TO_LOCAL_AXIS = 1  # Parallel to local axis
+    NORMAL_TO_FACE = 2          # Normal to face
+    USER_VECTOR = 3             # User vector
 
 
 class AreaFace(IntEnum):
-    """面单元面"""
-    BOTTOM = -1  # 底面
-    TOP = -2     # 顶面
+    """Area face identifier."""
+    BOTTOM = -1  # Bottom face
+    TOP = -2     # Top face
 
 
 class PlaneRefVectorOption(IntEnum):
-    """平面参考向量选项"""
-    COORDINATE_DIRECTION = 1  # 坐标方向
-    TWO_JOINTS = 2            # 两节点
-    USER_VECTOR = 3           # 用户向量
+    """Plane reference-vector option."""
+    COORDINATE_DIRECTION = 1  # Coordinate direction
+    TWO_JOINTS = 2            # Two joints
+    USER_VECTOR = 3           # User vector
 
 
 class ItemType(IntEnum):
-    """eItemType 枚举"""
-    OBJECT = 0            # 单个对象
-    GROUP = 1             # 组
-    SELECTED_OBJECTS = 2  # 选中的对象
+    """`eItemType` enum."""
+    OBJECT = 0            # Single object
+    GROUP = 1             # Group
+    SELECTED_OBJECTS = 2  # Selected objects

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""命名赋值定义测试 (NamedAssign)"""
+"""Tests for named assignments (NamedAssign)."""
 
 import pytest
 from PySap2000.named_assigns import (
@@ -13,7 +13,7 @@ pytestmark = pytest.mark.named_assigns
 
 
 class TestNamedFrameModifier:
-    """杆件修改器测试"""
+    """Named frame modifiers."""
 
     def test_create(self, model):
         mod = NamedFrameModifier(name="TestFMod", area=0.8, inertia_33=0.5)
@@ -40,7 +40,7 @@ class TestNamedFrameModifier:
         ret = mod.change_name(model, "TestFMod_R")
         assert ret == 0
         assert mod.name == "TestFMod_R"
-        # 改回来
+        # Revert name
         mod.change_name(model, "TestFMod")
 
     def test_to_list_from_list(self):
@@ -60,7 +60,7 @@ class TestNamedFrameModifier:
 
 
 class TestNamedFrameRelease:
-    """杆件端部释放测试"""
+    """Named frame releases."""
 
     def test_create_pinned_both(self, model):
         rel = NamedFrameRelease.create_pinned_both("TestRelease")
@@ -83,7 +83,7 @@ class TestNamedFrameRelease:
         rel = NamedFrameRelease.get_by_name(model, "TestRelease")
         assert rel is not None
         assert rel.name == "TestRelease"
-        # 验证铰接设置
+        # Verify pinned releases
         assert rel.ii[4] is True or rel.ii[4] == True
         assert rel.jj[4] is True or rel.jj[4] == True
 

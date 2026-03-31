@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-edit_frame.py - 框架编辑
+edit_frame.py - Frame editing
 
-SAP2000 EditFrame API 封装
+Wrappers for the SAP2000 `EditFrame` API.
 
 SAP2000 API:
-- EditFrame.DivideAtDistance - 按距离分割
-- EditFrame.DivideAtIntersections - 在交点分割
-- EditFrame.DivideByRatio - 按比例分割
-- EditFrame.Extend - 延伸
-- EditFrame.Join - 连接
-- EditFrame.Trim - 修剪
-- EditFrame.ChangeConnectivity - 修改连接
+- `EditFrame.DivideAtDistance` - Divide by distance
+- `EditFrame.DivideAtIntersections` - Divide at intersections
+- `EditFrame.DivideByRatio` - Divide by ratio
+- `EditFrame.Extend` - Extend
+- `EditFrame.Join` - Join
+- `EditFrame.Trim` - Trim
+- `EditFrame.ChangeConnectivity` - Change connectivity
 """
 
 from typing import List, Tuple
@@ -25,16 +25,16 @@ def divide_frame_at_distance(
     i_end: bool = True
 ) -> Tuple[str, str]:
     """
-    按距离分割框架
+    Divide a frame by distance
     
     Args:
-        model: SapModel 对象
-        name: 框架名称
-        dist: 分割距离
-        i_end: True 从 I 端测量，False 从 J 端测量
+        model: SAP2000 SapModel object
+        name: Frame name
+        dist: Divide distance
+        i_end: `True` measure from I end, `False` from J end
         
     Returns:
-        (name1, name2) 分割后的两个框架名称
+        `(name1, name2)` names of the two resulting frame objects
     """
     result = model.EditFrame.DivideAtDistance(name, dist, i_end, "", "")
     name1 = com_data(result, 0, "")
@@ -44,14 +44,14 @@ def divide_frame_at_distance(
 
 def divide_frame_at_intersections(model, name: str) -> List[str]:
     """
-    在交点处分割框架
+    Divide a frame at intersections
     
     Args:
-        model: SapModel 对象
-        name: 框架名称
+        model: SAP2000 SapModel object
+        name: Frame name
         
     Returns:
-        分割后的框架名称列表
+        List of resulting frame object names
     """
     result = model.EditFrame.DivideAtIntersections(name, 0, [])
     num = com_data(result, 0, 0)
@@ -68,16 +68,16 @@ def divide_frame_by_ratio(
     ratio: float = 1.0
 ) -> List[str]:
     """
-    按比例分割框架
+    Divide a frame by ratio
     
     Args:
-        model: SapModel 对象
-        name: 框架名称
-        num_segments: 分割段数
-        ratio: Last/First 长度比 (1.0 = 等分)
+        model: SAP2000 SapModel object
+        name: Frame name
+        num_segments: Number of segments
+        ratio: Last/First length ratio (`1.0` = equal segments)
         
     Returns:
-        分割后的框架名称列表
+        List of resulting frame object names
     """
     result = model.EditFrame.DivideByRatio(name, num_segments, ratio, [])
     names = com_data(result, 0, None)
@@ -93,31 +93,31 @@ def extend_frame(
     extend_to_name: str
 ) -> int:
     """
-    延伸框架
+    Extend a frame
     
     Args:
-        model: SapModel 对象
-        name: 框架名称
-        i_end: True 延伸 I 端，False 延伸 J 端
-        extend_to_name: 延伸到的对象名称
+        model: SAP2000 SapModel object
+        name: Frame name
+        i_end: `True` extend I end, `False` extend J end
+        extend_to_name: Target object name for extension
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditFrame.Extend(name, i_end, extend_to_name)
 
 
 def join_frame(model, name1: str, name2: str) -> str:
     """
-    连接两个框架
+    Join two frames
     
     Args:
-        model: SapModel 对象
-        name1: 第一个框架名称
-        name2: 第二个框架名称
+        model: SAP2000 SapModel object
+        name1: First frame name
+        name2: Second frame name
         
     Returns:
-        连接后的框架名称
+        Resulting frame name after join
     """
     result = model.EditFrame.Join(name1, name2)
     name = com_data(result, 0, "")
@@ -131,16 +131,16 @@ def trim_frame(
     trim_to_name: str
 ) -> int:
     """
-    修剪框架
+    Trim a frame
     
     Args:
-        model: SapModel 对象
-        name: 框架名称
-        i_end: True 修剪 I 端，False 修剪 J 端
-        trim_to_name: 修剪到的对象名称
+        model: SAP2000 SapModel object
+        name: Frame name
+        i_end: `True` trim I end, `False` trim J end
+        trim_to_name: Target object name for trim
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditFrame.Trim(name, i_end, trim_to_name)
 
@@ -152,15 +152,15 @@ def change_frame_connectivity(
     point_j: str
 ) -> int:
     """
-    修改框架连接
+    Change frame connectivity
     
     Args:
-        model: SapModel 对象
-        name: 框架名称
-        point_i: I 端点名称
-        point_j: J 端点名称
+        model: SAP2000 SapModel object
+        name: Frame name
+        point_i: I-end point name
+        point_j: J-end point name
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditFrame.ChangeConnectivity(name, point_i, point_j)

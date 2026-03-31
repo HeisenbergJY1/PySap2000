@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-time_history.py - 时程函数
+time_history.py - Time-history function helpers.
 
-SAP2000 Func.FuncTH API 封装
+Wraps the SAP2000 `Func.FuncTH` API.
 
 SAP2000 API:
-- Func.FuncTH.GetCosine / SetCosine - 余弦函数
-- Func.FuncTH.GetFromFile_1 / SetFromFile_1 - 从文件读取
-- Func.FuncTH.GetRamp / SetRamp - 斜坡函数
-- Func.FuncTH.GetSawtooth / SetSawtooth - 锯齿波函数
-- Func.FuncTH.GetSine / SetSine - 正弦函数
-- Func.FuncTH.GetTriangular / SetTriangular - 三角波函数
-- Func.FuncTH.GetUser / SetUser - 用户定义函数
-- Func.FuncTH.GetUserPeriodic / SetUserPeriodic - 用户周期函数
+- `Func.FuncTH.GetCosine` / `SetCosine` - cosine functions
+- `Func.FuncTH.GetFromFile_1` / `SetFromFile_1` - file-based definition
+- `Func.FuncTH.GetRamp` / `SetRamp` - ramp functions
+- `Func.FuncTH.GetSawtooth` / `SetSawtooth` - sawtooth functions
+- `Func.FuncTH.GetSine` / `SetSine` - sine functions
+- `Func.FuncTH.GetTriangular` / `SetTriangular` - triangular functions
+- `Func.FuncTH.GetUser` / `SetUser` - user-defined functions
+- `Func.FuncTH.GetUserPeriodic` / `SetUserPeriodic` - user-defined periodic functions
 """
 
 from typing import List, Tuple
@@ -22,74 +22,74 @@ from PySap2000.com_helper import com_ret, com_data
 
 
 # =============================================================================
-# 数据类
+# Data classes
 # =============================================================================
 
 @dataclass
 class CosineParams:
-    """余弦函数参数"""
-    period: float = 0.0         # 周期 [s]
-    steps: int = 0              # 每周期步数
-    cycles: int = 0             # 周期数
-    amplitude: float = 0.0      # 幅值
+    """Cosine function parameters."""
+    period: float = 0.0         # Period [s]
+    steps: int = 0              # Steps per period
+    cycles: int = 0             # Number of cycles
+    amplitude: float = 0.0      # Amplitude
 
 
 @dataclass
 class RampParams:
-    """斜坡函数参数"""
-    time: float = 0.0           # 斜坡时间 [s]
-    amplitude: float = 0.0      # 幅值
-    max_time: float = 0.0       # 最大时间 [s]
+    """Ramp function parameters."""
+    time: float = 0.0           # Ramp time [s]
+    amplitude: float = 0.0      # Amplitude
+    max_time: float = 0.0       # Maximum time [s]
 
 
 @dataclass
 class SawtoothParams:
-    """锯齿波函数参数"""
-    period: float = 0.0         # 周期 [s]
-    time: float = 0.0           # 上升时间 [s]
-    cycles: int = 0             # 周期数
-    amplitude: float = 0.0      # 幅值
+    """Sawtooth function parameters."""
+    period: float = 0.0         # Period [s]
+    time: float = 0.0           # Rise time [s]
+    cycles: int = 0             # Number of cycles
+    amplitude: float = 0.0      # Amplitude
 
 
 @dataclass
 class SineParams:
-    """正弦函数参数"""
-    period: float = 0.0         # 周期 [s]
-    steps: int = 0              # 每周期步数
-    cycles: int = 0             # 周期数
-    amplitude: float = 0.0      # 幅值
+    """Sine function parameters."""
+    period: float = 0.0         # Period [s]
+    steps: int = 0              # Steps per period
+    cycles: int = 0             # Number of cycles
+    amplitude: float = 0.0      # Amplitude
 
 
 @dataclass
 class TriangularParams:
-    """三角波函数参数"""
-    period: float = 0.0         # 周期 [s]
-    cycles: int = 0             # 周期数
-    amplitude: float = 0.0      # 幅值
+    """Triangular function parameters."""
+    period: float = 0.0         # Period [s]
+    cycles: int = 0             # Number of cycles
+    amplitude: float = 0.0      # Amplitude
 
 
 @dataclass
 class FromFileParams:
-    """从文件读取参数"""
-    file_name: str = ""         # 文件名
-    header_lines: int = 0       # 头部行数
-    prefix_chars: int = 0       # 前缀字符数
+    """File-based function parameters."""
+    file_name: str = ""         # File name
+    header_lines: int = 0       # Number of header lines
+    prefix_chars: int = 0       # Number of prefix characters
 
 
 # =============================================================================
-# 余弦函数
+# Cosine functions
 # =============================================================================
 
 def get_func_th_cosine(model, name: str) -> CosineParams:
     """
-    获取余弦时程函数参数
+    Get cosine time-history function parameters.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
+        model: SAP2000 SapModel object
+        name: Function name
         
     Returns:
-        CosineParams 参数对象
+        `CosineParams` instance.
     """
     result = model.Func.FuncTH.GetCosine(name, 0.0, 0, 0, 0.0)
     period = com_data(result, 0)
@@ -112,36 +112,36 @@ def set_func_th_cosine(
     amplitude: float
 ) -> int:
     """
-    设置余弦时程函数
+    Set a cosine time-history function.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
-        period: 周期 [s]
-        steps: 每周期步数
-        cycles: 周期数
-        amplitude: 幅值
+        model: SAP2000 SapModel object
+        name: Function name
+        period: Period [s]
+        steps: Steps per period
+        cycles: Number of cycles
+        amplitude: Amplitude
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Func.FuncTH.SetCosine(name, period, steps, cycles, amplitude)
 
 
 # =============================================================================
-# 从文件读取
+# File-based definitions
 # =============================================================================
 
 def get_func_th_from_file(model, name: str) -> FromFileParams:
     """
-    获取从文件读取的时程函数参数
+    Get parameters for a file-based time-history function.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
+        model: SAP2000 SapModel object
+        name: Function name
         
     Returns:
-        FromFileParams 参数对象
+        `FromFileParams` instance.
     """
     result = model.Func.FuncTH.GetFromFile_1(name, "", 0, 0)
     file_name = com_data(result, 0)
@@ -162,35 +162,35 @@ def set_func_th_from_file(
     prefix_chars: int = 0
 ) -> int:
     """
-    从文件设置时程函数
+    Set a time-history function from file data.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
-        file_name: 文件路径
-        header_lines: 头部跳过行数
-        prefix_chars: 每行前缀跳过字符数
+        model: SAP2000 SapModel object
+        name: Function name
+        file_name: File path
+        header_lines: Number of header lines to skip
+        prefix_chars: Number of prefix characters to skip per line
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Func.FuncTH.SetFromFile_1(name, file_name, header_lines, prefix_chars)
 
 
 # =============================================================================
-# 斜坡函数
+# Ramp functions
 # =============================================================================
 
 def get_func_th_ramp(model, name: str) -> RampParams:
     """
-    获取斜坡时程函数参数
+    Get ramp time-history function parameters.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
+        model: SAP2000 SapModel object
+        name: Function name
         
     Returns:
-        RampParams 参数对象
+        `RampParams` instance.
     """
     result = model.Func.FuncTH.GetRamp(name, 0.0, 0.0, 0.0)
     time = com_data(result, 0)
@@ -211,35 +211,35 @@ def set_func_th_ramp(
     max_time: float
 ) -> int:
     """
-    设置斜坡时程函数
+    Set a ramp time-history function.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
-        time: 斜坡时间 [s]
-        amplitude: 幅值
-        max_time: 最大时间 [s]
+        model: SAP2000 SapModel object
+        name: Function name
+        time: Ramp time [s]
+        amplitude: Amplitude
+        max_time: Maximum time [s]
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Func.FuncTH.SetRamp(name, time, amplitude, max_time)
 
 
 # =============================================================================
-# 锯齿波函数
+# Sawtooth functions
 # =============================================================================
 
 def get_func_th_sawtooth(model, name: str) -> SawtoothParams:
     """
-    获取锯齿波时程函数参数
+    Get sawtooth time-history function parameters.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
+        model: SAP2000 SapModel object
+        name: Function name
         
     Returns:
-        SawtoothParams 参数对象
+        `SawtoothParams` instance.
     """
     result = model.Func.FuncTH.GetSawtooth(name, 0.0, 0.0, 0, 0.0)
     period = com_data(result, 0)
@@ -262,36 +262,36 @@ def set_func_th_sawtooth(
     amplitude: float
 ) -> int:
     """
-    设置锯齿波时程函数
+    Set a sawtooth time-history function.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
-        period: 周期 [s]
-        time: 上升时间 [s]
-        cycles: 周期数
-        amplitude: 幅值
+        model: SAP2000 SapModel object
+        name: Function name
+        period: Period [s]
+        time: Rise time [s]
+        cycles: Number of cycles
+        amplitude: Amplitude
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Func.FuncTH.SetSawtooth(name, period, time, cycles, amplitude)
 
 
 # =============================================================================
-# 正弦函数
+# Sine functions
 # =============================================================================
 
 def get_func_th_sine(model, name: str) -> SineParams:
     """
-    获取正弦时程函数参数
+    Get sine time-history function parameters.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
+        model: SAP2000 SapModel object
+        name: Function name
         
     Returns:
-        SineParams 参数对象
+        `SineParams` instance.
     """
     result = model.Func.FuncTH.GetSine(name, 0.0, 0, 0, 0.0)
     period = com_data(result, 0)
@@ -314,36 +314,36 @@ def set_func_th_sine(
     amplitude: float
 ) -> int:
     """
-    设置正弦时程函数
+    Set a sine time-history function.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
-        period: 周期 [s]
-        steps: 每周期步数
-        cycles: 周期数
-        amplitude: 幅值
+        model: SAP2000 SapModel object
+        name: Function name
+        period: Period [s]
+        steps: Steps per period
+        cycles: Number of cycles
+        amplitude: Amplitude
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Func.FuncTH.SetSine(name, period, steps, cycles, amplitude)
 
 
 # =============================================================================
-# 三角波函数
+# Triangular functions
 # =============================================================================
 
 def get_func_th_triangular(model, name: str) -> TriangularParams:
     """
-    获取三角波时程函数参数
+    Get triangular time-history function parameters.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
+        model: SAP2000 SapModel object
+        name: Function name
         
     Returns:
-        TriangularParams 参数对象
+        `TriangularParams` instance.
     """
     result = model.Func.FuncTH.GetTriangular(name, 0.0, 0, 0.0)
     period = com_data(result, 0)
@@ -364,37 +364,37 @@ def set_func_th_triangular(
     amplitude: float
 ) -> int:
     """
-    设置三角波时程函数
+    Set a triangular time-history function.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
-        period: 周期 [s]
-        cycles: 周期数
-        amplitude: 幅值
+        model: SAP2000 SapModel object
+        name: Function name
+        period: Period [s]
+        cycles: Number of cycles
+        amplitude: Amplitude
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Func.FuncTH.SetTriangular(name, period, cycles, amplitude)
 
 
 # =============================================================================
-# 用户定义函数
+# User-defined functions
 # =============================================================================
 
 def get_func_th_user(model, name: str) -> Tuple[List[float], List[float]]:
     """
-    获取用户定义时程函数数据
+    Get user-defined time-history function data.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
+        model: SAP2000 SapModel object
+        name: Function name
         
     Returns:
-        (times, values) 元组
-        - times: 时间列表 [s]
-        - values: 值列表
+        Tuple `(times, values)`.
+        - `times`: list of times [s]
+        - `values`: list of values
     """
     result = model.Func.FuncTH.GetUser(name, 0, [], [])
     num = com_data(result, 0, 0)
@@ -414,38 +414,38 @@ def set_func_th_user(
     values: List[float]
 ) -> int:
     """
-    设置用户定义时程函数
+    Set a user-defined time-history function.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
-        times: 时间列表 [s]
-        values: 值列表
+        model: SAP2000 SapModel object
+        name: Function name
+        times: List of times [s]
+        values: List of values
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     num = len(times)
     return model.Func.FuncTH.SetUser(name, num, times, values)
 
 
 # =============================================================================
-# 用户周期函数
+# User-defined periodic functions
 # =============================================================================
 
 def get_func_th_user_periodic(model, name: str) -> Tuple[List[float], List[float], int]:
     """
-    获取用户周期时程函数数据
+    Get user-defined periodic time-history function data.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
+        model: SAP2000 SapModel object
+        name: Function name
         
     Returns:
-        (times, values, cycles) 元组
-        - times: 时间列表 [s]
-        - values: 值列表
-        - cycles: 周期数
+        Tuple `(times, values, cycles)`.
+        - `times`: list of times [s]
+        - `values`: list of values
+        - `cycles`: number of cycles
     """
     result = model.Func.FuncTH.GetUserPeriodic(name, 0, [], [], 0)
     num = com_data(result, 0, 0)
@@ -471,17 +471,17 @@ def set_func_th_user_periodic(
     cycles: int
 ) -> int:
     """
-    设置用户周期时程函数
+    Set a user-defined periodic time-history function.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
-        times: 时间列表 [s]
-        values: 值列表
-        cycles: 周期数
+        model: SAP2000 SapModel object
+        name: Function name
+        times: List of times [s]
+        values: List of values
+        cycles: Number of cycles
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     num = len(times)
     return model.Func.FuncTH.SetUserPeriodic(name, num, times, values, cycles)

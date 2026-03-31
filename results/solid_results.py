@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-solid_results.py - 实体单元结果函数
+solid_results.py - Solid element result helpers.
 
-SAP2000 Results API 的实体单元结果函数封装
+Wraps solid-element result functions from the SAP2000 Results API.
 
 SAP2000 API:
-- Results.SolidJointForce - 实体单元节点力
-- Results.SolidStrain - 实体单元应变
-- Results.SolidStress - 实体单元应力
+- `Results.SolidJointForce` - solid element joint forces
+- `Results.SolidStrain` - solid element strains
+- `Results.SolidStress` - solid element stresses
 """
 
 from typing import List
@@ -22,15 +22,15 @@ def get_solid_joint_force(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[SolidJointForceResult]:
     """
-    获取实体单元节点力结果
+    Get joint force results for solid elements.
     
     Args:
-        model: SapModel 对象
-        name: 实体对象名、实体元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Solid object name, solid element name, or group name
+        item_type: Element scope
             
     Returns:
-        SolidJointForceResult 列表
+        List of `SolidJointForceResult`.
     """
     result = model.Results.SolidJointForce(
         name, int(item_type),
@@ -81,15 +81,15 @@ def get_solid_strain(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[SolidStrainResult]:
     """
-    获取实体单元应变结果
+    Get strain results for solid elements.
     
     Args:
-        model: SapModel 对象
-        name: 实体对象名、实体元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Solid object name, solid element name, or group name
+        item_type: Element scope
             
     Returns:
-        SolidStrainResult 列表
+        List of `SolidStrainResult`.
     """
     result = model.Results.SolidStrain(
         name, int(item_type),
@@ -168,15 +168,15 @@ def get_solid_stress(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[SolidStressResult]:
     """
-    获取实体单元应力结果
+    Get stress results for solid elements.
     
     Args:
-        model: SapModel 对象
-        name: 实体对象名、实体元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Solid object name, solid element name, or group name
+        item_type: Element scope
             
     Returns:
-        SolidStressResult 列表
+        List of `SolidStressResult`.
     """
     result = model.Results.SolidStress(
         name, int(item_type),

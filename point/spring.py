@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-spring.py - 节点弹簧相关函数
+spring.py - Point spring helpers.
 
-用于设置节点的弹簧刚度
+Helpers for assigning and querying point spring stiffness.
 
 SAP2000 API:
 - PointObj.SetSpring(Name, k, ItemType, IsLocalCSys, Replace)
@@ -27,26 +27,26 @@ def set_point_spring(
     replace: bool = True
 ) -> int:
     """
-    设置节点弹簧刚度
+    Assign uncoupled spring stiffness to a point.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        k: 弹簧刚度 (U1, U2, U3, R1, R2, R3)
-            - U1, U2, U3: 平动刚度 [F/L]
-            - R1, R2, R3: 转动刚度 [FL/rad]
-        item_type: 项目类型
-        is_local_csys: True=使用局部坐标系, False=使用全局坐标系
-        replace: True=替换现有弹簧, False=叠加到现有弹簧
+        model: `SapModel` object
+        point_name: Point name
+        k: Spring stiffness tuple `(U1, U2, U3, R1, R2, R3)`
+            - `U1, U2, U3`: translational stiffness [F/L]
+            - `R1, R2, R3`: rotational stiffness [FL/rad]
+        item_type: Item scope
+        is_local_csys: `True` for local coordinates, `False` for global
+        replace: `True` to replace existing springs, `False` to add to them
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
-        # 设置竖向弹簧刚度 1000 kN/m
+        # Set vertical spring stiffness to 1000 kN/m
         set_point_spring(model, "1", (0, 0, 1000, 0, 0, 0))
         
-        # 设置全部 6 个自由度的弹簧
+        # Set springs for all six degrees of freedom
         set_point_spring(model, "2", (100, 100, 1000, 50, 50, 50))
     """
     k_list = list(k)
@@ -64,19 +64,19 @@ def get_point_spring(
     point_name: str
 ) -> Optional[PointSpringData]:
     """
-    获取节点弹簧刚度
+    Return uncoupled point spring stiffness.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
+        model: `SapModel` object
+        point_name: Point name
     
     Returns:
-        PointSpringData 对象，失败返回 None
+        `PointSpringData`, or `None` on failure
     
     Example:
         spring = get_point_spring(model, "1")
         if spring:
-            print(f"竖向刚度: {spring.u3}")
+            print(f"Vertical stiffness: {spring.u3}")
     """
     try:
         result = model.PointObj.GetSpring(str(point_name))
@@ -103,15 +103,15 @@ def delete_point_spring(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    删除节点弹簧
+    Delete point spring assignments.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        item_type: 项目类型
+        model: `SapModel` object
+        point_name: Point name
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
         delete_point_spring(model, "1")
@@ -128,24 +128,24 @@ def set_point_spring_coupled(
     replace: bool = True
 ) -> int:
     """
-    设置节点耦合弹簧刚度 (21个刚度系数)
-    
-    耦合弹簧考虑各自由度之间的耦合效应。
+    Assign coupled spring stiffness to a point.
+
+    Coupled springs include interaction terms between different DOFs.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        k: 21个弹簧刚度系数 (对称刚度矩阵的上三角)
+        model: `SapModel` object
+        point_name: Point name
+        k: 21 spring coefficients for the upper triangle of the symmetric matrix
             k[0] = U1-U1
             k[1] = U1-U2, k[2] = U2-U2
             k[3] = U1-U3, k[4] = U2-U3, k[5] = U3-U3
-            ... (共21个)
-        item_type: 项目类型
-        is_local_csys: 是否使用局部坐标系
-        replace: 是否替换现有弹簧
+            ... (21 terms in total)
+        item_type: Item scope
+        is_local_csys: Whether local coordinates are used
+        replace: Whether to replace existing springs
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     k_list = list(k)
     while len(k_list) < 21:
@@ -161,14 +161,14 @@ def get_point_spring_coupled(
     point_name: str
 ) -> Optional[Tuple[float, ...]]:
     """
-    获取节点耦合弹簧刚度
+    Return coupled point spring stiffness.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
+        model: `SapModel` object
+        point_name: Point name
     
     Returns:
-        21个刚度系数的元组，失败返回 None
+        Tuple of 21 stiffness coefficients, or `None` on failure
     """
     try:
         result = model.PointObj.GetSpringCoupled(str(point_name))
@@ -186,14 +186,14 @@ def is_point_spring_coupled(
     point_name: str
 ) -> bool:
     """
-    检查节点是否有耦合弹簧
+    Check whether a point has coupled springs assigned.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
+        model: `SapModel` object
+        point_name: Point name
     
     Returns:
-        True=有耦合弹簧, False=没有
+        `True` if coupled springs exist, otherwise `False`
     """
     try:
         result = model.PointObj.IsSpringCoupled(str(point_name), False)

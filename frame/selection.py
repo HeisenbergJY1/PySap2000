@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-selection.py - 杆件选择相关函数
+selection.py - Frame selection helpers.
 
-用于设置和获取杆件的选择状态
+Provides functions to set and query frame selection state.
 
 SAP2000 API:
 - FrameObj.SetSelected(Name, Selected, ItemType)
@@ -21,22 +21,22 @@ def set_frame_selected(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置杆件选择状态
+    Set the selection state of a frame object.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        selected: True=选中, False=取消选中
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        selected: `True` to select, `False` to deselect
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
-        # 选中杆件
+        # Select a frame
         set_frame_selected(model, "1", True)
         
-        # 取消选中
+        # Deselect a frame
         set_frame_selected(model, "1", False)
     """
     return model.FrameObj.SetSelected(str(frame_name), selected, int(item_type))
@@ -47,18 +47,18 @@ def get_frame_selected(
     frame_name: str
 ) -> bool:
     """
-    获取杆件选择状态
+    Get the selection state of a frame object.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        True=选中, False=未选中
+        `True` if the frame is selected, otherwise `False`.
     
     Example:
         if get_frame_selected(model, "1"):
-            print("杆件已选中")
+            print("The frame is selected")
     """
     try:
         result = model.FrameObj.GetSelected(str(frame_name), False)
@@ -76,15 +76,15 @@ def select_frame(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    选中杆件
+    Select a frame object.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
         select_frame(model, "1")
@@ -98,15 +98,15 @@ def deselect_frame(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    取消选中杆件
+    Deselect a frame object.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
         deselect_frame(model, "1")
@@ -119,14 +119,14 @@ def select_frames(
     frame_names: List[str]
 ) -> int:
     """
-    批量选中杆件
+    Select multiple frame objects.
     
     Args:
-        model: SapModel 对象
-        frame_names: 杆件名称列表
+        model: SAP2000 SapModel object
+        frame_names: List of frame object names
     
     Returns:
-        0 表示全部成功
+        `0` if all operations succeed.
     
     Example:
         select_frames(model, ["1", "2", "3"])
@@ -144,14 +144,14 @@ def deselect_frames(
     frame_names: List[str]
 ) -> int:
     """
-    批量取消选中杆件
+    Deselect multiple frame objects.
     
     Args:
-        model: SapModel 对象
-        frame_names: 杆件名称列表
+        model: SAP2000 SapModel object
+        frame_names: List of frame object names
     
     Returns:
-        0 表示全部成功
+        `0` if all operations succeed.
     
     Example:
         deselect_frames(model, ["1", "2", "3"])
@@ -169,17 +169,17 @@ def is_frame_selected(
     frame_name: str
 ) -> bool:
     """
-    检查杆件是否被选中
+    Check whether a frame object is selected.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        True=选中, False=未选中
+        `True` if selected, otherwise `False`.
     
     Example:
         if is_frame_selected(model, "1"):
-            print("杆件已选中")
+            print("The frame is selected")
     """
     return get_frame_selected(model, frame_name)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""节点相关测试"""
+"""Tests for joint (point) objects."""
 
 import pytest
 from PySap2000.structure_core import Point
@@ -13,7 +13,7 @@ pytestmark = pytest.mark.point
 
 
 class TestPointCreate:
-    """节点创建测试"""
+    """Create joints."""
 
     def test_create_single_point(self, app):
         ret = app.create_object(Point(no=10, x=0, y=0, z=0))
@@ -32,7 +32,7 @@ class TestPointCreate:
 
 
 class TestPointQuery:
-    """节点查询测试"""
+    """Query joints."""
 
     def test_get_point(self, app):
         p = app.get_object(Point(no="10"))
@@ -63,7 +63,7 @@ class TestPointQuery:
         assert count >= 4
 
     def test_get_connectivity(self, model):
-        """测试节点连接信息（需要先创建了连接到该节点的单元）"""
+        """Joint connectivity (requires elements connected to the joint)."""
         p = Point(no="10")
         conn = p.get_connectivity(model)
         assert isinstance(conn, dict)
@@ -71,7 +71,7 @@ class TestPointQuery:
 
 
 class TestPointSupport:
-    """节点支座测试"""
+    """Joint supports."""
 
     def test_set_fixed_support(self, model):
         ret = set_point_support(model, "10", PointSupportType.FIXED)
@@ -80,7 +80,7 @@ class TestPointSupport:
     def test_get_restraint(self, model):
         restraints = get_point_restraint(model, "10")
         assert restraints is not None
-        # 固定支座: 全部约束
+        # Fixed support: all DOFs restrained
         assert all(r is True for r in restraints)
 
     def test_get_support_type(self, model):
@@ -101,7 +101,7 @@ class TestPointSupport:
 
 
 class TestPointRename:
-    """节点重命名测试"""
+    """Rename joints."""
 
     def test_rename_point(self, app):
         ret = app.rename_object(Point(no="5"), "P5")
@@ -113,6 +113,6 @@ class TestPointRename:
         assert p.y == 5.0
 
     def test_rename_back(self, app):
-        """恢复原名，避免影响后续测试"""
+        """Restore original name for later tests."""
         ret = app.rename_object(Point(no="P5"), "5")
         assert ret == 0

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-steel_usage.py - 用钢量统计
+steel_usage.py - steel-usage statistics
 
-提供模型级别的用钢量统计功能，支持:
-- 计算总用钢量
-- 按截面/材料/组分组统计
-- 指定杆件子集计算
+Provides model-level steel-usage statistics with support for:
+- Calculate total steel usage
+- Grouped statistics by section/material/group
+- Compute a selected frame subset
 
-计算公式:
+Formula:
 - total = Σ(frame.weight) (kg)
 - frame.weight = weight_per_meter × length (kg)
 - weight_per_meter = area × density (kg/m)
@@ -15,20 +15,20 @@ steel_usage.py - 用钢量统计
 Usage:
     from statistics import SteelUsage, get_steel_usage
     
-    # 方式1: 使用便捷函数
+    # Method 1: use the convenience function
     total = get_steel_usage(model)
     by_section = get_steel_usage(model, group_by="section")
     
-    # 方式2: 使用 SteelUsage 类
+    # Method 2: use the `SteelUsage` class
     usage = SteelUsage.calculate(model)
-    print(f"总用钢量: {usage.total} kg")
+    print(f"Total steel usage: {usage.total} kg")
     
-    # 按截面分组
+    # Group by section
     usage = SteelUsage.calculate(model, group_by="section")
     for section, weight in usage.by_section.items():
         print(f"{section}: {weight} kg")
     
-    # 指定杆件
+    # Selected frames
     usage = SteelUsage.calculate(model, frame_names=["1", "2", "3"])
 """
 
@@ -39,13 +39,13 @@ from typing import Dict, List, Optional, Union
 @dataclass
 class SteelUsage:
     """
-    用钢量统计结果
+    Steel-usage statistics result
     
     Attributes:
-        total: 总用钢量 (kg)
-        by_section: 按截面名称分组的用钢量
-        by_material: 按材料名称分组的用钢量
-        by_group: 按 SAP2000 组名称分组的用钢量
+        total: Total steel usage (kg)
+        by_section: Steel usage grouped by section name
+        by_material: Steel usage grouped by material name
+        by_group: Steel usage grouped by SAP2000 group name
     """
     
     total: float = 0.0
@@ -61,26 +61,26 @@ class SteelUsage:
         frame_names: Optional[List[str]] = None
     ) -> 'SteelUsage':
         """
-        计算用钢量 (使用表格批量获取，速度最快)
+        Compute steel usage (batch from tables for best speed)
         
         Args:
-            model: SapModel 对象
-            group_by: 分组方式 ("section", "material", "group")
-            frame_names: 指定杆件名称列表，None 表示所有杆件
+            model: SapModel object
+            group_by: Grouping mode ("section", "material", "group")
+            frame_names: Frame names to include; `None` means all frames
             
         Returns:
-            SteelUsage 对象
+            `SteelUsage` object
         """
         from global_parameters.units import Units, UnitSystem
         
         result = cls()
         
-        # 切换到 N-m-C 单位
+        # Switch to N-m-C units
         original_units = Units.get_present_units(model)
         Units.set_present_units(model, UnitSystem.N_M_C)
         
         try:
-            # 1. 从表格批量获取杆件长度 (Connectivity - Frame)
+            # 1. Batch-read frame lengths from tables (Connectivity - Frame)
             frame_length = {}  # frame_name -> length (m)
             ret = model.DatabaseTables.GetTableForDisplayArray(
                 "Connectivity - Frame", ["Frame", "Length"], "", 0, [], 0, []
@@ -102,9 +102,9 @@ class SteelUsage:
                         if fname and length_str:
                             frame_length[fname] = float(length_str)
             
-            # 2. 从表格批量获取杆件截面和材料覆盖 (Frame Section Assignments)
+            # 2. Batch-read frame section assignments and material overrides (Frame Section Assignments)
             frame_section = {}  # frame_name -> section_name
-            frame_mat_overwrite = {}  # frame_name -> material_overwrite (非Default时有效)
+            frame_mat_overwrite = {}  # frame_name -> material_overwrite (effective when not `Default`)
             ret = model.DatabaseTables.GetTableForDisplayArray(
                 "Frame Section Assignments", ["Frame", "AnalSect", "MatProp"], "", 0, [], 0, []
             )
@@ -125,25 +125,25 @@ class SteelUsage:
                         section = data[base + section_idx]
                         if fname and section:
                             frame_section[fname] = section
-                        # 获取材料覆盖 (非Default时使用覆盖材料)
+                        # Get material override (use override material when not `Default`)
                         if matprop_idx >= 0:
                             mat_overwrite = data[base + matprop_idx]
                             if mat_overwrite and mat_overwrite != "Default":
                                 frame_mat_overwrite[fname] = mat_overwrite
             
-            # 3. 缓存: 截面 -> (面积, 材料名)
+            # 3. Cache: section -> (area, material name)
             section_cache = {}
             
-            # 4. 缓存: 材料 -> 密度
+            # 4. Cache: material -> density
             material_cache = {}
             
-            # 5. 确定要计算的杆件
+            # 5. Determine frames to include
             if frame_names is None:
                 frame_names = list(frame_length.keys())
             
             target_frames = set(frame_names) if frame_names else set()
             
-            # 6. 计算每根杆件的重量
+            # 6. Compute each frame weight
             frame_data = []  # [(name, section, material, weight), ...]
             
             for fname in target_frames:
@@ -153,25 +153,25 @@ class SteelUsage:
                 if not section_name or length_m <= 0:
                     continue
                 
-                # 获取截面信息 (带缓存)
+                # Get section info (with cache)
                 if section_name not in section_cache:
-                    # 获取截面面积
+                    # Get section area
                     ret = model.PropFrame.GetSectProps(
                         section_name, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0
                     )
                     area = ret[0] if isinstance(ret, (list, tuple)) and len(ret) >= 1 else 0.0
                     
-                    # 获取截面材料
+                    # Get section material
                     section_mat = cls._get_section_material(model, section_name)
                     section_cache[section_name] = (area, section_mat)
                 
                 area, section_mat = section_cache[section_name]
                 
-                # 优先使用材料覆盖，否则使用截面材料
+                # Prefer material override; otherwise use section material
                 mat_name = frame_mat_overwrite.get(fname, section_mat)
                 
-                # 获取材料密度 (带缓存)
+                # Get material density (with cache)
                 if mat_name and mat_name not in material_cache:
                     ret = model.PropMaterial.GetWeightAndMass(mat_name)
                     if isinstance(ret, (list, tuple)) and len(ret) >= 2:
@@ -181,14 +181,14 @@ class SteelUsage:
                 
                 density = material_cache.get(mat_name, 0.0)
                 
-                # 计算重量
+                # Compute weight
                 weight = area * density * length_m if area > 0 and density > 0 else 0.0
                 frame_data.append((fname, section_name, mat_name, weight))
             
-            # 7. 计算总用钢量
+            # 7. Calculate total steel usage
             result.total = sum(w for _, _, _, w in frame_data)
             
-            # 8. 按分组方式统计
+            # 8. Aggregate by grouping mode
             if group_by == "section":
                 for _, section, _, weight in frame_data:
                     if section not in result.by_section:
@@ -213,15 +213,15 @@ class SteelUsage:
     
     @staticmethod
     def _get_section_material(model, section_name: str) -> str:
-        """获取截面的材料名称"""
+        """Get section material name"""
         try:
-            # 先获取截面类型
+            # Get section type first
             ret = model.PropFrame.GetTypeOAPI(section_name)
             if not isinstance(ret, (list, tuple)) or len(ret) < 1:
                 return ""
             sec_type = ret[0]
             
-            # 根据类型调用对应的获取方法
+            # Call type-specific getter based on section type
             if sec_type == 8:  # RECTANGULAR
                 ret = model.PropFrame.GetRectangle(section_name)
             elif sec_type == 9:  # CIRCLE
@@ -253,7 +253,7 @@ class SteelUsage:
     
     @staticmethod
     def _group_by_group_fast(model, frame_data) -> Dict[str, float]:
-        """按组分组统计"""
+        """Group by SAP2000 group"""
         from group.group import Group
         
         result: Dict[str, float] = {}
@@ -283,28 +283,28 @@ def get_steel_usage(
     frame_names: Optional[List[str]] = None
 ) -> Union[float, Dict[str, float]]:
     """
-    获取用钢量的便捷函数
+    Convenience function to get steel usage
     
     Args:
-        model: SapModel 对象
-        group_by: 分组方式，None 返回总量，"section"/"material"/"group" 返回分组字典
-        frame_names: 指定杆件名称列表，None 表示所有杆件
+        model: SapModel object
+        group_by: Grouping mode; `None` returns total, `"section"/"material"/"group"` returns grouped dict
+        frame_names: Frame names to include; `None` means all frames
         
     Returns:
-        - 当 group_by=None 时，返回总用钢量 (float)
-        - 当 group_by 指定时，返回分组字典 (Dict[str, float])
+        - When `group_by=None`, returns total steel usage (`float`)
+        - When `group_by` is set, returns grouped dict (`Dict[str, float]`)
         
     Example:
-        # 获取总用钢量
+        # Get total steel usage
         total = get_steel_usage(model)
-        print(f"总用钢量: {total} kg")
+        print(f"Total steel usage: {total} kg")
         
-        # 按截面分组
+        # Group by section
         by_section = get_steel_usage(model, group_by="section")
         for section, weight in by_section.items():
             print(f"{section}: {weight} kg")
         
-        # 指定杆件
+        # Selected frames
         weight = get_steel_usage(model, frame_names=["1", "2"])
     """
     usage = SteelUsage.calculate(model, group_by=group_by, frame_names=frame_names)

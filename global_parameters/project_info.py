@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-project_info.py - 项目信息
-对应 SAP2000 的项目信息设置
+project_info.py - Project metadata.
+
+Wraps SAP2000 project information fields.
 
 API Reference:
     - GetProjectInfo(NumberItems, Item[], Data[]) -> Long
@@ -11,11 +12,9 @@ API Reference:
 
 Usage:
     from PySap2000.global_parameters import ProjectInfo
-    
-    # 获取所有项目信息
+
     info = ProjectInfo.get_all(model)
-    
-    # 设置项目信息
+
     ProjectInfo.set_item(model, "Company Name", "My Company")
     ProjectInfo.set_item(model, "Project Name", "Bridge Design")
 """
@@ -25,7 +24,7 @@ from typing import Dict, Optional, List
 from PySap2000.com_helper import com_ret, com_data
 
 
-# 标准项目信息字段
+# Standard SAP2000 project info field names
 STANDARD_FIELDS = [
     "Company Name",
     "Client Name", 
@@ -46,24 +45,24 @@ STANDARD_FIELDS = [
 @dataclass
 class ProjectInfo:
     """
-    项目信息数据类
-    
+    Project information container.
+
     Attributes:
-        company_name: 公司名称
-        client_name: 客户名称
-        project_name: 项目名称
-        project_number: 项目编号
-        model_name: 模型名称
-        model_description: 模型描述
-        revision_number: 版本号
-        frame_type: 结构类型
-        engineer: 工程师
-        checker: 校核人
-        supervisor: 审核人
-        issue_code: 出图编号
-        design_code: 设计规范
-        user_comment: 用户备注
-        custom_fields: 自定义字段
+        company_name: Company name
+        client_name: Client name
+        project_name: Project name
+        project_number: Project number
+        model_name: Model name
+        model_description: Model description
+        revision_number: Revision number
+        frame_type: Frame / structure type
+        engineer: Engineer
+        checker: Checker
+        supervisor: Supervisor
+        issue_code: Issue code
+        design_code: Design code
+        user_comment: User comment
+        custom_fields: Additional key-value fields not mapped above
     """
     company_name: str = ""
     client_name: str = ""
@@ -84,16 +83,14 @@ class ProjectInfo:
     @classmethod
     def get_all(cls, model) -> 'ProjectInfo':
         """
-        获取所有项目信息
-        
+        Load all project information from the model.
+
         API: GetProjectInfo(NumberItems, Item[], Data[]) -> Long
-        
+
         Returns:
-            ProjectInfo 对象
+            Populated `ProjectInfo` instance.
         """
         info = cls()
-        
-        # 获取项目信息
         result = model.GetProjectInfo(0, [], [])
         num_items = com_data(result, 0, 0)
         items = com_data(result, 1, None)
@@ -104,7 +101,7 @@ class ProjectInfo:
                 item_name = items[i]
                 item_data = data[i]
                 
-                # 映射到属性
+                # Map to attributes
                 if item_name == "Company Name":
                     info.company_name = item_data
                 elif item_name == "Client Name":
@@ -134,7 +131,7 @@ class ProjectInfo:
                 else:
                     info.custom_fields[item_name] = item_data
         
-        # 获取用户备注
+        # User comment
         try:
             result = model.GetUserComment("")
             comment = com_data(result, 0, None)
@@ -148,14 +145,14 @@ class ProjectInfo:
     @staticmethod
     def get_item(model, item_name: str) -> Optional[str]:
         """
-        获取指定项目信息
-        
+        Get a single project info field by name.
+
         Args:
-            model: SapModel 对象
-            item_name: 项目信息名称
-            
+            model: SAP2000 SapModel object
+            item_name: Field name (SAP2000 string)
+
         Returns:
-            项目信息值，不存在返回 None
+            Field value, or `None` if not found.
         """
         result = model.GetProjectInfo(0, [], [])
         num_items = com_data(result, 0, 0)
@@ -171,25 +168,25 @@ class ProjectInfo:
     @staticmethod
     def set_item(model, item_name: str, data: str) -> int:
         """
-        设置项目信息
-        
+        Set a single project info field.
+
         API: SetProjectInfo(Item, Data) -> Long
-        
+
         Args:
-            model: SapModel 对象
-            item_name: 项目信息名称
-            data: 项目信息值
-            
+            model: SAP2000 SapModel object
+            item_name: Field name
+            data: Field value
+
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         return model.SetProjectInfo(item_name, data)
     
     @staticmethod
     def get_user_comment(model) -> str:
         """
-        获取用户备注
-        
+        Get the user comment string.
+
         API: GetUserComment(Comment) -> Long
         """
         result = model.GetUserComment("")
@@ -198,18 +195,18 @@ class ProjectInfo:
     @staticmethod
     def set_user_comment(model, comment: str) -> int:
         """
-        设置用户备注
-        
+        Set the user comment string.
+
         API: SetUserComment(Comment) -> Long
         """
         return model.SetUserComment(comment)
     
     def save(self, model) -> int:
         """
-        保存项目信息到模型
-        
+        Write all non-empty fields and custom fields to the model.
+
         Returns:
-            0 表示成功
+            Last SAP2000 return code from a `Set*` call (`0` typically means success).
         """
         ret = 0
         
@@ -240,11 +237,11 @@ class ProjectInfo:
         if self.design_code:
             ret = model.SetProjectInfo("Design Code", self.design_code)
         
-        # 保存自定义字段
+        # Custom fields
         for key, value in self.custom_fields.items():
             ret = model.SetProjectInfo(key, value)
         
-        # 保存用户备注
+        # User comment
         if self.user_comment:
             ret = model.SetUserComment(self.user_comment)
         

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-point_load.py - 节点荷载
+point_load.py - Point loads
 
-包含:
-- 数据类: PointLoadForceData, PointLoadDisplData, PointLoad, PointDisplLoad
-- 函数: set_point_load_force, get_point_load_force, delete_point_load_force, ...
+Includes:
+- Dataclasses: PointLoadForceData, PointLoadDisplData
+- Functions: set_point_load_force, get_point_load_force, delete_point_load_force, ...
 
 SAP2000 API:
 - PointObj.SetLoadForce / GetLoadForce / DeleteLoadForce
@@ -12,26 +12,26 @@ SAP2000 API:
 """
 
 from dataclasses import dataclass, field
-from typing import List, Tuple, Union, ClassVar
+from typing import List, Tuple
 from enum import IntEnum
 
 from PySap2000.com_helper import com_ret, com_data
 
 
-# ==================== 枚举 ====================
+# ==================== Enums ====================
 
 class PointLoadItemType(IntEnum):
-    """荷载应用对象类型"""
-    OBJECT = 0              # 单个对象
-    GROUP = 1               # 组
-    SELECTED_OBJECTS = 2    # 选中对象
+    """Load assignment target type."""
+    OBJECT = 0              # Single object
+    GROUP = 1               # Group
+    SELECTED_OBJECTS = 2    # Selected objects
 
 
-# ==================== 数据类 ====================
+# ==================== Dataclasses ====================
 
 @dataclass
 class PointLoadForceData:
-    """节点力荷载数据 (用于 get 函数返回)"""
+    """Point force load data (returned by getter methods)."""
     point_name: str = ""
     load_pattern: str = ""
     f1: float = 0.0
@@ -46,7 +46,7 @@ class PointLoadForceData:
 
 @dataclass
 class PointLoadDisplData:
-    """节点位移荷载数据 (用于 get 函数返回)"""
+    """Point displacement load data (returned by getter methods)."""
     point_name: str = ""
     load_pattern: str = ""
     u1: float = 0.0
@@ -59,7 +59,7 @@ class PointLoadDisplData:
     lc_step: int = 0
 
 
-# ==================== 函数式 API ====================
+# ==================== Functional API ====================
 
 def set_point_load_force(
     model,
@@ -71,21 +71,21 @@ def set_point_load_force(
     item_type: PointLoadItemType = PointLoadItemType.OBJECT
 ) -> int:
     """
-    设置节点力荷载
-    
+    Set point force load.
+
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        load_pattern: 荷载模式名称 (必须已存在)
-        forces: 力和力矩 (F1, F2, F3, M1, M2, M3)
-            - F1, F2, F3: 力 [F]
-            - M1, M2, M3: 力矩 [FL]
-        replace: True=替换现有荷载, False=叠加
-        csys: 坐标系名称
-        item_type: 项目类型
+        model: SapModel object
+        point_name: Point name
+        load_pattern: Load pattern name (must already exist)
+        forces: Forces and moments `(F1, F2, F3, M1, M2, M3)`
+            - F1, F2, F3: Force [F]
+            - M1, M2, M3: Moment [FL]
+        replace: `True` replaces existing loads, `False` adds to existing loads
+        csys: Coordinate system name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
         set_point_load_force(model, "1", "Dead", (0, 0, -100, 0, 0, 0))
@@ -97,7 +97,7 @@ def set_point_load_force(
     result = model.PointObj.SetLoadForce(
         str(point_name), load_pattern, f_list[:6], replace, csys, int(item_type)
     )
-    # 解析返回值
+    # Parse return value
     return com_ret(result)
 
 
@@ -107,15 +107,15 @@ def get_point_load_force(
     item_type: PointLoadItemType = PointLoadItemType.OBJECT
 ) -> List[PointLoadForceData]:
     """
-    获取节点力荷载
-    
+    Get point force loads.
+
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        item_type: 项目类型
+        model: SapModel object
+        point_name: Point name
+        item_type: Operation scope
     
     Returns:
-        PointLoadForceData 对象列表
+        List of `PointLoadForceData` objects
     
     Example:
         loads = get_point_load_force(model, "1")
@@ -165,16 +165,16 @@ def delete_point_load_force(
     item_type: PointLoadItemType = PointLoadItemType.OBJECT
 ) -> int:
     """
-    删除节点力荷载
-    
+    Delete point force load.
+
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        load_pattern: 荷载模式名称
-        item_type: 项目类型
+        model: SapModel object
+        point_name: Point name
+        load_pattern: Load pattern name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.PointObj.DeleteLoadForce(str(point_name), load_pattern, int(item_type))
 
@@ -189,21 +189,21 @@ def set_point_load_displ(
     item_type: PointLoadItemType = PointLoadItemType.OBJECT
 ) -> int:
     """
-    设置节点位移荷载 (地面位移/支座沉降)
-    
+    Set point displacement load (ground displacement / support settlement).
+
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        load_pattern: 荷载模式名称
-        displacements: 位移和转角 (U1, U2, U3, R1, R2, R3)
-            - U1, U2, U3: 位移 [L]
-            - R1, R2, R3: 转角 [rad]
-        replace: True=替换, False=叠加
-        csys: 坐标系名称
-        item_type: 项目类型
+        model: SapModel object
+        point_name: Point name
+        load_pattern: Load pattern name
+        displacements: Displacements and rotations `(U1, U2, U3, R1, R2, R3)`
+            - U1, U2, U3: Displacement [L]
+            - R1, R2, R3: Rotation [rad]
+        replace: `True` replaces existing values, `False` accumulates
+        csys: Coordinate system name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
         set_point_load_displ(model, "1", "Settlement", (0, 0, -0.01, 0, 0, 0))
@@ -215,7 +215,7 @@ def set_point_load_displ(
     result = model.PointObj.SetLoadDispl(
         str(point_name), load_pattern, d_list[:6], replace, csys, int(item_type)
     )
-    # 解析返回值
+    # Parse return value
     return com_ret(result)
 
 
@@ -225,15 +225,15 @@ def get_point_load_displ(
     item_type: PointLoadItemType = PointLoadItemType.OBJECT
 ) -> List[PointLoadDisplData]:
     """
-    获取节点位移荷载
-    
+    Get point displacement loads.
+
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        item_type: 项目类型
+        model: SapModel object
+        point_name: Point name
+        item_type: Operation scope
     
     Returns:
-        PointLoadDisplData 对象列表
+        List of `PointLoadDisplData` objects
     """
     loads = []
     try:
@@ -278,15 +278,15 @@ def delete_point_load_displ(
     item_type: PointLoadItemType = PointLoadItemType.OBJECT
 ) -> int:
     """
-    删除节点位移荷载
-    
+    Delete point displacement load.
+
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        load_pattern: 荷载模式名称
-        item_type: 项目类型
+        model: SapModel object
+        point_name: Point name
+        load_pattern: Load pattern name
+        item_type: Operation scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.PointObj.DeleteLoadDispl(str(point_name), load_pattern, int(item_type))

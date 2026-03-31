@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-area_modifier.py - 命名面单元刚度修改器
+area_modifier.py - Named area stiffness modifiers
 
-对应 SAP2000 的 NamedAssign.ModifierArea API
+Wraps SAP2000 `NamedAssign.ModifierArea`.
 
-创建可复用的面单元刚度修改器定义，可被多个面单元引用。
+Creates reusable area stiffness modifier definitions that can be referenced by multiple area objects.
 
 SAP2000 API:
 - NamedAssign.ModifierArea.ChangeName
@@ -14,17 +14,17 @@ SAP2000 API:
 - NamedAssign.ModifierArea.GetNameList
 - NamedAssign.ModifierArea.SetModifiers
 
-修改器数组 (10个值):
-- [0] f11: 膜刚度 11
-- [1] f22: 膜刚度 22
-- [2] f12: 膜刚度 12
-- [3] m11: 弯曲刚度 11
-- [4] m22: 弯曲刚度 22
-- [5] m12: 弯曲刚度 12
-- [6] v13: 剪切刚度 13
-- [7] v23: 剪切刚度 23
-- [8] mass: 质量
-- [9] weight: 重量
+Modifier array (10 values):
+- [0] f11: Membrane stiffness 11
+- [1] f22: Membrane stiffness 22
+- [2] f12: Membrane stiffness 12
+- [3] m11: Bending stiffness 11
+- [4] m22: Bending stiffness 22
+- [5] m12: Bending stiffness 12
+- [6] v13: Shear stiffness 13
+- [7] v23: Shear stiffness 23
+- [8] mass: Mass
+- [9] weight: Weight
 """
 
 from dataclasses import dataclass
@@ -35,20 +35,20 @@ from PySap2000.com_helper import com_ret, com_data
 @dataclass
 class NamedAreaModifier:
     """
-    命名面单元刚度修改器
+    Named area stiffness modifier
     
     Attributes:
-        name: 修改器名称
-        f11: 膜刚度 11 修改系数
-        f22: 膜刚度 22 修改系数
-        f12: 膜刚度 12 修改系数
-        m11: 弯曲刚度 11 修改系数
-        m22: 弯曲刚度 22 修改系数
-        m12: 弯曲刚度 12 修改系数
-        v13: 剪切刚度 13 修改系数
-        v23: 剪切刚度 23 修改系数
-        mass: 质量修改系数
-        weight: 重量修改系数
+        name: Modifier name
+        f11: Membrane stiffness 11 modifier
+        f22: Membrane stiffness 22 modifier
+        f12: Membrane stiffness 12 modifier
+        m11: Bending stiffness 11 modifier
+        m22: Bending stiffness 22 modifier
+        m12: Bending stiffness 12 modifier
+        v13: Shear stiffness 13 modifier
+        v23: Shear stiffness 23 modifier
+        mass: Mass modifier
+        weight: Weight modifier
     """
     name: str = ""
     f11: float = 1.0
@@ -65,7 +65,7 @@ class NamedAreaModifier:
     _object_type: ClassVar[str] = "NamedAssign.ModifierArea"
     
     def to_list(self) -> List[float]:
-        """转换为 API 需要的列表格式"""
+        """Convert to the list format required by the API"""
         return [
             self.f11, self.f22, self.f12,
             self.m11, self.m22, self.m12,
@@ -75,7 +75,7 @@ class NamedAreaModifier:
     
     @classmethod
     def from_list(cls, name: str, values: List[float]) -> "NamedAreaModifier":
-        """从 API 返回的列表创建"""
+        """Build from the list returned by the API"""
         if len(values) >= 10:
             return cls(
                 name=name,
@@ -88,13 +88,13 @@ class NamedAreaModifier:
     
     def _create(self, model) -> int:
         """
-        创建或更新命名修改器
+        Create or update the named modifier
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.com_helper import com_ret
         return com_ret(model.NamedAssign.ModifierArea.SetModifiers(
@@ -103,13 +103,13 @@ class NamedAreaModifier:
     
     def _get(self, model) -> int:
         """
-        从模型获取修改器数据
+        Load modifier data from the model
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.NamedAssign.ModifierArea.GetModifiers(
             self.name, [0.0] * 10
@@ -126,27 +126,27 @@ class NamedAreaModifier:
     
     def _delete(self, model) -> int:
         """
-        删除命名修改器
+        Delete the named modifier
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.com_helper import com_ret
         return com_ret(model.NamedAssign.ModifierArea.Delete(self.name))
     
     def change_name(self, model, new_name: str) -> int:
         """
-        重命名修改器
+        Rename the modifier
         
         Args:
-            model: SapModel 对象
-            new_name: 新名称
+            model: SAP2000 SapModel object
+            new_name: New name
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.com_helper import com_ret
         ret = com_ret(model.NamedAssign.ModifierArea.ChangeName(self.name, new_name))
@@ -156,12 +156,12 @@ class NamedAreaModifier:
     
     @staticmethod
     def get_count(model) -> int:
-        """获取修改器数量"""
+        """Get the number of modifiers"""
         return model.NamedAssign.ModifierArea.Count()
     
     @staticmethod
     def get_name_list(model) -> List[str]:
-        """获取所有修改器名称"""
+        """Get all modifier names"""
         result = model.NamedAssign.ModifierArea.GetNameList(0, [])
         names = com_data(result, 1)
         if names:
@@ -170,7 +170,7 @@ class NamedAreaModifier:
     
     @classmethod
     def get_by_name(cls, model, name: str) -> Optional["NamedAreaModifier"]:
-        """按名称获取修改器"""
+        """Get a modifier by name"""
         mod = cls(name=name)
         ret = mod._get(model)
         if ret == 0:
@@ -179,7 +179,7 @@ class NamedAreaModifier:
     
     @classmethod
     def get_all(cls, model) -> List["NamedAreaModifier"]:
-        """获取所有修改器"""
+        """Get all modifiers"""
         names = cls.get_name_list(model)
         result = []
         for name in names:

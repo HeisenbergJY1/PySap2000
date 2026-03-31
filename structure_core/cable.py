@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-cable.py - 索单元数据对象
-对应 SAP2000 的 CableObj
+cable.py - Cable element data object.
+
+Maps to SAP2000 `CableObj`.
 
 API Reference:
     - AddByPoint(Point1, Point2, Name, PropName="Default", UserName="") -> Long
@@ -19,13 +20,13 @@ Usage:
     from PySap2000.structure_core import Cable, CableType
     
     with Application() as app:
-        # 通过节点创建索
+        # Create a cable by point names
         app.create_object(Cable(no=1, start_point="1", end_point="2", section="CAB1"))
         
-        # 设置索数据
+        # Set cable data
         cable.set_cable_data(model, CableType.LOW_POINT_VERTICAL_SAG, value=24)
         
-        # 获取索几何
+        # Get cable geometry
         geometry = cable.get_cable_geometry(model)
 """
 
@@ -33,70 +34,66 @@ import math
 from dataclasses import dataclass, field
 from typing import Optional, List, Union, ClassVar, Tuple
 
-from cable.enums import CableType
+from PySap2000.cable.enums import CableType
 from PySap2000.com_helper import com_ret, com_data
 
 
 @dataclass
 class CableGeometry:
     """
-    索几何数据
-    
-    从 GetCableGeometry API 返回的数据
+    Cable geometry data returned by `GetCableGeometry`.
     """
     number_points: int = 0
-    x: Tuple[float, ...] = ()  # X坐标数组 [L]
-    y: Tuple[float, ...] = ()  # Y坐标数组 [L]
-    z: Tuple[float, ...] = ()  # Z坐标数组 [L]
-    sag: Tuple[float, ...] = ()  # 垂度数组 [L]
-    distance: Tuple[float, ...] = ()  # 沿索距离数组 [L]
-    relative_distance: Tuple[float, ...] = ()  # 相对距离数组
+    x: Tuple[float, ...] = ()  # X coordinates [L]
+    y: Tuple[float, ...] = ()  # Y coordinates [L]
+    z: Tuple[float, ...] = ()  # Z coordinates [L]
+    sag: Tuple[float, ...] = ()  # Sag values [L]
+    distance: Tuple[float, ...] = ()  # Distance along cable [L]
+    relative_distance: Tuple[float, ...] = ()  # Relative distance values
 
 
 @dataclass
 class CableParameters:
     """
-    索参数数据
-    
-    从 GetCableData API 返回的 Parameter 数组
+    Cable parameter data returned by `GetCableData`.
     """
-    tension_i_end: float = 0.0           # Parameter(0): I端张力 [F]
-    tension_j_end: float = 0.0           # Parameter(1): J端张力 [F]
-    horizontal_tension: float = 0.0      # Parameter(2): 水平张力分量 [F]
-    max_deformed_sag: float = 0.0        # Parameter(3): 最大变形垂度 [L]
-    deformed_low_point_sag: float = 0.0  # Parameter(4): 变形最低点垂度 [L]
-    deformed_length: float = 0.0         # Parameter(5): 变形长度 [L]
-    deformed_relative_length: float = 0.0  # Parameter(6): 变形相对长度
-    max_undeformed_sag: float = 0.0      # Parameter(7): 最大未变形垂度 [L]
-    undeformed_low_point_sag: float = 0.0  # Parameter(8): 未变形最低点垂度 [L]
-    undeformed_length: float = 0.0       # Parameter(9): 未变形长度 [L]
-    undeformed_relative_length: float = 0.0  # Parameter(10): 未变形相对长度
+    tension_i_end: float = 0.0           # Parameter(0): I-end tension [F]
+    tension_j_end: float = 0.0           # Parameter(1): J-end tension [F]
+    horizontal_tension: float = 0.0      # Parameter(2): Horizontal tension component [F]
+    max_deformed_sag: float = 0.0        # Parameter(3): Maximum deformed sag [L]
+    deformed_low_point_sag: float = 0.0  # Parameter(4): Deformed low-point sag [L]
+    deformed_length: float = 0.0         # Parameter(5): Deformed length [L]
+    deformed_relative_length: float = 0.0  # Parameter(6): Deformed relative length
+    max_undeformed_sag: float = 0.0      # Parameter(7): Maximum undeformed sag [L]
+    undeformed_low_point_sag: float = 0.0  # Parameter(8): Undeformed low-point sag [L]
+    undeformed_length: float = 0.0       # Parameter(9): Undeformed length [L]
+    undeformed_relative_length: float = 0.0  # Parameter(10): Undeformed relative length
 
 
 @dataclass
 class Cable:
     """
-    索单元数据对象
-    
-    对应 SAP2000 的 CableObj
+    Cable element data object.
+
+    Maps to SAP2000 `CableObj`.
     
     Attributes:
-        no: 索单元编号/名称
-        start_point: 起始节点编号 (I-End)
-        end_point: 结束节点编号 (J-End)
-        section: 截面名称
-        cable_type: 索定义类型
-        tension: 张力值（根据 cable_type 使用）
+        no: Cable identifier or name
+        start_point: Start point name (I-End)
+        end_point: End point name (J-End)
+        section: Section name
+        cable_type: Cable definition type
+        tension: Tension-related value depending on `cable_type`
     """
     
-    # 必填属性
+    # Required fields
     no: Union[int, str] = None
     
-    # 通过节点定义
+    # Defined by point names
     start_point: Optional[Union[int, str]] = None
     end_point: Optional[Union[int, str]] = None
     
-    # 通过坐标定义
+    # Defined by coordinates
     start_x: Optional[float] = None
     start_y: Optional[float] = None
     start_z: Optional[float] = None
@@ -104,46 +101,46 @@ class Cable:
     end_y: Optional[float] = None
     end_z: Optional[float] = None
     
-    # 截面
+    # Section
     section: str = ""
     
-    # 索属性 (API: GetCableData/SetCableData)
+    # Cable properties (API: GetCableData/SetCableData)
     cable_type: CableType = CableType.MINIMUM_TENSION_AT_I_END
-    num_segs: int = 1  # 程序内部分段数
-    added_weight: float = 0.0  # 附加重量 [F/L]
-    projected_load: float = 0.0  # 投影均布荷载 [F/L]
-    cable_value: float = 0.0  # 定义参数值（根据 cable_type 使用）
-    use_deformed_geom: bool = False  # 是否使用变形几何
-    model_using_frames: bool = False  # 是否使用框架单元建模
+    num_segs: int = 1  # Internal segment count
+    added_weight: float = 0.0  # Added weight [F/L]
+    projected_load: float = 0.0  # Projected uniform load [F/L]
+    cable_value: float = 0.0  # Definition parameter value (depends on `cable_type`)
+    use_deformed_geom: bool = False  # Whether to use deformed geometry
+    model_using_frames: bool = False  # Whether to model using frame elements
     
-    # 索参数（只读，从 GetCableData 获取）
+    # Cable parameters (read-only, from `GetCableData`)
     parameters: Optional[CableParameters] = None
     
-    # 可选属性
+    # Optional fields
     coordinate_system: str = "Global"
     comment: str = ""
     guid: Optional[str] = None
     
-    # 只读属性
+    # Read-only fields
     length: Optional[float] = field(default=None, repr=False)
     
-    # 类属性
+    # Class attributes
     _object_type: ClassVar[str] = "CableObj"
     
     def _create(self, model) -> int:
         """
-        在 SAP2000 中创建索单元
+        Create cable object in SAP2000.
         
-        API (节点): AddByPoint(Point1, Point2, Name, PropName, UserName)
-        API (坐标): AddByCoord(xi, yi, zi, xj, yj, zj, Name, PropName, UserName, CSys)
+        API (point names): AddByPoint(Point1, Point2, Name, PropName, UserName)
+        API (coordinates): AddByCoord(xi, yi, zi, xj, yj, zj, Name, PropName, UserName, CSys)
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         user_name = str(self.no) if self.no is not None else ""
         section = self.section if self.section else "Default"
 
-        # 检查索单元是否已存在
+        # Check whether cable object already exists
         if user_name:
             from PySap2000.logger import get_logger
             _log = get_logger("cable")
@@ -155,12 +152,12 @@ class Cable:
             except Exception:
                 pass
 
-        # 通过坐标创建
+        # Create by coordinates
         if self.start_x is not None and self.end_x is not None:
             result = model.CableObj.AddByCoord(
                 self.start_x, self.start_y or 0, self.start_z or 0,
                 self.end_x, self.end_y or 0, self.end_z or 0,
-                "",  # Name - 由程序返回
+                "",  # Name - returned by SAP2000
                 section,  # PropName
                 user_name,  # UserName
                 self.coordinate_system  # CSys
@@ -171,13 +168,13 @@ class Cable:
                 self.no = assigned_name
             return com_ret(result)
         
-        # 通过节点创建
+        # Create by point names
         if self.start_point is not None and self.end_point is not None:
             # API: AddByPoint(Point1, Point2, Name, PropName, UserName)
             result = model.CableObj.AddByPoint(
                 str(self.start_point),  # Point1
                 str(self.end_point),    # Point2
-                "",                      # Name - 由程序返回
+                "",                      # Name - returned by SAP2000
                 section,                 # PropName
                 user_name                # UserName
             )
@@ -192,14 +189,14 @@ class Cable:
     
     def _get(self, model) -> 'Cable':
         """
-        从 SAP2000 获取索单元数据
+        Fetch cable-object data from SAP2000.
         
         API: GetPoints(Name, Point1, Point2) -> (Point1, Point2, ret)
         API: GetProperty(Name, PropName) -> (PropName, ret)
         """
         no_str = str(self.no)
         
-        # 获取端点
+        # Get endpoints
         # API: GetPoints(Name, Point1, Point2) -> (Point1, Point2, ret)
         result = model.CableObj.GetPoints(no_str)
         self.start_point = com_data(result, 0)
@@ -210,30 +207,30 @@ class Cable:
             from PySap2000.exceptions import CableError
             raise CableError(f"Failed to get endpoints for Cable '{no_str}', ret={ret}")
         
-        # 获取截面
+        # Get section
         result = model.CableObj.GetProperty(no_str)
         section = com_data(result, 0)
         if section is not None:
             self.section = section
         
-        # 获取索数据
+        # Get cable data
         self._get_cable_data(model)
         
-        # 获取 GUID
+        # Get GUID
         self._get_guid(model)
         
-        # 计算长度
+        # Compute length
         self._calculate_length(model)
         
         return self
     
     def _get_cable_data(self, model):
         """
-        获取索数据
+        Get cable data
         
         API: GetCableData(Name, CableType, NumSegs, Weight, ProjectedLoad, 
                           UseDeformedGeom, ModelUsingFrames, Parameter[])
-        返回: (CableType, NumSegs, Weight, ProjectedLoad, UseDeformedGeom, 
+        Returns: (CableType, NumSegs, Weight, ProjectedLoad, UseDeformedGeom, 
                ModelUsingFrames, Parameter[], ret)
         """
         try:
@@ -246,7 +243,7 @@ class Cable:
                 self.use_deformed_geom = com_data(result, 4)
                 self.model_using_frames = com_data(result, 5)
                 
-                # 解析参数数组
+                # Parse parameter array
                 params = com_data(result, 6)
                 if params and len(params) >= 11:
                     self.parameters = CableParameters(
@@ -266,7 +263,7 @@ class Cable:
             pass
     
     def _get_guid(self, model):
-        """获取 GUID"""
+        """Get GUID"""
         try:
             result = model.CableObj.GetGUID(str(self.no))
             guid = com_data(result, 0)
@@ -276,7 +273,7 @@ class Cable:
             pass
     
     def _calculate_length(self, model):
-        """计算索长度"""
+        """Compute cable length."""
         try:
             from PySap2000.structure_core.point import Point
             p1 = Point(no=self.start_point)._get(model)
@@ -290,7 +287,7 @@ class Cable:
     
     @classmethod
     def _get_all(cls, model, nos: List = None) -> List['Cable']:
-        """获取所有索单元或指定索单元"""
+        """Get all cable objects or specified cable objects"""
         if nos is None:
             nos = cls.get_name_list(model)
         
@@ -303,19 +300,19 @@ class Cable:
         return cables
     
     def _delete(self, model) -> int:
-        """从 SAP2000 删除索单元"""
+        """Delete cable object from SAP2000"""
         return model.CableObj.Delete(str(self.no))
 
     def change_name(self, model, new_name: str) -> int:
         """
-        更改索单元名称
+        Change cable-object name
 
         Args:
-            model: SapModel 对象
-            new_name: 新名称
+            model: SapModel object
+            new_name: New name
 
         Returns:
-            0 表示成功
+            `0` on success
         """
         ret = model.CableObj.ChangeName(str(self.no), new_name)
         if ret == 0:
@@ -323,7 +320,7 @@ class Cable:
         return ret
     
     def _update(self, model) -> int:
-        """更新索单元属性"""
+        """Update cable-object properties"""
         from PySap2000.logger import get_logger
         _log = get_logger("cable")
         no_str = str(self.no)
@@ -338,12 +335,12 @@ class Cable:
             ret = model.CableObj.SetProperty(no_str, self.section)
         return ret
     
-    # ==================== 静态方法 ====================
+    # ==================== Static methods ====================
     
     @staticmethod
     def get_count(model) -> int:
         """
-        获取索单元总数
+        Get total number of cable objects
         
         API: Count() -> Long
         """
@@ -352,7 +349,7 @@ class Cable:
     @staticmethod
     def get_name_list(model) -> List[str]:
         """
-        获取所有索单元名称列表
+        Get all cable-object names
         
         API: GetNameList() -> (NumberNames, MyName[], ret)
         """
@@ -365,7 +362,7 @@ class Cable:
     
     @staticmethod
     def get_section_name_list(model) -> List[str]:
-        """获取所有索截面名称列表"""
+        """Get all cable section names."""
         result = model.PropCable.GetNameList(0, [])
         count = com_data(result, 0, 0)
         names = com_data(result, 1)
@@ -373,15 +370,15 @@ class Cable:
             return list(names)
         return []
     
-    # ==================== 实例方法 ====================
+    # ==================== Instance methods ====================
     
     def set_section(self, model, section_name: str) -> int:
-        """设置截面"""
+        """Set section."""
         self.section = section_name
         return model.CableObj.SetProperty(str(self.no), section_name)
     
     def set_guid(self, model, guid: str) -> int:
-        """设置 GUID"""
+        """Set GUID"""
         self.guid = guid
         return model.CableObj.SetGUID(str(self.no), guid)
     
@@ -397,33 +394,33 @@ class Cable:
         model_using_frames: bool = None
     ) -> int:
         """
-        设置索数据
+        Set cable data
         
         API: SetCableData(Name, CableType, NumSegs, Weight, ProjectedLoad, 
                           Value, UseDeformedGeom, ModelUsingFrames) -> Long
         
         Args:
-            model: SapModel 对象
-            cable_type: 索定义类型
-            num_segs: 内部分段数
-            weight: 附加重量 [F/L]
-            projected_load: 投影均布荷载 [F/L]
-            value: 定义参数值，含义取决于 cable_type:
-                   - CableType 1,2: 不使用
-                   - CableType 3: I端张力 [F]
-                   - CableType 4: J端张力 [F]
-                   - CableType 5: 水平张力分量 [F]
-                   - CableType 6: 最大垂直垂度 [L]
-                   - CableType 7: 最低点垂直垂度 [L]
-                   - CableType 8: 未变形长度 [L]
-                   - CableType 9: 相对未变形长度
-            use_deformed_geom: 是否使用变形几何
-            model_using_frames: 是否使用框架单元建模
+            model: SapModel object
+            cable_type: Cable definition type
+            num_segs: Internal segment count
+            weight: Added weight [F/L]
+            projected_load: Projected uniform load [F/L]
+            value: Definition parameter value; meaning depends on `cable_type`:
+                   - CableType 1,2: unused
+                   - CableType 3: I-end tension [F]
+                   - CableType 4: J-end tension [F]
+                   - CableType 5: horizontal tension component [F]
+                   - CableType 6: maximum vertical sag [L]
+                   - CableType 7: lowest-point vertical sag [L]
+                   - CableType 8: undeformed length [L]
+                   - CableType 9: Relative undeformed length
+            use_deformed_geom: Whether to use deformed geometry
+            model_using_frames: Whether to model using frame elements
             
         Returns:
-            0 表示成功
+            `0` on success
         """
-        # 使用当前值或默认值
+        # Use current value or default
         if cable_type is not None:
             self.cable_type = cable_type
         if num_segs is not None:
@@ -452,10 +449,10 @@ class Cable:
     
     def get_cable_data(self, model) -> Optional[CableParameters]:
         """
-        获取索数据
+        Get cable data
         
         Returns:
-            CableParameters 对象，包含所有索参数
+            `CableParameters` object containing all cable parameters
         """
         self._get_cable_data(model)
         return self.parameters
@@ -466,17 +463,17 @@ class Cable:
         csys: str = "Global"
     ) -> Optional[CableGeometry]:
         """
-        获取索几何数据
+        Get cable geometry data
         
         API: GetCableGeometry(Name, NumberPoints, x[], y[], z[], 
                               Sag[], Dist[], RD[], CSys) -> Long
         
         Args:
-            model: SapModel 对象
-            csys: 坐标系名称
+            model: SapModel object
+            csys: Coordinate-system name
             
         Returns:
-            CableGeometry 对象
+            `CableGeometry` object
         """
         try:
             result = model.CableObj.GetCableGeometry(str(self.no), csys)

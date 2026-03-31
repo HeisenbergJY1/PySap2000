@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-constraint.py - 节点约束相关函数
+constraint.py - Point constraint helpers.
 
-用于设置节点的刚性约束 (如刚性隔板 Diaphragm)
+Helpers for assigning rigid point constraints such as diaphragms.
 
 SAP2000 API:
 - PointObj.SetConstraint / GetConstraint / DeleteConstraint
 
-注意: 这里的 Constraint 是指 SAP2000 中的 Joint Constraint (如 Diaphragm, Body 等)，
-不是支座约束 (Restraint)。
+Note:
+    `Constraint` here means a SAP2000 joint constraint such as `Diaphragm`
+    or `Body`, not a support restraint.
 """
 
 from typing import List
@@ -25,30 +26,30 @@ def set_point_constraint(
     replace: bool = True
 ) -> int:
     """
-    设置节点约束 (如刚性隔板)
-    
-    将节点分配到已定义的约束中。约束必须先通过 SAP2000 界面或 API 定义。
-    
-    常见约束类型:
-    - Diaphragm: 刚性隔板，约束平面内平动和转动
-    - Body: 刚体约束，约束所有自由度
-    - Equal: 等位移约束
+    Assign a joint constraint to a point.
+
+    The target constraint must already be defined in SAP2000.
+
+    Common constraint types:
+    - `Diaphragm`: restrains in-plane translation and rotation
+    - `Body`: rigid-body constraint across all DOFs
+    - `Equal`: equal-displacement constraint
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        constraint_name: 约束名称 (必须已定义)
-        item_type: 项目类型
-        replace: True=替换所有现有约束, False=添加到现有约束
+        model: `SapModel` object
+        point_name: Point name
+        constraint_name: Constraint name, which must already exist
+        item_type: Item scope
+        replace: `True` to replace all existing constraints, `False` to append
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
-        # 将节点分配到刚性隔板 "Diaph1"
+        # Assign a point to diaphragm "Diaph1"
         set_point_constraint(model, "1", "Diaph1")
         
-        # 将多个节点分配到同一隔板
+        # Assign multiple points to the same diaphragm
         for name in ["1", "2", "3", "4"]:
             set_point_constraint(model, name, "Diaph1")
     """
@@ -63,20 +64,20 @@ def get_point_constraint(
     item_type: ItemType = ItemType.OBJECT
 ) -> List[PointConstraintAssignment]:
     """
-    获取节点约束分配
+    Return all constraint assignments for a point.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        item_type: 项目类型
+        model: `SapModel` object
+        point_name: Point name
+        item_type: Item scope
     
     Returns:
-        PointConstraintAssignment 对象列表
+        List of `PointConstraintAssignment` objects
     
     Example:
         constraints = get_point_constraint(model, "1")
         for c in constraints:
-            print(f"节点 {c.point_name} 属于约束 {c.constraint_name}")
+            print(f"Point {c.point_name} belongs to constraint {c.constraint_name}")
     """
     assignments = []
     try:
@@ -103,15 +104,15 @@ def delete_point_constraint(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    删除节点的所有约束分配
+    Delete all constraint assignments from a point.
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
-        item_type: 项目类型
+        model: `SapModel` object
+        point_name: Point name
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
         delete_point_constraint(model, "1")
@@ -124,28 +125,28 @@ def get_points_in_constraint(
     constraint_name: str
 ) -> List[str]:
     """
-    获取属于指定约束的所有节点
+    Return all points assigned to a specific constraint.
     
     Args:
-        model: SapModel 对象
-        constraint_name: 约束名称
+        model: `SapModel` object
+        constraint_name: Constraint name
     
     Returns:
-        节点名称列表
+        List of point names
     
     Example:
         points = get_points_in_constraint(model, "Diaph1")
-        print(f"隔板 Diaph1 包含 {len(points)} 个节点")
+        print(f"Diaphragm Diaph1 contains {len(points)} points")
     """
     points_in_constraint = []
     
-    # 获取所有节点
+    # Get all point names.
     result = model.PointObj.GetNameList(0, [])
     names = com_data(result, 1)
     if not names:
         return points_in_constraint
     
-    # 检查每个节点
+    # Check each point for the requested constraint.
     for name in names:
         constraints = get_point_constraint(model, name)
         for c in constraints:

@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-func_common.py - 函数通用管理
+func_common.py - Common function management helpers.
 
-SAP2000 Func API 封装
+Wraps common management operations in the SAP2000 `Func` API.
 
 SAP2000 API:
-- Func.ChangeName - 修改名称
-- Func.ConvertToUser - 转换为用户定义
-- Func.Count - 函数数量
-- Func.Delete - 删除函数
-- Func.GetNameList - 获取名称列表
-- Func.GetTypeOAPI - 获取函数类型
-- Func.GetValues - 获取函数值
+- `Func.ChangeName` - rename a function
+- `Func.ConvertToUser` - convert to a user-defined function
+- `Func.Count` - count functions
+- `Func.Delete` - delete a function
+- `Func.GetNameList` - get the function name list
+- `Func.GetTypeOAPI` - get the function type
+- `Func.GetValues` - get function values
 """
 
 from typing import List, Tuple
@@ -22,59 +22,59 @@ from PySap2000.com_helper import com_ret, com_data
 
 class FuncType(IntEnum):
     """
-    函数类型
-    
-    SAP2000 API: eFuncType
+    Function type.
+
+    SAP2000 API: `eFuncType`
     """
-    RESPONSE_SPECTRUM = 0       # 反应谱
-    TIME_HISTORY = 1            # 时程
-    POWER_SPECTRAL_DENSITY = 2  # 功率谱密度
-    STEADY_STATE = 3            # 稳态
+    RESPONSE_SPECTRUM = 0       # Response spectrum
+    TIME_HISTORY = 1            # Time history
+    POWER_SPECTRAL_DENSITY = 2  # Power spectral density
+    STEADY_STATE = 3            # Steady state
 
 
 # =============================================================================
-# 函数管理
+# Function management
 # =============================================================================
 
 def change_func_name(model, old_name: str, new_name: str) -> int:
     """
-    修改函数名称
+    Rename a function.
     
     Args:
-        model: SapModel 对象
-        old_name: 原名称
-        new_name: 新名称
+        model: SAP2000 SapModel object
+        old_name: Existing name
+        new_name: New name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Func.ChangeName(old_name, new_name)
 
 
 def convert_func_to_user(model, name: str) -> int:
     """
-    将函数转换为用户定义类型
+    Convert a function to a user-defined type.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
+        model: SAP2000 SapModel object
+        name: Function name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Func.ConvertToUser(name)
 
 
 def get_func_count(model, func_type: FuncType = None) -> int:
     """
-    获取函数数量
+    Get the number of functions.
     
     Args:
-        model: SapModel 对象
-        func_type: 函数类型，None 表示所有类型
+        model: SAP2000 SapModel object
+        func_type: Function type, or `None` for all types
         
     Returns:
-        函数数量
+        Function count.
     """
     if func_type is None:
         result = model.Func.Count()
@@ -87,28 +87,28 @@ def get_func_count(model, func_type: FuncType = None) -> int:
 
 def delete_func(model, name: str) -> int:
     """
-    删除函数
+    Delete a function.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
+        model: SAP2000 SapModel object
+        name: Function name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Func.Delete(name)
 
 
 def get_func_name_list(model, func_type: FuncType = None) -> List[str]:
     """
-    获取函数名称列表
+    Get the list of function names.
     
     Args:
-        model: SapModel 对象
-        func_type: 函数类型，None 表示所有类型
+        model: SAP2000 SapModel object
+        func_type: Function type, or `None` for all types
         
     Returns:
-        函数名称列表
+        List of function names.
     """
     if func_type is None:
         result = model.Func.GetNameList(0, [])
@@ -123,14 +123,14 @@ def get_func_name_list(model, func_type: FuncType = None) -> List[str]:
 
 def get_func_type(model, name: str) -> FuncType:
     """
-    获取函数类型
+    Get the type of a function.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
+        model: SAP2000 SapModel object
+        name: Function name
         
     Returns:
-        函数类型
+        `FuncType`.
     """
     result = model.Func.GetTypeOAPI(name, 0, 0)
     type_val = com_data(result, 0)
@@ -141,14 +141,14 @@ def get_func_type(model, name: str) -> FuncType:
 
 def get_func_values(model, name: str) -> Tuple[List[float], List[float]]:
     """
-    获取函数值
+    Get function values.
     
     Args:
-        model: SapModel 对象
-        name: 函数名称
+        model: SAP2000 SapModel object
+        name: Function name
         
     Returns:
-        (x_values, y_values) 元组
+        Tuple `(x_values, y_values)`.
     """
     result = model.Func.GetValues(name, 0, [], [])
     num = com_data(result, 0, 0)

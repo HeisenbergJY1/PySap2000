@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-enums.py - 分析结果枚举
+enums.py - Analysis result enums.
 
-SAP2000 Analysis Results API 的枚举定义
+Enum definitions for the SAP2000 Analysis Results API.
 """
 
 from enum import IntEnum
@@ -10,17 +10,17 @@ from enum import IntEnum
 
 class ItemTypeElm(IntEnum):
     """
-    结果请求的元素类型
-    
-    SAP2000 API: eItemTypeElm
-    
-    用于指定结果请求的范围：
-    - OBJECT_ELM: 请求指定对象对应的元素结果
-    - ELEMENT: 请求指定元素的结果
-    - GROUP_ELM: 请求组内所有元素的结果
-    - SELECTION_ELM: 请求所有选中元素的结果
+    Element scope for a result request.
+
+    SAP2000 API: `eItemTypeElm`
+
+    Used to define the scope of a result query:
+    - `OBJECT_ELM`: request results for elements associated with the object
+    - `ELEMENT`: request results for the specified element
+    - `GROUP_ELM`: request results for all elements in a group
+    - `SELECTION_ELM`: request results for all selected elements
     """
-    OBJECT_ELM = 0      # 对象对应的元素
-    ELEMENT = 1         # 指定元素
-    GROUP_ELM = 2       # 组内元素
-    SELECTION_ELM = 3   # 选中元素
+    OBJECT_ELM = 0      # Elements associated with the object
+    ELEMENT = 1         # Specific element
+    GROUP_ELM = 2       # Elements in a group
+    SELECTION_ELM = 3   # Selected elements

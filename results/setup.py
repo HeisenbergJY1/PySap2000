@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-setup.py - 分析结果输出设置
+setup.py - Analysis result output settings.
 
-SAP2000 Results.Setup API 的函数封装
+Function wrappers for the SAP2000 `Results.Setup` API.
 
 SAP2000 API:
 - Results.Setup.DeselectAllCasesAndCombosForOutput
@@ -28,16 +28,16 @@ from PySap2000.com_helper import com_ret, com_data
 
 def deselect_all_cases_and_combos(model) -> int:
     """
-    取消选择所有工况和组合用于输出
-    
-    在获取结果前，通常先调用此函数清除所有选择，
-    然后再选择需要的工况或组合。
+    Deselect all cases and combinations for output.
+
+    This is commonly called before querying results so the caller can select
+    only the required cases or combinations.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        0 表示成功
+        `0` if successful.
         
     Example:
         deselect_all_cases_and_combos(model)
@@ -49,15 +49,15 @@ def deselect_all_cases_and_combos(model) -> int:
 
 def set_case_selected_for_output(model, case_name: str, selected: bool = True) -> int:
     """
-    设置工况是否选择用于输出
+    Set whether a case is selected for output.
     
     Args:
-        model: SapModel 对象
-        case_name: 工况名称
-        selected: True 选择，False 取消选择
+        model: SAP2000 SapModel object
+        case_name: Case name
+        selected: `True` to select, `False` to deselect
         
     Returns:
-        0 表示成功
+        `0` if successful.
         
     Example:
         set_case_selected_for_output(model, "DEAD", True)
@@ -68,14 +68,14 @@ def set_case_selected_for_output(model, case_name: str, selected: bool = True) -
 
 def get_case_selected_for_output(model, case_name: str) -> bool:
     """
-    获取工况是否被选择用于输出
+    Get whether a case is selected for output.
     
     Args:
-        model: SapModel 对象
-        case_name: 工况名称
+        model: SAP2000 SapModel object
+        case_name: Case name
         
     Returns:
-        True 表示已选择，False 表示未选择
+        `True` if selected, otherwise `False`.
     """
     result = model.Results.Setup.GetCaseSelectedForOutput(case_name, False)
     return bool(com_data(result, 0, False))
@@ -83,15 +83,15 @@ def get_case_selected_for_output(model, case_name: str) -> bool:
 
 def set_combo_selected_for_output(model, combo_name: str, selected: bool = True) -> int:
     """
-    设置组合是否选择用于输出
+    Set whether a combination is selected for output.
     
     Args:
-        model: SapModel 对象
-        combo_name: 组合名称
-        selected: True 选择，False 取消选择
+        model: SAP2000 SapModel object
+        combo_name: Combination name
+        selected: `True` to select, `False` to deselect
         
     Returns:
-        0 表示成功
+        `0` if successful.
         
     Example:
         set_combo_selected_for_output(model, "COMB1", True)
@@ -101,14 +101,14 @@ def set_combo_selected_for_output(model, combo_name: str, selected: bool = True)
 
 def get_combo_selected_for_output(model, combo_name: str) -> bool:
     """
-    获取组合是否被选择用于输出
+    Get whether a combination is selected for output.
     
     Args:
-        model: SapModel 对象
-        combo_name: 组合名称
+        model: SAP2000 SapModel object
+        combo_name: Combination name
         
     Returns:
-        True 表示已选择，False 表示未选择
+        `True` if selected, otherwise `False`.
     """
     result = model.Results.Setup.GetComboSelectedForOutput(combo_name, False)
     return bool(com_data(result, 0, False))
@@ -116,14 +116,14 @@ def get_combo_selected_for_output(model, combo_name: str) -> bool:
 
 def select_cases_for_output(model, case_names: List[str]) -> int:
     """
-    便捷函数：清除所有选择并选择指定工况
+    Convenience helper that clears all selections and selects the given cases.
     
     Args:
-        model: SapModel 对象
-        case_names: 工况名称列表
+        model: SAP2000 SapModel object
+        case_names: List of case names
         
     Returns:
-        0 表示成功
+        `0` if successful.
         
     Example:
         select_cases_for_output(model, ["DEAD", "LIVE"])
@@ -140,14 +140,14 @@ def select_cases_for_output(model, case_names: List[str]) -> int:
 
 def select_combos_for_output(model, combo_names: List[str]) -> int:
     """
-    便捷函数：清除所有选择并选择指定组合
+    Convenience helper that clears all selections and selects the given combinations.
     
     Args:
-        model: SapModel 对象
-        combo_names: 组合名称列表
+        model: SAP2000 SapModel object
+        combo_names: List of combination names
         
     Returns:
-        0 表示成功
+        `0` if successful.
         
     Example:
         select_combos_for_output(model, ["COMB1", "COMB2"])
@@ -163,18 +163,18 @@ def select_combos_for_output(model, combo_names: List[str]) -> int:
 
 
 # =============================================================================
-# 基底反力位置选项
+# Base reaction location options
 # =============================================================================
 
 def get_option_base_react_loc(model) -> Tuple[float, float, float]:
     """
-    获取基底反力报告位置
+    Get the reporting location for base reactions.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        (gx, gy, gz) 全局坐标
+        Tuple `(gx, gy, gz)` in global coordinates.
     """
     result = model.Results.Setup.GetOptionBaseReactLoc(0.0, 0.0, 0.0)
     return (
@@ -186,33 +186,33 @@ def get_option_base_react_loc(model) -> Tuple[float, float, float]:
 
 def set_option_base_react_loc(model, gx: float, gy: float, gz: float) -> int:
     """
-    设置基底反力报告位置
+    Set the reporting location for base reactions.
     
     Args:
-        model: SapModel 对象
-        gx: 全局X坐标
-        gy: 全局Y坐标
-        gz: 全局Z坐标
+        model: SAP2000 SapModel object
+        gx: Global X coordinate
+        gy: Global Y coordinate
+        gz: Global Z coordinate
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Results.Setup.SetOptionBaseReactLoc(gx, gy, gz)
 
 
 # =============================================================================
-# 屈曲模态选项
+# Buckling mode options
 # =============================================================================
 
 def get_option_buckling_mode(model) -> int:
     """
-    获取屈曲模态结果选项
+    Get the buckling mode result option.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        屈曲模态号 (1-based)
+        Buckling mode number (1-based).
     """
     result = model.Results.Setup.GetOptionBucklingMode(0)
     return com_data(result, 0, 1)
@@ -220,34 +220,34 @@ def get_option_buckling_mode(model) -> int:
 
 def set_option_buckling_mode(model, buckling_mode_num: int) -> int:
     """
-    设置屈曲模态结果选项
+    Set the buckling mode result option.
     
     Args:
-        model: SapModel 对象
-        buckling_mode_num: 屈曲模态号 (1-based)
+        model: SAP2000 SapModel object
+        buckling_mode_num: Buckling mode number (1-based)
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Results.Setup.SetOptionBucklingMode(buckling_mode_num)
 
 
 # =============================================================================
-# 直接积分时程选项
+# Direct-history options
 # =============================================================================
 
 def get_option_direct_hist(model) -> int:
     """
-    获取直接积分时程分析结果选项
+    Get the direct-integration time-history result option.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        选项值:
-        1 = Envelopes (包络)
-        2 = Step-by-Step (逐步)
-        3 = Last Step (最后一步)
+        Option value:
+        `1` = Envelopes
+        `2` = Step-by-Step
+        `3` = Last Step
     """
     result = model.Results.Setup.GetOptionDirectHist(0)
     return com_data(result, 0, 1)
@@ -255,37 +255,37 @@ def get_option_direct_hist(model) -> int:
 
 def set_option_direct_hist(model, value: int) -> int:
     """
-    设置直接积分时程分析结果选项
+    Set the direct-integration time-history result option.
     
     Args:
-        model: SapModel 对象
-        value: 选项值
-            1 = Envelopes (包络)
-            2 = Step-by-Step (逐步)
-            3 = Last Step (最后一步)
+        model: SAP2000 SapModel object
+        value: Option value
+            `1` = Envelopes
+            `2` = Step-by-Step
+            `3` = Last Step
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Results.Setup.SetOptionDirectHist(value)
 
 
 # =============================================================================
-# 模态时程选项
+# Modal-history options
 # =============================================================================
 
 def get_option_modal_hist(model) -> int:
     """
-    获取模态时程分析结果选项
+    Get the modal time-history result option.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        选项值:
-        1 = Envelopes (包络)
-        2 = Step-by-Step (逐步)
-        3 = Last Step (最后一步)
+        Option value:
+        `1` = Envelopes
+        `2` = Step-by-Step
+        `3` = Last Step
     """
     result = model.Results.Setup.GetOptionModalHist(0)
     return com_data(result, 0, 1)
@@ -293,34 +293,34 @@ def get_option_modal_hist(model) -> int:
 
 def set_option_modal_hist(model, value: int) -> int:
     """
-    设置模态时程分析结果选项
+    Set the modal time-history result option.
     
     Args:
-        model: SapModel 对象
-        value: 选项值
-            1 = Envelopes (包络)
-            2 = Step-by-Step (逐步)
-            3 = Last Step (最后一步)
+        model: SAP2000 SapModel object
+        value: Option value
+            `1` = Envelopes
+            `2` = Step-by-Step
+            `3` = Last Step
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Results.Setup.SetOptionModalHist(value)
 
 
 # =============================================================================
-# 振型选项
+# Mode-shape options
 # =============================================================================
 
 def get_option_mode_shape(model) -> Tuple[int, int]:
     """
-    获取振型结果选项
+    Get the mode-shape result option.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        (mode_num, run_case_num) 振型号和运行工况号
+        Tuple `(mode_num, run_case_num)`.
     """
     result = model.Results.Setup.GetOptionModeShape(0, 0)
     return (com_data(result, 0, 1), com_data(result, 1, 1))
@@ -328,35 +328,35 @@ def get_option_mode_shape(model) -> Tuple[int, int]:
 
 def set_option_mode_shape(model, mode_num: int, run_case_num: int = 1) -> int:
     """
-    设置振型结果选项
+    Set the mode-shape result option.
     
     Args:
-        model: SapModel 对象
-        mode_num: 振型号 (1-based)
-        run_case_num: 运行工况号 (1-based)
+        model: SAP2000 SapModel object
+        mode_num: Mode number (1-based)
+        run_case_num: Run-case number (1-based)
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Results.Setup.SetOptionModeShape(mode_num, run_case_num)
 
 
 # =============================================================================
-# 多步静力选项
+# Multi-step static options
 # =============================================================================
 
 def get_option_multi_step_static(model) -> int:
     """
-    获取多步静力分析结果选项
+    Get the multi-step static result option.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        选项值:
-        1 = Envelopes (包络)
-        2 = Step-by-Step (逐步)
-        3 = Last Step (最后一步)
+        Option value:
+        `1` = Envelopes
+        `2` = Step-by-Step
+        `3` = Last Step
     """
     result = model.Results.Setup.GetOptionMultiStepStatic(0)
     return com_data(result, 0, 1)
@@ -364,37 +364,37 @@ def get_option_multi_step_static(model) -> int:
 
 def set_option_multi_step_static(model, value: int) -> int:
     """
-    设置多步静力分析结果选项
+    Set the multi-step static result option.
     
     Args:
-        model: SapModel 对象
-        value: 选项值
-            1 = Envelopes (包络)
-            2 = Step-by-Step (逐步)
-            3 = Last Step (最后一步)
+        model: SAP2000 SapModel object
+        value: Option value
+            `1` = Envelopes
+            `2` = Step-by-Step
+            `3` = Last Step
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Results.Setup.SetOptionMultiStepStatic(value)
 
 
 # =============================================================================
-# 多值组合选项
+# Multi-valued combo options
 # =============================================================================
 
 def get_option_multi_valued_combo(model) -> int:
     """
-    获取多值组合结果选项
+    Get the multi-valued combination result option.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        选项值:
-        1 = Envelopes (包络)
-        2 = Multiple Values if Possible (尽可能多值)
-        3 = Correspondence (对应)
+        Option value:
+        `1` = Envelopes
+        `2` = Multiple Values if Possible
+        `3` = Correspondence
     """
     result = model.Results.Setup.GetOptionMultiValuedCombo(0)
     return com_data(result, 0, 1)
@@ -402,37 +402,37 @@ def get_option_multi_valued_combo(model) -> int:
 
 def set_option_multi_valued_combo(model, value: int) -> int:
     """
-    设置多值组合结果选项
+    Set the multi-valued combination result option.
     
     Args:
-        model: SapModel 对象
-        value: 选项值
-            1 = Envelopes (包络)
-            2 = Multiple Values if Possible (尽可能多值)
-            3 = Correspondence (对应)
+        model: SAP2000 SapModel object
+        value: Option value
+            `1` = Envelopes
+            `2` = Multiple Values if Possible
+            `3` = Correspondence
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Results.Setup.SetOptionMultiValuedCombo(value)
 
 
 # =============================================================================
-# 非线性静力选项
+# Nonlinear static options
 # =============================================================================
 
 def get_option_nl_static(model) -> int:
     """
-    获取非线性静力分析结果选项
+    Get the nonlinear static result option.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        选项值:
-        1 = Envelopes (包络)
-        2 = Step-by-Step (逐步)
-        3 = Last Step (最后一步)
+        Option value:
+        `1` = Envelopes
+        `2` = Step-by-Step
+        `3` = Last Step
     """
     result = model.Results.Setup.GetOptionNLStatic(0)
     return com_data(result, 0, 1)
@@ -440,36 +440,36 @@ def get_option_nl_static(model) -> int:
 
 def set_option_nl_static(model, value: int) -> int:
     """
-    设置非线性静力分析结果选项
+    Set the nonlinear static result option.
     
     Args:
-        model: SapModel 对象
-        value: 选项值
-            1 = Envelopes (包络)
-            2 = Step-by-Step (逐步)
-            3 = Last Step (最后一步)
+        model: SAP2000 SapModel object
+        value: Option value
+            `1` = Envelopes
+            `2` = Step-by-Step
+            `3` = Last Step
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Results.Setup.SetOptionNLStatic(value)
 
 
 # =============================================================================
-# 功率谱密度选项
+# PSD options
 # =============================================================================
 
 def get_option_psd(model) -> int:
     """
-    获取功率谱密度分析结果选项
+    Get the power spectral density result option.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        选项值:
-        1 = RMS (均方根)
-        2 = sqrt(PSD) (功率谱密度平方根)
+        Option value:
+        `1` = RMS
+        `2` = sqrt(PSD)
     """
     result = model.Results.Setup.GetOptionPSD(0)
     return com_data(result, 0, 1)
@@ -477,35 +477,35 @@ def get_option_psd(model) -> int:
 
 def set_option_psd(model, value: int) -> int:
     """
-    设置功率谱密度分析结果选项
+    Set the power spectral density result option.
     
     Args:
-        model: SapModel 对象
-        value: 选项值
-            1 = RMS (均方根)
-            2 = sqrt(PSD) (功率谱密度平方根)
+        model: SAP2000 SapModel object
+        value: Option value
+            `1` = RMS
+            `2` = sqrt(PSD)
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Results.Setup.SetOptionPSD(value)
 
 
 # =============================================================================
-# 稳态选项
+# Steady-state options
 # =============================================================================
 
 def get_option_steady_state(model) -> int:
     """
-    获取稳态分析结果选项
+    Get the steady-state result option.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        选项值:
-        1 = Envelopes (包络)
-        2 = At Frequencies (在频率处)
+        Option value:
+        `1` = Envelopes
+        `2` = At Frequencies
     """
     result = model.Results.Setup.GetOptionSteadyState(0)
     return com_data(result, 0, 1)
@@ -513,34 +513,34 @@ def get_option_steady_state(model) -> int:
 
 def set_option_steady_state(model, value: int) -> int:
     """
-    设置稳态分析结果选项
+    Set the steady-state result option.
     
     Args:
-        model: SapModel 对象
-        value: 选项值
-            1 = Envelopes (包络)
-            2 = At Frequencies (在频率处)
+        model: SAP2000 SapModel object
+        value: Option value
+            `1` = Envelopes
+            `2` = At Frequencies
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Results.Setup.SetOptionSteadyState(value)
 
 
 # =============================================================================
-# 截面切割选项
+# Section-cut options
 # =============================================================================
 
 def get_section_cut_selected_for_output(model, name: str) -> bool:
     """
-    获取截面切割是否被选择用于输出
+    Get whether a section cut is selected for output.
     
     Args:
-        model: SapModel 对象
-        name: 截面切割名称
+        model: SAP2000 SapModel object
+        name: Section-cut name
         
     Returns:
-        True 表示已选择，False 表示未选择
+        `True` if selected, otherwise `False`.
     """
     result = model.Results.Setup.GetSectionCutSelectedForOutput(name, False)
     return bool(com_data(result, 0, False))
@@ -548,28 +548,28 @@ def get_section_cut_selected_for_output(model, name: str) -> bool:
 
 def set_section_cut_selected_for_output(model, name: str, selected: bool = True) -> int:
     """
-    设置截面切割是否选择用于输出
+    Set whether a section cut is selected for output.
     
     Args:
-        model: SapModel 对象
-        name: 截面切割名称
-        selected: True 选择，False 取消选择
+        model: SAP2000 SapModel object
+        name: Section-cut name
+        selected: `True` to select, `False` to deselect
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Results.Setup.SetSectionCutSelectedForOutput(name, selected)
 
 
 def select_all_section_cuts_for_output(model, selected: bool = True) -> int:
     """
-    选择或取消选择所有截面切割用于输出
+    Select or deselect all section cuts for output.
     
     Args:
-        model: SapModel 对象
-        selected: True 选择所有，False 取消选择所有
+        model: SAP2000 SapModel object
+        selected: `True` to select all, `False` to deselect all
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.Results.Setup.SelectAllSectionCutsForOutput(selected)

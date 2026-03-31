@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-group.py - Cable 组指派
+group.py - Cable group-assignment helpers.
 
 SAP2000 API:
 - CableObj.SetGroupAssign(Name, GroupName, Remove, ItemType)
@@ -20,23 +20,23 @@ def set_cable_group(
     item_type: CableItemType = CableItemType.OBJECT
 ) -> int:
     """
-    将 Cable 添加到组或从组中移除
+    Add a cable to a group or remove it from one.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
-        group_name: 组名称
-        remove: False=添加到组, True=从组移除
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        cable_name: Cable object name
+        group_name: Group name
+        remove: `False` to add the cable, `True` to remove it
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
-        # 添加到组
+        # Add the cable to a group
         set_cable_group(model, "1", "CableGroup")
         
-        # 从组移除
+        # Remove the cable from a group
         set_cable_group(model, "1", "CableGroup", remove=True)
     """
     return model.CableObj.SetGroupAssign(str(cable_name), group_name, remove, int(item_type))
@@ -44,18 +44,18 @@ def set_cable_group(
 
 def get_cable_groups(model, cable_name: str) -> List[str]:
     """
-    获取 Cable 所属的组列表
+    Get the list of groups assigned to a cable object.
     
     Args:
-        model: SapModel 对象
-        cable_name: Cable 名称
+        model: SAP2000 SapModel object
+        cable_name: Cable object name
     
     Returns:
-        组名称列表
+        List of assigned group names.
     
     Example:
         groups = get_cable_groups(model, "1")
-        print(f"Cable 1 属于: {groups}")
+        print(f"Cable 1 belongs to: {groups}")
     """
     try:
         result = model.CableObj.GetGroupAssign(str(cable_name), 0, [])

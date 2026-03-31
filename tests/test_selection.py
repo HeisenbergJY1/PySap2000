@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""选择操作相关测试"""
+"""Tests for selection helpers."""
 
 import pytest
 from PySap2000.selection import (
@@ -19,7 +19,7 @@ pytestmark = pytest.mark.selection
 
 
 class TestBasicSelection:
-    """基础选择操作测试"""
+    """Basic selection operations."""
 
     def test_select_all(self, model):
         ret = select_all(model)
@@ -56,12 +56,12 @@ class TestBasicSelection:
         assert ret == 0
         count = get_selected_count(model)
         assert count > 0
-        # 清理
+        # Cleanup
         clear_selection(model)
 
 
 class TestPropertySelection:
-    """按属性选择测试"""
+    """Selection by property."""
 
     def test_select_by_property_frame(self, model):
         clear_selection(model)
@@ -72,5 +72,5 @@ class TestPropertySelection:
         clear_selection(model)
         ret = select_supported_points(model, [True, True, True, True, True, True])
         assert ret == 0
-        # 清理
+        # Cleanup
         clear_selection(model)

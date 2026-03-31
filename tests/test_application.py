@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Application 连接管理器测试"""
+"""Tests for the Application connection manager."""
 
 import pytest
 
@@ -7,7 +7,7 @@ pytestmark = pytest.mark.application
 
 
 class TestApplicationConnection:
-    """连接和基本信息测试"""
+    """Connection and basic info."""
 
     def test_model_not_none(self, app):
         assert app.model is not None
@@ -39,7 +39,7 @@ class TestApplicationConnection:
 
 
 class TestApplicationModelInfo:
-    """模型信息测试"""
+    """Model metadata."""
 
     def test_get_project_info(self, app):
         info = app.get_project_info()
@@ -64,7 +64,7 @@ class TestApplicationModelInfo:
 
 
 class TestApplicationModification:
-    """修改模式测试"""
+    """Modification mode."""
 
     def test_begin_finish_modification(self, app):
         app.begin_modification()
@@ -73,12 +73,12 @@ class TestApplicationModification:
         assert app._in_modification is False
 
     def test_refresh_view(self, app):
-        # 不应抛异常
+        # Should not raise
         app.refresh_view()
 
 
 class TestApplicationUserComment:
-    """用户注释测试"""
+    """User comment."""
 
     def test_set_user_comment(self, app):
         ret = app.set_user_comment("PySap2000 test run", replace=True)

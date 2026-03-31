@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-cable_usage.py - 用索量统计
+cable_usage.py - cable-usage statistics
 
-提供模型级别的用索量统计功能，支持:
-- 计算总用索量
-- 按截面/材料/组分组统计
-- 指定索单元子集计算
+Provides model-level cable-usage statistics with support for:
+- Calculate total cable usage
+- Grouped statistics by section/material/group
+- Compute a selected cable subset
 
-计算公式:
+Formula:
 - total = Σ(cable.weight) (kg)
 - cable.weight = weight_per_meter × length (kg)
 - weight_per_meter = area × density (kg/m)
@@ -15,15 +15,15 @@ cable_usage.py - 用索量统计
 Usage:
     from statistics import CableUsage, get_cable_usage
     
-    # 方式1: 使用便捷函数
+    # Method 1: use the convenience function
     total = get_cable_usage(model)
     by_section = get_cable_usage(model, group_by="section")
     
-    # 方式2: 使用 CableUsage 类
+    # Method 2: use the `CableUsage` class
     usage = CableUsage.calculate(model)
-    print(f"总用索量: {usage.total} kg")
+    print(f"Total cable usage: {usage.total} kg")
     
-    # 按截面分组
+    # Group by section
     usage = CableUsage.calculate(model, group_by="section")
     for section, weight in usage.by_section.items():
         print(f"{section}: {weight} kg")
@@ -36,13 +36,13 @@ from typing import Dict, List, Optional, Union
 @dataclass
 class CableUsage:
     """
-    用索量统计结果
+    Cable-usage statistics result
     
     Attributes:
-        total: 总用索量 (kg)
-        by_section: 按截面名称分组的用索量
-        by_material: 按材料名称分组的用索量
-        by_group: 按 SAP2000 组名称分组的用索量
+        total: Total cable usage (kg)
+        by_section: Cable usage grouped by section name
+        by_material: Cable usage grouped by material name
+        by_group: Cable usage grouped by SAP2000 group name
     """
     
     total: float = 0.0
@@ -58,39 +58,39 @@ class CableUsage:
         cable_names: Optional[List[str]] = None
     ) -> 'CableUsage':
         """
-        计算用索量 (使用 API 直接获取，确保单位正确)
+        Compute cable usage (direct API retrieval for unit consistency)
         
         Args:
-            model: SapModel 对象
-            group_by: 分组方式 ("section", "material", "group")
-            cable_names: 指定索单元名称列表，None 表示所有索单元
+            model: SapModel object
+            group_by: Grouping mode ("section", "material", "group")
+            cable_names: Cable names to include; `None` means all cables
             
         Returns:
-            CableUsage 对象
+            `CableUsage` object
         """
         from global_parameters.units import Units, UnitSystem
         
         result = cls()
         
-        # 切换到 N-m-C 单位 (确保 API 返回值单位一致)
+        # Switch to N-m-C units (to keep API return units consistent)
         original_units = Units.get_present_units(model)
         Units.set_present_units(model, UnitSystem.N_M_C)
         
         try:
-            # 1. 获取所有 Cable 名称
+            # 1. Get all cable names
             ret = model.CableObj.GetNameList(0, [])
             if not isinstance(ret, (list, tuple)) or len(ret) < 2 or not ret[1]:
                 return result
             all_cable_names = list(ret[1])
             
-            # 2. 确定要计算的索单元
+            # 2. Determine cables to include
             target_cables = set(cable_names) if cable_names else set(all_cable_names)
             
-            # 3. 从表格批量获取长度和截面 (表格数据更快)
+            # 3. Batch-read lengths and sections from tables (faster)
             cable_length = {}  # cable_name -> length (m)
             cable_section = {}  # cable_name -> section_name
             
-            # 获取长度
+            # Get lengths
             ret = model.DatabaseTables.GetTableForDisplayArray(
                 "Connectivity - Cable", ["Cable", "Length"], "", 0, [], 0, []
             )
@@ -111,7 +111,7 @@ class CableUsage:
                         if cname and length_str:
                             cable_length[cname] = float(length_str)
             
-            # 获取截面分配
+            # Get section assignments
             ret = model.DatabaseTables.GetTableForDisplayArray(
                 "Cable Section Assignments", ["Cable", "CableSect"], "", 0, [], 0, []
             )
@@ -132,13 +132,13 @@ class CableUsage:
                         if cname and section:
                             cable_section[cname] = section
             
-            # 4. 缓存: 截面 -> (面积 m², 材料名)
+            # 4. Cache: section -> (area m², material name)
             section_cache = {}
             
-            # 5. 缓存: 材料 -> 密度 kg/m³
+            # 5. Cache: material -> density kg/m³
             material_cache = {}
             
-            # 6. 计算每根索单元的重量
+            # 6. Compute each cable weight
             cable_data = []  # [(name, section, material, weight), ...]
             
             for cname in target_cables:
@@ -148,10 +148,10 @@ class CableUsage:
                 if not section_name or length_m <= 0:
                     continue
                 
-                # 获取截面信息 (带缓存)
+                # Get section info (with cache)
                 if section_name not in section_cache:
-                    # PropCable.GetProp 返回: [MatProp, Area, Color, Notes, GUID, ret]
-                    # 注意: 在 N-m-C 单位下，Area 单位是 m²
+                    # PropCable.GetProp returns: [MatProp, Area, Color, Notes, GUID, ret]
+                    # Note: under N-m-C units, `Area` is in m²
                     ret = model.PropCable.GetProp(section_name, "", 0, 0)
                     if isinstance(ret, (list, tuple)) and len(ret) >= 2:
                         section_mat = ret[0] or ""
@@ -165,31 +165,31 @@ class CableUsage:
                 area, section_mat = section_cache[section_name]
                 mat_name = section_mat
                 
-                # 获取材料密度 (带缓存)
+                # Get material density (with cache)
                 if mat_name and mat_name not in material_cache:
-                    # GetWeightAndMass 返回: [Weight, Mass, ret]
-                    # 在 N-m-C 单位下: Weight=N/m³, Mass=kg/m³
+                    # GetWeightAndMass returns: [Weight, Mass, ret]
+                    # Under N-m-C units: `Weight=N/m³`, `Mass=kg/m³`
                     ret = model.PropMaterial.GetWeightAndMass(mat_name)
                     if isinstance(ret, (list, tuple)) and len(ret) >= 2:
                         density = float(ret[1]) if ret[1] else 0.0  # kg/m³
-                        # 检查密度是否合理 (钢材约 7850 kg/m³)
-                        # 如果密度太小，可能是单位问题，尝试修正
-                        if density < 100:  # 密度小于 100 kg/m³ 不合理
-                            density = density * 1000  # 可能是 t/m³，转换为 kg/m³
+                        # Check whether density is reasonable (steel is about `7850 kg/m³`)
+                        # If density is too small, this may be a unit issue; try correcting it
+                        if density < 100:  # density lower than `100 kg/m³` is unrealistic
+                            density = density * 1000  # likely in `t/m³`; convert to `kg/m³`
                         material_cache[mat_name] = density
                     else:
                         material_cache[mat_name] = 0.0
                 
                 density = material_cache.get(mat_name, 0.0)
                 
-                # 计算重量: 面积(m²) × 密度(kg/m³) × 长度(m) = kg
+                # Compute weight: area (m²) x density (kg/m³) x length (m) = kg
                 weight = area * density * length_m if area > 0 and density > 0 else 0.0
                 cable_data.append((cname, section_name, mat_name, weight))
             
-            # 7. 计算总用索量
+            # 7. Calculate total cable usage
             result.total = sum(w for _, _, _, w in cable_data)
             
-            # 8. 按分组方式统计
+            # 8. Aggregate by grouping mode
             if group_by == "section":
                 for _, section, _, weight in cable_data:
                     if section not in result.by_section:
@@ -214,7 +214,7 @@ class CableUsage:
     
     @staticmethod
     def _group_by_group_fast(model, cable_data) -> Dict[str, float]:
-        """按组分组统计"""
+        """Group by SAP2000 group"""
         from group.group import Group
         
         result: Dict[str, float] = {}
@@ -244,28 +244,28 @@ def get_cable_usage(
     cable_names: Optional[List[str]] = None
 ) -> Union[float, Dict[str, float]]:
     """
-    获取用索量的便捷函数
+    Convenience function to get cable usage
     
     Args:
-        model: SapModel 对象
-        group_by: 分组方式，None 返回总量，"section"/"material"/"group" 返回分组字典
-        cable_names: 指定索单元名称列表，None 表示所有索单元
+        model: SapModel object
+        group_by: Grouping mode; `None` returns total, `"section"/"material"/"group"` returns grouped dict
+        cable_names: Cable names to include; `None` means all cables
         
     Returns:
-        - 当 group_by=None 时，返回总用索量 (float)
-        - 当 group_by 指定时，返回分组字典 (Dict[str, float])
+        - When `group_by=None`, returns total cable usage (`float`)
+        - When `group_by` is set, returns grouped dict (`Dict[str, float]`)
         
     Example:
-        # 获取总用索量
+        # Get total cable usage
         total = get_cable_usage(model)
-        print(f"总用索量: {total} kg")
+        print(f"Total cable usage: {total} kg")
         
-        # 按截面分组
+        # Group by section
         by_section = get_cable_usage(model, group_by="section")
         for section, weight in by_section.items():
             print(f"{section}: {weight} kg")
         
-        # 指定索单元
+        # Selected cables
         weight = get_cable_usage(model, cable_names=["1", "2"])
     """
     usage = CableUsage.calculate(model, group_by=group_by, cable_names=cable_names)

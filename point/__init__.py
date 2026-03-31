@@ -1,43 +1,44 @@
 # -*- coding: utf-8 -*-
 """
-point - 节点属性相关类型和函数
+point - Point-related types and helper functions.
 
-为 AI Agent 设计的模块化 API，按功能分类：
+This package provides a modular API organized by feature:
 
-1. 支座 (support)
-   - set_point_support: 设置支座类型 (固定/铰接/滚动)
-   - set_point_restraint: 设置自定义约束
-   - get_point_restraint: 获取约束状态
-   - delete_point_restraint: 删除约束
+1. Supports (`support`)
+   - `set_point_support`: assign a support preset
+   - `set_point_restraint`: assign custom restraints
+   - `get_point_restraint`: fetch restraint state
+   - `delete_point_restraint`: remove restraints
 
-2. 弹簧 (spring)
-   - set_point_spring: 设置弹簧刚度
-   - get_point_spring: 获取弹簧刚度
-   - delete_point_spring: 删除弹簧
+2. Springs (`spring`)
+   - `set_point_spring`: assign spring stiffness
+   - `get_point_spring`: fetch spring stiffness
+   - `delete_point_spring`: remove spring assignments
 
-3. 质量 (mass)
-   - set_point_mass: 设置质量
-   - get_point_mass: 获取质量
-   - delete_point_mass: 删除质量
+3. Mass (`mass`)
+   - `set_point_mass`: assign mass
+   - `get_point_mass`: fetch mass
+   - `delete_point_mass`: remove mass
 
-4. 约束 (constraint)
-   - set_point_constraint: 分配到刚性约束 (如隔板)
-   - get_point_constraint: 获取约束分配
-   - delete_point_constraint: 删除约束分配
+4. Constraints (`constraint`)
+   - `set_point_constraint`: assign a rigid constraint such as a diaphragm
+   - `get_point_constraint`: fetch constraint assignments
+   - `delete_point_constraint`: remove constraint assignments
 
-5. 局部坐标轴 (local_axes)
-   - set_point_local_axes: 设置局部轴角度
-   - get_point_local_axes: 获取局部轴角度
+5. Local axes (`local_axes`)
+   - `set_point_local_axes`: set local-axis rotation
+   - `get_point_local_axes`: fetch local-axis rotation
 
-6. 节点域 (panel_zone)
-   - set_point_panel_zone: 设置节点域
-   - get_point_panel_zone: 获取节点域
-   - delete_point_panel_zone: 删除节点域
+6. Panel zone (`panel_zone`)
+   - `set_point_panel_zone`: assign panel-zone data
+   - `get_point_panel_zone`: fetch panel-zone data
+   - `delete_point_panel_zone`: remove panel-zone data
 
-注意: 节点荷载相关函数已移至 loads 模块
+Note:
+    Point load helpers live in the `loads` package.
 """
 
-# 枚举类型
+# Enums
 from .enums import (
     PointSupportType,
     ItemType,
@@ -47,7 +48,7 @@ from .enums import (
     SUPPORT_RESTRAINTS,
 )
 
-# 数据类
+# Data classes
 from .data_classes import (
     PointConstraintAssignment,
     PointSpringData,
@@ -55,7 +56,7 @@ from .data_classes import (
     PanelZoneData,
 )
 
-# 支座函数
+# Support helpers
 from .support import (
     set_point_support,
     set_point_restraint,
@@ -65,7 +66,7 @@ from .support import (
     get_points_with_support,
 )
 
-# 弹簧函数
+# Spring helpers
 from .spring import (
     set_point_spring,
     get_point_spring,
@@ -75,7 +76,7 @@ from .spring import (
     is_point_spring_coupled,
 )
 
-# 质量函数
+# Mass helpers
 from .mass import (
     set_point_mass,
     get_point_mass,
@@ -84,7 +85,7 @@ from .mass import (
     set_point_mass_by_volume,
 )
 
-# 约束函数
+# Constraint helpers
 from .constraint import (
     set_point_constraint,
     get_point_constraint,
@@ -92,7 +93,7 @@ from .constraint import (
     get_points_in_constraint,
 )
 
-# 局部坐标轴函数
+# Local-axis helpers
 from .local_axes import (
     set_point_local_axes,
     get_point_local_axes,
@@ -101,7 +102,7 @@ from .local_axes import (
     get_point_transformation_matrix,
 )
 
-# 节点域函数
+# Panel-zone helpers
 from .panel_zone import (
     set_point_panel_zone,
     get_point_panel_zone,
@@ -110,10 +111,10 @@ from .panel_zone import (
 )
 
 
-# API 分类索引 (供 AI Agent 参考)
+# API category index
 POINT_API_CATEGORIES = {
-    "支座与边界条件": {
-        "description": "设置节点的支座类型和约束条件",
+    "supports_and_boundary_conditions": {
+        "description": "Assign support presets and restraint conditions to points",
         "functions": [
             "set_point_support",
             "set_point_restraint",
@@ -123,8 +124,8 @@ POINT_API_CATEGORIES = {
             "get_points_with_support",
         ]
     },
-    "弹簧": {
-        "description": "设置节点的弹簧刚度",
+    "springs": {
+        "description": "Assign spring stiffness to points",
         "functions": [
             "set_point_spring",
             "get_point_spring",
@@ -134,8 +135,8 @@ POINT_API_CATEGORIES = {
             "is_point_spring_coupled",
         ]
     },
-    "质量": {
-        "description": "设置节点的附加质量",
+    "mass": {
+        "description": "Assign additional point mass",
         "functions": [
             "set_point_mass",
             "get_point_mass",
@@ -144,8 +145,8 @@ POINT_API_CATEGORIES = {
             "set_point_mass_by_volume",
         ]
     },
-    "刚性约束": {
-        "description": "设置刚性隔板等约束",
+    "constraints": {
+        "description": "Assign rigid constraints such as diaphragms",
         "functions": [
             "set_point_constraint",
             "get_point_constraint",
@@ -153,8 +154,8 @@ POINT_API_CATEGORIES = {
             "get_points_in_constraint",
         ]
     },
-    "局部坐标系": {
-        "description": "设置节点的局部坐标轴",
+    "local_axes": {
+        "description": "Configure point local axes",
         "functions": [
             "set_point_local_axes",
             "get_point_local_axes",
@@ -163,8 +164,8 @@ POINT_API_CATEGORIES = {
             "get_point_transformation_matrix",
         ]
     },
-    "节点域": {
-        "description": "设置梁柱节点的节点域",
+    "panel_zone": {
+        "description": "Configure beam-column joint panel-zone data",
         "functions": [
             "set_point_panel_zone",
             "get_point_panel_zone",
@@ -176,7 +177,7 @@ POINT_API_CATEGORIES = {
 
 
 __all__ = [
-    # 枚举
+    # Enums
     'PointSupportType',
     'ItemType',
     'PanelZonePropType',
@@ -184,13 +185,13 @@ __all__ = [
     'PanelZoneLocalAxisFrom',
     'SUPPORT_RESTRAINTS',
     
-    # 数据类
+    # Data classes
     'PointConstraintAssignment',
     'PointSpringData',
     'PointMassData',
     'PanelZoneData',
     
-    # 支座函数
+    # Support helpers
     'set_point_support',
     'set_point_restraint',
     'get_point_restraint',
@@ -198,7 +199,7 @@ __all__ = [
     'delete_point_restraint',
     'get_points_with_support',
     
-    # 弹簧函数
+    # Spring helpers
     'set_point_spring',
     'get_point_spring',
     'delete_point_spring',
@@ -206,32 +207,32 @@ __all__ = [
     'get_point_spring_coupled',
     'is_point_spring_coupled',
     
-    # 质量函数
+    # Mass helpers
     'set_point_mass',
     'get_point_mass',
     'delete_point_mass',
     'set_point_mass_by_weight',
     'set_point_mass_by_volume',
     
-    # 约束函数
+    # Constraint helpers
     'set_point_constraint',
     'get_point_constraint',
     'delete_point_constraint',
     'get_points_in_constraint',
     
-    # 局部坐标轴函数
+    # Local-axis helpers
     'set_point_local_axes',
     'get_point_local_axes',
     'set_point_local_axes_advanced',
     'get_point_local_axes_advanced',
     'get_point_transformation_matrix',
     
-    # 节点域函数
+    # Panel-zone helpers
     'set_point_panel_zone',
     'get_point_panel_zone',
     'delete_point_panel_zone',
     'has_point_panel_zone',
     
-    # API 分类索引
+    # API category index
     'POINT_API_CATEGORIES',
 ]

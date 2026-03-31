@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-edit_area.py - 面单元编辑
+edit_area.py - Area editing
 
-SAP2000 EditArea API 封装
+Wrappers for the SAP2000 `EditArea` API.
 
 SAP2000 API:
-- EditArea.Divide - 分割面单元
-- EditArea.ExpandShrink - 扩展/收缩
-- EditArea.Merge - 合并
-- EditArea.PointAdd - 添加点
-- EditArea.PointRemove - 移除点
-- EditArea.ChangeConnectivity - 修改连接
+- `EditArea.Divide` - Divide area objects
+- `EditArea.ExpandShrink` - Expand / shrink
+- `EditArea.Merge` - Merge
+- `EditArea.PointAdd` - Add point
+- `EditArea.PointRemove` - Remove point
+- `EditArea.ChangeConnectivity` - Change connectivity
 """
 
 from typing import List
@@ -29,24 +29,24 @@ def divide_area(
     delete_original: bool = True
 ) -> List[str]:
     """
-    分割面单元
+    Divide area objects
     
     Args:
-        model: SapModel 对象
-        name: 面单元名称
-        mesh_type: 网格类型
-            0 = 按数量分割
-            1 = 按最大尺寸分割
-            2 = 按点分割
-        num_1: 局部1方向分割数
-        num_2: 局部2方向分割数
-        max_size_1: 局部1方向最大尺寸
-        max_size_2: 局部2方向最大尺寸
-        constrain_points: 是否约束到现有点
-        delete_original: 是否删除原单元
+        model: SAP2000 SapModel object
+        name: Area object name
+        mesh_type: Mesh type
+            `0` = Divide by count
+            `1` = Divide by max size
+            `2` = Divide by points
+        num_1: Number of divisions along local-1
+        num_2: Number of divisions along local-2
+        max_size_1: Maximum size along local-1
+        max_size_2: Maximum size along local-2
+        constrain_points: Whether to constrain to existing points
+        delete_original: Whether to delete original objects
         
     Returns:
-        新创建的面单元名称列表
+        List of newly created area object names
     """
     result = model.EditArea.Divide(
         name, mesh_type, num_1, num_2, max_size_1, max_size_2,
@@ -61,38 +61,38 @@ def divide_area(
 
 def expand_shrink_area(model, name: str, offset: float) -> int:
     """
-    扩展或收缩面单元
+    Expand or shrink area objects
     
     Args:
-        model: SapModel 对象
-        name: 面单元名称
-        offset: 偏移量（正值扩展，负值收缩）
+        model: SAP2000 SapModel object
+        name: Area object name
+        offset: Offset value (positive expands, negative shrinks)
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditArea.ExpandShrink(name, offset)
 
 
 def merge_area(model, names: List[str], delete_original: bool = True) -> str:
     """
-    合并面单元
+    Merge area objects
     
     Args:
-        model: SapModel 对象
-        names: 要合并的面单元名称列表
-        delete_original: 是否删除原单元
+        model: SAP2000 SapModel object
+        names: Area object names to merge
+        delete_original: Whether to delete original objects
         
     Returns:
-        新创建的面单元名称
+        Newly created area object name
     """
-    # COM 签名: Merge(NumberAreas, Names) — 只接受数量和名称数组
-    # delete_original 和 NewAreaName 是 comtypes 自动处理的输出参数
+    # COM signature: `Merge(NumberAreas, Names)` accepts only count and names.
+    # `delete_original` and `NewAreaName` are output params handled by comtypes.
     result = model.EditArea.Merge(len(names), names)
-    # 返回值中查找新面单元名称（字符串类型的元素）
+    # Find the new area object name from return values (string elements).
     if isinstance(result, str) and result:
         return result
-    # comtypes 返回 list/tuple 时，遍历查找字符串类型的新名称
+    # For `comtypes` list/tuple returns, scan for the new string name.
     i = 0
     while True:
         item = com_data(result, i, None)
@@ -106,30 +106,30 @@ def merge_area(model, names: List[str], delete_original: bool = True) -> str:
 
 def add_point_to_area(model, name: str, point_name: str) -> int:
     """
-    向面单元添加点
+    Add a point to an area object
     
     Args:
-        model: SapModel 对象
-        name: 面单元名称
-        point_name: 要添加的点名称
+        model: SAP2000 SapModel object
+        name: Area object name
+        point_name: Point name to add
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditArea.PointAdd(name, point_name)
 
 
 def remove_point_from_area(model, name: str, point_name: str) -> int:
     """
-    从面单元移除点
+    Remove a point from an area object
     
     Args:
-        model: SapModel 对象
-        name: 面单元名称
-        point_name: 要移除的点名称
+        model: SAP2000 SapModel object
+        name: Area object name
+        point_name: Point name to remove
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditArea.PointRemove(name, point_name)
 
@@ -140,14 +140,14 @@ def change_area_connectivity(
     point_names: List[str]
 ) -> int:
     """
-    修改面单元连接
+    Change area object connectivity
     
     Args:
-        model: SapModel 对象
-        name: 面单元名称
-        point_names: 新的点名称列表
+        model: SAP2000 SapModel object
+        name: Area object name
+        point_names: New point-name list
         
     Returns:
-        0 表示成功
+        `0` on success
     """
     return model.EditArea.ChangeConnectivity(name, len(point_names), point_names)

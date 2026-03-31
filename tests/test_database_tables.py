@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""数据库表格相关测试"""
+"""Tests for interactive database tables."""
 
 import pytest
 from PySap2000.database_tables import DatabaseTables, TableData
@@ -8,7 +8,7 @@ pytestmark = pytest.mark.database_tables
 
 
 class TestTableQuery:
-    """表格查询测试"""
+    """Table discovery and metadata."""
 
     def test_get_available_tables(self, model):
         tables = DatabaseTables.get_available_tables(model)
@@ -32,7 +32,7 @@ class TestTableQuery:
 
 
 class TestTableRead:
-    """表格读取测试"""
+    """Read table data."""
 
     def test_get_table_for_display(self, model):
         data = DatabaseTables.get_table_for_display(model, "Joint Coordinates")

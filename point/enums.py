@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-enums.py - Point 相关枚举类型
+enums.py - Point-related enums.
 """
 
 from enum import IntEnum
@@ -8,51 +8,51 @@ from enum import IntEnum
 
 class PointSupportType(IntEnum):
     """
-    节点支座类型
-    
-    用于快速设置常见支座条件，对应 set_point_support() 函数
+    Point support presets.
+
+    Used by `set_point_support()` for common restraint patterns.
     """
-    FIXED = 0           # 固定支座 (U1,U2,U3,R1,R2,R3 全约束)
-    HINGED = 1          # 铰接支座 (U1,U2,U3 约束, R1,R2,R3 自由)
-    ROLLER = 2          # 滚动支座 (仅 U3 约束)
-    ROLLER_IN_X = 3     # X向滚动 (U2,U3 约束)
-    ROLLER_IN_Y = 4     # Y向滚动 (U1,U3 约束)
-    ROLLER_IN_Z = 5     # Z向滚动 (U1,U2 约束)
-    FREE = 6            # 自由 (无约束)
+    FIXED = 0           # Fully restrained
+    HINGED = 1          # Translations restrained, rotations released
+    ROLLER = 2          # Only U3 restrained
+    ROLLER_IN_X = 3     # Rolling in X, so U2 and U3 restrained
+    ROLLER_IN_Y = 4     # Rolling in Y, so U1 and U3 restrained
+    ROLLER_IN_Z = 5     # Rolling in Z, so U1 and U2 restrained
+    FREE = 6            # Unrestrained
 
 
 class ItemType(IntEnum):
     """
-    项目类型枚举
-    
-    用于指定 API 操作的对象范围
+    Item-scope enum.
+
+    Used to specify the target scope for SAP2000 API calls.
     """
-    OBJECT = 0              # 单个对象
-    GROUP = 1               # 组内所有对象
-    SELECTED_OBJECTS = 2    # 当前选中的对象
+    OBJECT = 0              # Single object
+    GROUP = 1               # All objects in a group
+    SELECTED_OBJECTS = 2    # Currently selected objects
 
 
 class PanelZonePropType(IntEnum):
-    """节点域属性类型"""
-    ELASTIC_FROM_COLUMN = 0         # 从柱计算弹性刚度
-    ELASTIC_FROM_COLUMN_DOUBLER = 1 # 从柱+加劲板计算弹性刚度
-    FROM_SPRING_STIFFNESS = 2       # 指定弹簧刚度
-    FROM_LINK_PROPERTY = 3          # 使用连接单元属性
+    """Panel-zone property type."""
+    ELASTIC_FROM_COLUMN = 0         # Derive elastic stiffness from the column
+    ELASTIC_FROM_COLUMN_DOUBLER = 1 # Derive from column plus doubler plate
+    FROM_SPRING_STIFFNESS = 2       # Use explicitly specified spring stiffness
+    FROM_LINK_PROPERTY = 3          # Use a link property
 
 
 class PanelZoneConnectivity(IntEnum):
-    """节点域连接类型"""
-    BEAMS_TO_OTHER = 0      # 梁连接到其他
-    BRACES_TO_OTHER = 1     # 支撑连接到其他
+    """Panel-zone connectivity type."""
+    BEAMS_TO_OTHER = 0      # Beams connect to other members
+    BRACES_TO_OTHER = 1     # Braces connect to other members
 
 
 class PanelZoneLocalAxisFrom(IntEnum):
-    """节点域局部轴来源"""
-    FROM_COLUMN = 0         # 从柱
-    USER_DEFINED = 1        # 用户定义
+    """Source of panel-zone local axes."""
+    FROM_COLUMN = 0         # Use the column
+    USER_DEFINED = 1        # User-defined
 
 
-# 支座类型对应的约束值 (U1, U2, U3, R1, R2, R3)
+# Restraint tuples for each support preset: (U1, U2, U3, R1, R2, R3)
 SUPPORT_RESTRAINTS = {
     PointSupportType.FIXED: (True, True, True, True, True, True),
     PointSupportType.HINGED: (True, True, True, False, False, False),

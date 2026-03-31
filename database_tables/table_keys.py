@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-table_keys.py - SAP2000 表格键名常量
+table_keys.py - SAP2000 table-key constants.
 
-包含常用的表格键名，方便 AI Agent 和用户使用。
+Contains commonly used table keys for easier usage.
 
-用法:
+Usage:
     from database_tables import TABLE_KEYS, MODEL_DEFINITION_TABLES
     
-    # 使用常量
+    # Use constants
     data = DatabaseTables.get_table_for_display(model, TABLE_KEYS.JOINT_COORDINATES)
     
-    # 查看所有模型定义表格
+    # Print all model-definition tables
     for key in MODEL_DEFINITION_TABLES:
         print(key)
 """
@@ -18,14 +18,14 @@ table_keys.py - SAP2000 表格键名常量
 
 class TABLE_KEYS:
     """
-    常用表格键名常量
+    Common table-key constants.
     
-    使用方式:
+    Usage:
         TABLE_KEYS.JOINT_COORDINATES
         TABLE_KEYS.FRAME_SECTION_PROPERTIES
     """
     
-    # ==================== 节点 ====================
+    # ==================== Joints ====================
     JOINT_COORDINATES = "Joint Coordinates"
     JOINT_RESTRAINTS = "Joint Restraint Assignments"
     JOINT_SPRINGS = "Joint Spring Assignments 1 - Uncoupled"
@@ -33,7 +33,7 @@ class TABLE_KEYS:
     JOINT_LOADS_FORCE = "Joint Loads - Force"
     JOINT_LOADS_DISPL = "Joint Loads - Ground Displacement"
     
-    # ==================== 杆件 ====================
+    # ==================== Frames ====================
     FRAME_SECTION_ASSIGNMENTS = "Frame Section Assignments"
     FRAME_SECTION_PROPERTIES = "Frame Section Properties 01 - General"
     FRAME_RELEASES = "Frame Release Assignments 1 - General"
@@ -43,7 +43,7 @@ class TABLE_KEYS:
     FRAME_MODIFIERS = "Frame Property Modifiers"
     FRAME_CONNECTIVITY = "Connectivity - Frame"
     
-    # ==================== 面单元 ====================
+    # ==================== Areas ====================
     AREA_SECTION_ASSIGNMENTS = "Area Section Assignments"
     AREA_SECTION_PROPERTIES = "Area Section Properties"
     AREA_LOADS_UNIFORM = "Area Loads - Uniform"
@@ -51,22 +51,22 @@ class TABLE_KEYS:
     AREA_LOCAL_AXES = "Area Local Axes Assignments 1 - Typical"
     AREA_MODIFIERS = "Area Property Modifiers"
     
-    # ==================== 索单元 ====================
+    # ==================== Cables ====================
     CABLE_CONNECTIVITY = "Connectivity - Cable"
     CABLE_SECTION_ASSIGNMENTS = "Cable Section Assignments"
     
-    # ==================== 材料 ====================
+    # ==================== Materials ====================
     MATERIAL_PROPERTIES_BASIC = "Material Properties - Basic Mechanical Properties"
     MATERIAL_PROPERTIES_STEEL = "Material Properties 02 - Basic Data - Steel"
     MATERIAL_PROPERTIES_CONCRETE = "Material Properties 03a - Basic Data - Concrete"
     MATERIAL_PROPERTIES_REBAR = "Material Properties 03b - Basic Data - Rebar"
     
-    # ==================== 荷载 ====================
+    # ==================== Loads ====================
     LOAD_PATTERN_DEFINITIONS = "Load Pattern Definitions"
     LOAD_CASE_DEFINITIONS = "Load Case Definitions"
     LOAD_COMBINATION_DEFINITIONS = "Load Combination Definitions"
     
-    # ==================== 分析结果 ====================
+    # ==================== Analysis Results ====================
     JOINT_DISPLACEMENTS = "Joint Displacements"
     JOINT_REACTIONS = "Joint Reactions"
     FRAME_FORCES = "Element Forces - Frames"
@@ -74,79 +74,79 @@ class TABLE_KEYS:
     AREA_FORCES = "Element Forces - Area Shells"
     AREA_STRESSES = "Element Stresses - Area Shells"
     
-    # ==================== 设计 ====================
+    # ==================== Design ====================
     STEEL_DESIGN_SUMMARY = "Steel Design 1 - Summary Data - AISC 360-16"
     CONCRETE_DESIGN_SUMMARY = "Concrete Design 1 - Column Summary Data"
 
 
-# ==================== 分类表格列表 ====================
+# ==================== Grouped table lists ====================
 
 MODEL_DEFINITION_TABLES = [
-    # 节点
+    # Joints
     "Joint Coordinates",
     "Joint Restraint Assignments",
     "Joint Spring Assignments 1 - Uncoupled",
     "Joint Added Mass Assignments",
     
-    # 杆件
+    # Frames
     "Connectivity - Frame",
     "Frame Section Assignments",
     "Frame Release Assignments 1 - General",
     "Frame Local Axes Assignments 1 - Typical",
     "Frame Property Modifiers",
     
-    # 面单元
+    # Areas
     "Connectivity - Area",
     "Area Section Assignments",
     "Area Local Axes Assignments 1 - Typical",
     "Area Property Modifiers",
     
-    # 索单元
+    # Cables
     "Connectivity - Cable",
     "Cable Section Assignments",
     
-    # 材料
+    # Materials
     "Material Properties - Basic Mechanical Properties",
     
-    # 截面
+    # Sections
     "Frame Section Properties 01 - General",
     "Area Section Properties",
     
-    # 荷载
+    # Loads
     "Load Pattern Definitions",
     "Load Case Definitions",
     "Load Combination Definitions",
 ]
 
 ANALYSIS_RESULTS_TABLES = [
-    # 节点结果
+    # Joint results
     "Joint Displacements",
     "Joint Reactions",
     "Joint Velocities",
     "Joint Accelerations",
     
-    # 杆件结果
+    # Frame results
     "Element Forces - Frames",
     "Element Joint Forces - Frames",
     "Element Stresses - Frames",
     
-    # 面单元结果
+    # Area results
     "Element Forces - Area Shells",
     "Element Joint Forces - Area Shells",
     "Element Stresses - Area Shells",
     
-    # 模态结果
+    # Modal results
     "Modal Participating Mass Ratios",
     "Modal Periods And Frequencies",
     "Modal Load Participation Ratios",
 ]
 
 DESIGN_TABLES = [
-    # 钢结构设计
+    # Steel design
     "Steel Design 1 - Summary Data - AISC 360-16",
     "Steel Design 2 - PMM Details - AISC 360-16",
     
-    # 混凝土设计
+    # Concrete design
     "Concrete Design 1 - Column Summary Data",
     "Concrete Design 2 - Beam Summary Data",
 ]

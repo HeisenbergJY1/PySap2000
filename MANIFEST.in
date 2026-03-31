@@ -2,7 +2,7 @@ include LICENSE
 include README.md
 include pyproject.toml
 
-# 排除非核心模块
+# Exclude non-package trees from sdist
 prune converters
 prune docs
 prune export_docs
@@ -14,7 +14,7 @@ prune visualization
 prune web_agent
 prune dluba,api
 
-# 排除开发文件
+# Exclude dev-only files
 exclude test_pysap2000.py
 exclude .gitignore
 prune .kiro

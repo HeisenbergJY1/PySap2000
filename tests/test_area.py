@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""面单元相关测试"""
+"""Tests for area (shell) objects."""
 
 import pytest
 from PySap2000.structure_core import Area
@@ -9,7 +9,7 @@ pytestmark = pytest.mark.area
 
 
 class TestAreaSection:
-    """面截面测试"""
+    """Area sections."""
 
     def test_create_shell_section(self, app):
         ret = app.create_object(AreaSection(
@@ -37,7 +37,7 @@ class TestAreaSection:
 
 
 class TestAreaCreate:
-    """面单元创建测试"""
+    """Create areas."""
 
     def test_create_area_by_points(self, app):
         ret = app.create_object(Area(no=1, points=["10", "2", "3"], section="SLAB200"))
@@ -49,7 +49,7 @@ class TestAreaCreate:
 
 
 class TestAreaQuery:
-    """面单元查询测试"""
+    """Query areas."""
 
     def test_get_area(self, app):
         a = app.get_object(Area(no="1"))
@@ -97,7 +97,7 @@ class TestAreaQuery:
 
 
 class TestAreaUpdate:
-    """面单元更新测试"""
+    """Update areas."""
 
     def test_update_area_section(self, app):
         ret = app.update_object(Area(no="1", section="SLAB200"))

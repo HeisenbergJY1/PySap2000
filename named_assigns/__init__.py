@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-named_assigns - 命名赋值定义
+named_assigns - Named assignment definitions
 
-SAP2000 的 NamedAssign API，用于创建可复用的属性修改器和端部释放定义。
+Wraps the SAP2000 `NamedAssign` API for reusable modifier and end-release definitions.
 
-与 types_for_xxx 的区别：
-- types_for_xxx: 直接对对象设置属性 (如 FrameObj.SetModifiers)
-- named_assigns: 创建命名定义，可被多个对象引用 (如 NamedAssign.ModifierFrame)
+Compared with the functional modules:
+- `frame/modifier.py` and similar modules set properties directly on objects (for example `FrameObj.SetModifiers`)
+- `named_assigns`: creates named reusable definitions that can be referenced by multiple objects (for example `NamedAssign.ModifierFrame`)
 
-SAP2000 API 结构:
-- NamedAssign.ModifierArea - 面单元刚度修改器定义
-- NamedAssign.ModifierCable - 索单元修改器定义
-- NamedAssign.ModifierFrame - 杆件修改器定义
-- NamedAssign.ReleaseFrame - 杆件端部释放定义
+SAP2000 API structure:
+- `NamedAssign.ModifierArea` - Area stiffness modifier definitions
+- `NamedAssign.ModifierCable` - Cable modifier definitions
+- `NamedAssign.ModifierFrame` - Frame modifier definitions
+- `NamedAssign.ReleaseFrame` - Frame end-release definitions
 
 Usage:
     from PySap2000.named_assigns import (
@@ -22,11 +22,11 @@ Usage:
         NamedFrameRelease,
     )
     
-    # 创建命名修改器
+    # Create a named modifier
     mod = NamedFrameModifier(name="BeamMod", inertia_33=0.5)
     mod._create(model)
     
-    # 获取所有定义
+    # Get all definitions
     all_mods = NamedFrameModifier.get_all(model)
 """
 
@@ -42,25 +42,25 @@ __all__ = [
     "NamedFrameRelease",
 ]
 
-# AI Agent 友好的 API 分类
+# API categories for discoverability
 NAMED_ASSIGNS_API_CATEGORIES = {
     "area_modifier": {
-        "description": "面单元刚度修改器定义",
+        "description": "Area stiffness modifier definitions",
         "classes": ["NamedAreaModifier"],
         "api_path": "NamedAssign.ModifierArea",
     },
     "frame_modifier": {
-        "description": "杆件修改器定义",
+        "description": "Frame modifier definitions",
         "classes": ["NamedFrameModifier"],
         "api_path": "NamedAssign.ModifierFrame",
     },
     "cable_modifier": {
-        "description": "索单元修改器定义",
+        "description": "Cable modifier definitions",
         "classes": ["NamedCableModifier"],
         "api_path": "NamedAssign.ModifierCable",
     },
     "frame_release": {
-        "description": "杆件端部释放定义",
+        "description": "Frame end-release definitions",
         "classes": ["NamedFrameRelease"],
         "api_path": "NamedAssign.ReleaseFrame",
     },

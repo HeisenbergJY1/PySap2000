@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-group.py - 面单元组分配函数
-对应 SAP2000 的 AreaObj 组分配相关 API
+group.py - Area group-assignment helpers.
+
+Wraps SAP2000 `AreaObj` group-assignment APIs.
 
 SAP2000 API:
 - AreaObj.SetGroupAssign(Name, GroupName, Remove, ItemType)
@@ -22,23 +23,23 @@ def set_area_group(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置面单元组分配
+    Assign or remove an area object from a group.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        group_name: 组名称 (必须已存在)
-        remove: False=添加到组, True=从组移除
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        group_name: Group name, which must already exist
+        remove: `False` to add the area, `True` to remove it
+        item_type: Target scope
     
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     
     Example:
-        # 将面单元添加到组
+        # Add the area to a group
         set_area_group(model, "1", "Slabs")
         
-        # 从组移除面单元
+        # Remove the area from a group
         set_area_group(model, "1", "Slabs", remove=True)
     """
     return model.AreaObj.SetGroupAssign(str(area_name), group_name, remove, int(item_type))
@@ -51,16 +52,16 @@ def add_area_to_group(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    将面单元添加到组
+    Add an area object to a group.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        group_name: 组名称 (必须已存在)
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        group_name: Group name, which must already exist
+        item_type: Target scope
     
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     
     Example:
         add_area_to_group(model, "1", "Slabs")
@@ -75,16 +76,16 @@ def remove_area_from_group(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    从组移除面单元
+    Remove an area object from a group.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        group_name: 组名称
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        group_name: Group name
+        item_type: Target scope
     
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     
     Example:
         remove_area_from_group(model, "1", "Slabs")
@@ -97,19 +98,19 @@ def get_area_groups(
     area_name: str
 ) -> Optional[List[str]]:
     """
-    获取面单元所属组
+    Get the groups assigned to an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
     
     Returns:
-        组名称列表，失败返回 None
+        List of group names, or `None` if the query fails.
     
     Example:
         groups = get_area_groups(model, "1")
         if groups:
-            print(f"面单元所属组: {groups}")
+            print(f"Assigned groups: {groups}")
     """
     try:
         result = model.AreaObj.GetGroupAssign(str(area_name), 0, [])
@@ -128,19 +129,19 @@ def is_area_in_group(
     group_name: str
 ) -> bool:
     """
-    检查面单元是否在指定组中
+    Check whether an area object belongs to a specific group.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        group_name: 组名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        group_name: Group name
     
     Returns:
-        True=在组中, False=不在组中
+        `True` if the area belongs to the group, otherwise `False`.
     
     Example:
         if is_area_in_group(model, "1", "Slabs"):
-            print("面单元在 Slabs 组中")
+            print("The area belongs to the Slabs group")
     """
     groups = get_area_groups(model, area_name)
     if groups:
@@ -154,15 +155,15 @@ def add_areas_to_group(
     group_name: str
 ) -> int:
     """
-    批量将面单元添加到组
+    Add multiple area objects to a group.
     
     Args:
-        model: SapModel 对象
-        area_names: 面单元名称列表
-        group_name: 组名称 (必须已存在)
+        model: SAP2000 SapModel object
+        area_names: List of area object names
+        group_name: Group name, which must already exist
     
     Returns:
-        0 表示全部成功，非 0 表示有失败
+        `0` if all operations succeed. Nonzero indicates at least one failure.
     
     Example:
         add_areas_to_group(model, ["1", "2", "3"], "Slabs")
@@ -181,15 +182,15 @@ def remove_areas_from_group(
     group_name: str
 ) -> int:
     """
-    批量从组移除面单元
+    Remove multiple area objects from a group.
     
     Args:
-        model: SapModel 对象
-        area_names: 面单元名称列表
-        group_name: 组名称
+        model: SAP2000 SapModel object
+        area_names: List of area object names
+        group_name: Group name
     
     Returns:
-        0 表示全部成功，非 0 表示有失败
+        `0` if all operations succeed. Nonzero indicates at least one failure.
     
     Example:
         remove_areas_from_group(model, ["1", "2", "3"], "Slabs")

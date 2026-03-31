@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-analyze - 分析控制模块
+analyze - Analysis control helpers
 
-SAP2000 的 Analyze API，用于控制分析执行。
+Wraps the SAP2000 `Analyze` API for controlling analysis execution.
 
-SAP2000 API 结构:
-- Analyze.RunAnalysis - 运行分析
-- Analyze.CreateAnalysisModel - 创建分析模型
-- Analyze.DeleteResults - 删除结果
-- Analyze.GetActiveDOF / SetActiveDOF - 活动自由度
-- Analyze.GetCaseStatus - 工况状态
-- Analyze.GetRunCaseFlag / SetRunCaseFlag - 运行标志
-- Analyze.GetSolverOption_3 / SetSolverOption_3 - 求解器选项
-- Analyze.ModifyUnDeformedGeometry - 修改未变形几何
-- Analyze.MergeAnalysisResults - 合并分析结果
+SAP2000 API structure:
+- Analyze.RunAnalysis - Run analysis
+- Analyze.CreateAnalysisModel - Create analysis model
+- Analyze.DeleteResults - Delete results
+- Analyze.GetActiveDOF / SetActiveDOF - Active degrees of freedom
+- Analyze.GetCaseStatus - Case status
+- Analyze.GetRunCaseFlag / SetRunCaseFlag - Run flags
+- Analyze.GetSolverOption_3 / SetSolverOption_3 - Solver options
+- Analyze.ModifyUnDeformedGeometry - Modify undeformed geometry
+- Analyze.MergeAnalysisResults - Merge analysis results
 
 Usage:
     from PySap2000.analyze import (
@@ -28,10 +28,10 @@ Usage:
         set_solver_option,
     )
     
-    # 运行分析
+    # Run analysis
     run_analysis(model)
     
-    # 设置活动自由度
+    # Set active degrees of freedom
     dof = ActiveDOF(ux=True, uy=True, uz=True, rx=False, ry=False, rz=False)
     set_active_dof(model, dof)
 """
@@ -57,66 +57,66 @@ from .analyze import (
 )
 
 __all__ = [
-    # 枚举
+    # Enums
     "CaseStatus",
     "SolverType",
     "SolverProcessType",
-    # 数据类
+    # Dataclasses
     "ActiveDOF",
     "SolverOption",
     "CaseStatusInfo",
     "RunCaseFlag",
-    # 核心分析函数
+    # Core analysis functions
     "run_analysis",
     "create_analysis_model",
     "delete_results",
     "delete_all_results",
-    # 自由度
+    # Degrees of freedom
     "get_active_dof",
     "set_active_dof",
-    # 工况状态
+    # Case status
     "get_case_status",
     "get_run_case_flag",
     "set_run_case_flag",
     "set_run_case_flag_all",
-    # 求解器
+    # Solver
     "get_solver_option",
     "set_solver_option",
-    # 几何修改
+    # Geometry modification
     "modify_undeformed_geometry",
     "modify_undeformed_geometry_mode_shape",
     "merge_analysis_results",
 ]
 
-# AI Agent 友好的 API 分类
+# API categories for discoverability
 ANALYZE_API_CATEGORIES = {
     "core": {
-        "description": "核心分析控制",
+        "description": "Core analysis control",
         "functions": ["run_analysis", "create_analysis_model", "delete_results", "delete_all_results"],
         "api_path": "Analyze",
     },
     "dof": {
-        "description": "活动自由度控制",
+        "description": "Active degree-of-freedom control",
         "functions": ["get_active_dof", "set_active_dof"],
         "classes": ["ActiveDOF"],
         "api_path": "Analyze.GetActiveDOF/SetActiveDOF",
     },
     "case_control": {
-        "description": "工况运行控制",
+        "description": "Case run control",
         "functions": ["get_case_status", "get_run_case_flag", "set_run_case_flag", "set_run_case_flag_all"],
         "classes": ["CaseStatusInfo", "RunCaseFlag"],
         "enums": ["CaseStatus"],
         "api_path": "Analyze.GetCaseStatus/GetRunCaseFlag/SetRunCaseFlag",
     },
     "solver": {
-        "description": "求解器选项",
+        "description": "Solver options",
         "functions": ["get_solver_option", "set_solver_option"],
         "classes": ["SolverOption"],
         "enums": ["SolverType", "SolverProcessType"],
         "api_path": "Analyze.GetSolverOption_3/SetSolverOption_3",
     },
     "geometry": {
-        "description": "几何修改",
+        "description": "Geometry modification",
         "functions": ["modify_undeformed_geometry", "modify_undeformed_geometry_mode_shape", "merge_analysis_results"],
         "api_path": "Analyze.ModifyUnDeformedGeometry/MergeAnalysisResults",
     },

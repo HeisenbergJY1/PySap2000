@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-data_classes.py - Link 对象数据类
+data_classes.py - Link data classes.
 
-用于存储 Link 对象的各种属性数据
+Stores structured data for link object properties.
 """
 
 from dataclasses import dataclass, field
@@ -11,7 +11,7 @@ from typing import List, Optional
 
 @dataclass
 class LinkLocalAxesData:
-    """连接单元局部轴数据"""
+    """Link local-axis data."""
     link_name: str = ""
     angle: float = 0.0
     advanced: bool = False
@@ -20,22 +20,23 @@ class LinkLocalAxesData:
 @dataclass
 class LinkLocalAxesAdvancedData:
     """
-    连接单元高级局部轴数据
+    Advanced link local-axis data.
     
     Attributes:
-        link_name: 连接单元名称
-        active: 是否激活高级局部轴
-        ax_vect_opt: 轴向量选项 (1=坐标方向, 2=两节点, 3=用户向量)
-        ax_csys: 轴坐标系
-        ax_dir: 轴方向数组 [primary, secondary]
-        ax_pt: 轴参考点数组 [pt1, pt2]
-        ax_vect: 轴向量 [x, y, z]
-        plane2: 平面2定义 (12 或 13)
-        pl_vect_opt: 平面向量选项
-        pl_csys: 平面坐标系
-        pl_dir: 平面方向数组 [primary, secondary]
-        pl_pt: 平面参考点数组 [pt1, pt2]
-        pl_vect: 平面向量 [x, y, z]
+        link_name: Link object name
+        active: Whether advanced local axes are enabled
+        ax_vect_opt: Axis vector option (`1`=coordinate direction,
+            `2`=two points, `3`=user vector)
+        ax_csys: Axis coordinate system
+        ax_dir: Axis direction array `[primary, secondary]`
+        ax_pt: Axis reference point array `[pt1, pt2]`
+        ax_vect: Axis vector `[x, y, z]`
+        plane2: Plane-2 definition (`12` or `13`)
+        pl_vect_opt: Plane vector option
+        pl_csys: Plane coordinate system
+        pl_dir: Plane direction array `[primary, secondary]`
+        pl_pt: Plane reference point array `[pt1, pt2]`
+        pl_vect: Plane vector `[x, y, z]`
     """
     link_name: str = ""
     active: bool = False

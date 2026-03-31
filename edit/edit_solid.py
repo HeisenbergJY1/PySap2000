@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-edit_solid.py - 实体编辑
+edit_solid.py - Solid editing
 
-SAP2000 EditSolid API 封装
+Wrappers for the SAP2000 `EditSolid` API.
 
 SAP2000 API:
-- EditSolid.Divide - 分割实体
+- `EditSolid.Divide` - Divide solids
 """
 
 from typing import List
@@ -20,17 +20,17 @@ def divide_solid(
     num_3: int = 2
 ) -> List[str]:
     """
-    分割实体单元
+    Divide solid objects
     
     Args:
-        model: SapModel 对象
-        name: 实体名称
-        num_1: 局部1方向分割数
-        num_2: 局部2方向分割数
-        num_3: 局部3方向分割数
+        model: SAP2000 SapModel object
+        name: Solid object name
+        num_1: Number of divisions along local-1
+        num_2: Number of divisions along local-2
+        num_3: Number of divisions along local-3
         
     Returns:
-        新创建的实体名称列表
+        List of newly created solid names
     """
     result = model.EditSolid.Divide(name, num_1, num_2, num_3, 0, [])
     num = com_data(result, 0, 0)

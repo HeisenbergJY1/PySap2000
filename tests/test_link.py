@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""连接单元相关测试"""
+"""Tests for link objects."""
 
 import pytest
 from PySap2000.structure_core import Link
@@ -9,7 +9,7 @@ pytestmark = pytest.mark.link
 
 
 class TestLinkSection:
-    """连接属性测试"""
+    """Link section (property) definitions."""
 
     def test_create_linear_section(self, app):
         ret = app.create_object(LinkSection(
@@ -36,7 +36,7 @@ class TestLinkSection:
 
 
 class TestLinkCreate:
-    """连接单元创建测试"""
+    """Create link objects."""
 
     def test_create_two_joint_link(self, app):
         ret = app.create_object(Link(no=1, start_point="3", end_point="4", property_name="Linear1"))
@@ -48,7 +48,7 @@ class TestLinkCreate:
 
 
 class TestLinkQuery:
-    """连接单元查询测试"""
+    """Query links."""
 
     def test_get_link(self, app):
         lk = app.get_object(Link(no="1"))
@@ -95,7 +95,7 @@ class TestLinkQuery:
 
 
 class TestLinkUpdate:
-    """连接单元更新测试"""
+    """Update link objects."""
 
     def test_update_link_property(self, app):
         ret = app.update_object(Link(no="1", property_name="Linear1"))

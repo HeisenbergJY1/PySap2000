@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-link_section.py - 连接单元属性
-对应 SAP2000 的 PropLink
+link_section.py - Link property definitions.
+Wraps SAP2000 `PropLink`.
 
 Usage:
     from section import LinkSection, LinkSectionType
     
-    # 获取连接属性
+    # Get a link property
     link = LinkSection.get_by_name(model, "L1")
-    print(f"类型: {link.type_name}")
+    print(f"Type: {link.type_name}")
     
-    # 创建线性连接
+    # Create a linear link
     link = LinkSection(
         name="L1",
         section_type=LinkSectionType.LINEAR
@@ -25,62 +25,62 @@ from PySap2000.com_helper import com_ret, com_data
 
 
 class LinkSectionType(IntEnum):
-    """连接属性类型 - 对应 SAP2000 eLinkPropType"""
-    LINEAR = 1                    # 线性
-    DAMPER = 2                    # 阻尼器
-    GAP = 3                       # 间隙
-    HOOK = 4                      # 钩
-    PLASTIC_WEN = 5               # 塑性(Wen)
-    RUBBER_ISOLATOR = 6           # 橡胶隔震器
-    FRICTION_ISOLATOR = 7         # 摩擦隔震器
-    MULTILINEAR_ELASTIC = 8       # 多线性弹性
-    MULTILINEAR_PLASTIC = 9       # 多线性塑性
-    TC_FRICTION_ISOLATOR = 10     # T/C 摩擦隔震器
+    """Link property type corresponding to SAP2000 `eLinkPropType`."""
+    LINEAR = 1                    # Linear
+    DAMPER = 2                    # Damper
+    GAP = 3                       # Gap
+    HOOK = 4                      # Hook
+    PLASTIC_WEN = 5               # Plastic (Wen)
+    RUBBER_ISOLATOR = 6           # Rubber isolator
+    FRICTION_ISOLATOR = 7         # Friction isolator
+    MULTILINEAR_ELASTIC = 8       # Multilinear elastic
+    MULTILINEAR_PLASTIC = 9       # Multilinear plastic
+    TC_FRICTION_ISOLATOR = 10     # T/C friction isolator
 
 
 
 
 
-# 连接类型中文名称
+# Human-readable link type names
 LINK_TYPE_NAMES: Dict[LinkSectionType, str] = {
-    LinkSectionType.LINEAR: "线性",
-    LinkSectionType.DAMPER: "阻尼器",
-    LinkSectionType.GAP: "间隙",
-    LinkSectionType.HOOK: "钩",
-    LinkSectionType.PLASTIC_WEN: "塑性(Wen)",
-    LinkSectionType.RUBBER_ISOLATOR: "橡胶隔震器",
-    LinkSectionType.FRICTION_ISOLATOR: "摩擦隔震器",
-    LinkSectionType.MULTILINEAR_ELASTIC: "多线性弹性",
-    LinkSectionType.MULTILINEAR_PLASTIC: "多线性塑性",
-    LinkSectionType.TC_FRICTION_ISOLATOR: "T/C摩擦隔震器",
+    LinkSectionType.LINEAR: "Linear",
+    LinkSectionType.DAMPER: "Damper",
+    LinkSectionType.GAP: "Gap",
+    LinkSectionType.HOOK: "Hook",
+    LinkSectionType.PLASTIC_WEN: "Plastic (Wen)",
+    LinkSectionType.RUBBER_ISOLATOR: "Rubber isolator",
+    LinkSectionType.FRICTION_ISOLATOR: "Friction isolator",
+    LinkSectionType.MULTILINEAR_ELASTIC: "Multilinear elastic",
+    LinkSectionType.MULTILINEAR_PLASTIC: "Multilinear plastic",
+    LinkSectionType.TC_FRICTION_ISOLATOR: "T/C friction isolator",
 }
 
 
 @dataclass
 class LinkSection:
     """
-    连接单元属性 - 对应 SAP2000 PropLink
+    Link property wrapper for SAP2000 `PropLink`.
     
     Attributes:
-        name: 属性名称
-        section_type: 属性类型
-        type_name: 属性类型中文名称
-        dof: 自由度激活状态 [U1, U2, U3, R1, R2, R3]
-        fixed: 自由度固定状态
-        stiffness: 有效刚度 Ke
-        damping: 有效阻尼 Ce
-        dj2: U2 剪切弹簧到 J 端距离
-        dj3: U3 剪切弹簧到 J 端距离
+        name: Property name
+        section_type: Property type
+        type_name: Human-readable property type name
+        dof: Active DOF flags `[U1, U2, U3, R1, R2, R3]`
+        fixed: Fixed DOF flags
+        stiffness: Effective stiffness `Ke`
+        damping: Effective damping `Ce`
+        dj2: Distance from U2 shear spring to the J end
+        dj3: Distance from U3 shear spring to the J end
     """
     
-    # 标识
+    # Identifier
     name: str = ""
     
-    # 类型
+    # Type
     section_type: Optional[LinkSectionType] = None
     type_name: str = ""
     
-    # 通用属性
+    # Common properties
     dof: List[bool] = field(default_factory=lambda: [False] * 6)
     fixed: List[bool] = field(default_factory=lambda: [False] * 6)
     stiffness: List[float] = field(default_factory=lambda: [0.0] * 6)
@@ -88,25 +88,25 @@ class LinkSection:
     dj2: float = 0.0
     dj3: float = 0.0
     
-    # 非线性属性
+    # Nonlinear properties
     nonlinear: List[bool] = field(default_factory=lambda: [False] * 6)
     k_initial: List[float] = field(default_factory=lambda: [0.0] * 6)
     
-    # 阻尼器属性
+    # Damper properties
     c_nonlinear: List[float] = field(default_factory=lambda: [0.0] * 6)
     c_exponent: List[float] = field(default_factory=lambda: [1.0] * 6)
     
-    # 间隙/钩属性
+    # Gap / hook properties
     opening: List[float] = field(default_factory=lambda: [0.0] * 6)
     
-    # 质量属性
+    # Weight and mass properties
     weight: float = 0.0
     mass: float = 0.0
     r1: float = 0.0
     r2: float = 0.0
     r3: float = 0.0
     
-    # 耦合标志
+    # Coupling flags
     stiffness_coupled: bool = False
     damping_coupled: bool = False
     
@@ -117,48 +117,48 @@ class LinkSection:
 
     @classmethod
     def get_by_name(cls, model, name: str) -> 'LinkSection':
-        """获取指定名称的连接属性"""
+        """Get a link property by name."""
         prop = cls(name=name)
         prop._get(model)
         return prop
     
     @classmethod
     def get_all(cls, model) -> List['LinkSection']:
-        """获取所有连接属性"""
+        """Get all link properties."""
         names = cls.get_name_list(model)
         return [cls.get_by_name(model, n) for n in names]
     
     @staticmethod
     def get_count(model) -> int:
-        """获取连接属性总数"""
+        """Get the total number of link properties."""
         return model.PropLink.Count()
     
     @staticmethod
     def get_name_list(model) -> List[str]:
-        """获取连接属性名称列表"""
+        """Get the list of link property names."""
         result = model.PropLink.GetNameList(0, [])
         names = com_data(result, 1)
         return list(names) if names else []
 
     def _get(self, model) -> 'LinkSection':
-        """从 SAP2000 获取连接属性数据"""
+        """Load link property data from SAP2000."""
         result = model.PropLink.GetTypeOAPI(self.name)
         
         type_val = com_data(result, 0)
         ret = com_ret(result)
         if type_val is not None:
             if ret != 0:
-                from exceptions import SectionError
-                raise SectionError(f"连接属性 {self.name} 不存在")
+                from PySap2000.exceptions import SectionError
+                raise SectionError(f"Link property {self.name} does not exist")
             
             try:
                 self.section_type = LinkSectionType(type_val)
-                self.type_name = LINK_TYPE_NAMES.get(self.section_type, f"未知({type_val})")
+                self.type_name = LINK_TYPE_NAMES.get(self.section_type, f"Unknown ({type_val})")
             except ValueError:
                 self.section_type = None
-                self.type_name = f"未知({type_val})"
+                self.type_name = f"Unknown ({type_val})"
         
-        # 根据类型获取详细属性
+        # Load type-specific properties
         if self.section_type == LinkSectionType.LINEAR:
             self._get_linear(model)
         elif self.section_type == LinkSectionType.DAMPER:
@@ -241,7 +241,7 @@ class LinkSection:
             self.r3 = com_data(result, 4, default=0.0)
 
     def _create(self, model) -> int:
-        """在 SAP2000 中创建连接属性"""
+        """Create the link property in SAP2000."""
         from PySap2000.logger import get_logger
         _log = get_logger("link_section")
         if self.name:

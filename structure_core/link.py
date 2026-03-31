@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-link.py - 连接单元数据对象
-对应 SAP2000 的 LinkObj
+link.py - Link element data object.
 
-这是一个纯数据类，只包含核心 CRUD 操作。
-扩展功能请使用:
-- loads/link_load.py - 荷载函数
-- types_for_links/ - 其他扩展函数
+Maps to SAP2000 `LinkObj`.
+
+This is a pure data class containing only core CRUD operations.
+For extended behavior, use:
+- `loads/link_load.py` for loads
+- the `link/` package for local axes, properties, and related helpers
 
 API Reference:
     - AddByPoint(Point1, Point2, Name, IsSingleJoint=False, PropName="Default", UserName="") -> Long
@@ -22,28 +23,28 @@ API Reference:
     - Count() -> Long
     - GetNameList() -> (NumberNames, MyName[], ret)
     - Delete(Name) -> Long
-    - GetElm(Name, Elm) -> Long  # 返回单个分析单元名称
+    - GetElm(Name, Elm) -> Long  # Returns a single analysis element name
 
 Usage:
     from PySap2000.structure_core import Link
-    from PySap2000.types_for_links import LinkType, LinkItemType
+    from PySap2000.link.enums import LinkType, LinkItemType
     
-    # 创建两节点连接单元
+    # Create a two-joint link
     link = Link(no=1, start_point="1", end_point="2", property_name="Linear1")
     link._create(model)
     
-    # 创建单节点连接单元（接地）
+    # Create a grounded single-joint link
     link = Link(no=2, start_point="3", is_single_joint=True, property_name="Spring1")
     link._create(model)
     
-    # 获取连接单元
+    # Fetch a link
     link = Link.get_by_name(model, "1")
 """
 
 from dataclasses import dataclass, field
 from typing import Optional, List, Tuple, Union, ClassVar
 
-from link.enums import (
+from PySap2000.link.enums import (
     LinkType, LinkDirectionalType, LinkItemType, AxisVectorOption
 )
 from PySap2000.com_helper import com_ret, com_data
@@ -52,22 +53,22 @@ from PySap2000.com_helper import com_ret, com_data
 @dataclass
 class LinkLocalAxesAdvanced:
     """
-    连接单元高级局部轴设置
+    Advanced local-axis settings for a link object.
     
     Attributes:
-        link_name: 连接单元名称
-        active: 是否激活高级局部轴
-        ax_vect_opt: 轴向量选项 (1=坐标方向, 2=两节点, 3=用户向量)
-        ax_csys: 轴坐标系
-        ax_dir: 轴方向数组 [primary, secondary] (1-9, 负值表示负方向)
-        ax_pt: 轴参考点数组 [pt1, pt2]
-        ax_vect: 轴向量 [x, y, z]
-        plane2: 平面2定义 (12 或 13)
-        pl_vect_opt: 平面向量选项
-        pl_csys: 平面坐标系
-        pl_dir: 平面方向数组 [primary, secondary]
-        pl_pt: 平面参考点数组 [pt1, pt2]
-        pl_vect: 平面向量 [x, y, z]
+        link_name: Link object name
+        active: Whether advanced local axes are active
+        ax_vect_opt: Axis vector option (1=coord direction, 2=two joints, 3=user vector)
+        ax_csys: Axis coordinate system
+        ax_dir: Axis direction array `[primary, secondary]`
+        ax_pt: Axis reference points `[pt1, pt2]`
+        ax_vect: Axis vector `[x, y, z]`
+        plane2: Plane-2 definition (12 or 13)
+        pl_vect_opt: Plane vector option
+        pl_csys: Plane coordinate system
+        pl_dir: Plane direction array `[primary, secondary]`
+        pl_pt: Plane reference points `[pt1, pt2]`
+        pl_vect: Plane vector `[x, y, z]`
     """
     link_name: str = ""
     active: bool = False
@@ -87,31 +88,31 @@ class LinkLocalAxesAdvanced:
 @dataclass
 class Link:
     """
-    连接单元数据对象
-    
-    对应 SAP2000 的 LinkObj
-    用于模拟弹簧、阻尼器、隔震支座等
+    Link element data object.
+
+    Maps to SAP2000 `LinkObj` and is used for springs, dampers,
+    isolation bearings, and similar components.
     
     Attributes:
-        no: 连接单元编号/名称
-        start_point: 起始节点编号 (I-End)
-        end_point: 结束节点编号 (J-End)，单节点连接时为 None 或 ""
-        is_single_joint: 是否为单节点连接（接地）
-        property_name: 连接属性名称
-        fd_property_name: 频率相关连接属性名称 (None 表示无)
-        local_axis_angle: 局部轴角度 [deg]
-        advanced_axes: 是否使用高级局部轴参数
-        type: 连接类型
+        no: Link identifier or name
+        start_point: Start point name (I-End)
+        end_point: End point name (J-End); `None` or `""` for single-joint links
+        is_single_joint: Whether this is a grounded single-joint link
+        property_name: Link property name
+        fd_property_name: Frequency-dependent property name, if any
+        local_axis_angle: Local axis rotation angle [deg]
+        advanced_axes: Whether advanced local-axis parameters are active
+        type: Link type
     """
     
-    # 必填属性
+    # Required fields
     no: Union[int, str] = None
     
-    # 通过节点定义
+    # Defined by point names
     start_point: Optional[Union[int, str]] = None
     end_point: Optional[Union[int, str]] = None
     
-    # 通过坐标定义
+    # Defined by coordinates
     start_x: Optional[float] = None
     start_y: Optional[float] = None
     start_z: Optional[float] = None
@@ -119,35 +120,35 @@ class Link:
     end_y: Optional[float] = None
     end_z: Optional[float] = None
     
-    # 属性
+    # Properties
     property_name: str = ""
     fd_property_name: Optional[str] = None
     type: Optional[LinkType] = None
     directional_type: LinkDirectionalType = LinkDirectionalType.TWO_JOINT
     
-    # 单节点连接标志
+    # Single-joint connection flag
     is_single_joint: bool = False
     
-    # 局部轴角度
+    # Local-axis angle
     local_axis_angle: float = 0.0
     advanced_axes: bool = False
     
-    # 可选属性
+    # Optional properties
     coordinate_system: str = "Global"
     comment: str = ""
     guid: Optional[str] = None
     
-    # 类属性
+    # Class properties
     _object_type: ClassVar[str] = "LinkObj"
     
-    # ==================== 核心 CRUD 方法 ====================
+    # ==================== Core CRUD methods ====================
     
     def _create(self, model) -> int:
         """
-        在 SAP2000 中创建连接单元
+        Create link object in SAP2000.
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.logger import get_logger
         _log = get_logger("link")
@@ -155,7 +156,7 @@ class Link:
         user_name = str(self.no) if self.no is not None else ""
         prop = self.property_name if self.property_name else "Default"
 
-        # 检查是否已存在
+        # Check whether it already exists
         if user_name:
             try:
                 existing = self.get_name_list(model)
@@ -165,7 +166,7 @@ class Link:
             except Exception:
                 pass
 
-        # 通过坐标创建
+        # Create by coordinates
         if self.start_x is not None:
             result = model.LinkObj.AddByCoord(
                 self.start_x, self.start_y or 0, self.start_z or 0,
@@ -177,7 +178,7 @@ class Link:
                 self.no = assigned_name
             return com_ret(result)
         
-        # 通过节点创建
+        # Create by point names
         if self.start_point is not None:
             point1 = str(self.start_point)
             point2 = str(self.end_point) if self.end_point and not self.is_single_joint else ""
@@ -194,10 +195,10 @@ class Link:
         raise LinkError("Link creation requires points or coordinates")
     
     def _get(self, model) -> 'Link':
-        """从 SAP2000 获取连接单元数据"""
+        """Fetch link-object data from SAP2000"""
         no_str = str(self.no)
         
-        # 获取端点
+        # Get endpoints
         result = model.LinkObj.GetPoints(no_str, "", "")
         self.start_point = com_data(result, 0)
         point2 = com_data(result, 1)
@@ -214,27 +215,27 @@ class Link:
             from PySap2000.exceptions import LinkError
             raise LinkError(f"Failed to get endpoints for Link '{no_str}', ret={ret}")
         
-        # 获取属性
+        # Get properties
         result = model.LinkObj.GetProperty(no_str, "")
         self.property_name = com_data(result, 0, "")
         
-        # 获取频率相关属性
+        # Get frequency-dependent property
         self._get_property_fd(model)
         
-        # 获取局部轴角度
+        # Get local-axis angle
         self._get_local_axes(model)
         
-        # 获取 GUID
+        # Get GUID
         self._get_guid(model)
         
         return self
     
     def _delete(self, model) -> int:
-        """从 SAP2000 删除连接单元"""
+        """Delete link object from SAP2000"""
         return model.LinkObj.Delete(str(self.no))
     
     def _update(self, model) -> int:
-        """更新连接单元属性"""
+        """Update link-object properties."""
         from PySap2000.logger import get_logger
         _log = get_logger("link")
         ret = 0
@@ -256,10 +257,10 @@ class Link:
         
         return ret
     
-    # ==================== 内部辅助方法 ====================
+    # ==================== Internal helper methods ====================
     
     def _get_local_axes(self, model):
-        """获取局部轴角度"""
+        """Get local-axis angle."""
         try:
             result = model.LinkObj.GetLocalAxes(str(self.no), 0.0, False)
             self.local_axis_angle = com_data(result, 0, 0.0)
@@ -268,7 +269,7 @@ class Link:
             pass
     
     def _get_property_fd(self, model):
-        """获取频率相关属性"""
+        """Get frequency-dependent property."""
         try:
             result = model.LinkObj.GetPropertyFD(str(self.no), "")
             prop_name = com_data(result, 0)
@@ -280,7 +281,7 @@ class Link:
             self.fd_property_name = None
     
     def _get_guid(self, model):
-        """获取 GUID"""
+        """Get GUID"""
         try:
             result = model.LinkObj.GetGUID(str(self.no), "")
             guid = com_data(result, 0)
@@ -289,16 +290,16 @@ class Link:
         except Exception:
             pass
     
-    # ==================== 静态方法 ====================
+    # ==================== Static methods ====================
     
     @staticmethod
     def get_count(model) -> int:
-        """获取连接单元总数"""
+        """Get total number of link objects"""
         return model.LinkObj.Count()
     
     @staticmethod
     def get_name_list(model) -> List[str]:
-        """获取所有连接单元名称列表"""
+        """Get all link-object names"""
         result = model.LinkObj.GetNameList(0, [])
         count = com_data(result, 0, 0)
         names = com_data(result, 1)
@@ -308,7 +309,7 @@ class Link:
     
     @staticmethod
     def get_property_name_list(model) -> List[str]:
-        """获取所有连接属性名称列表"""
+        """Get all link-property names."""
         result = model.PropLink.GetNameList(0, [])
         count = com_data(result, 0, 0)
         names = com_data(result, 1)
@@ -317,16 +318,16 @@ class Link:
         return []
 
     
-    # ==================== 类方法 ====================
+    # ==================== Class methods ====================
     
     @classmethod
     def get_by_name(cls, model, name: str) -> 'Link':
         """
-        获取指定名称的连接单元
+        Get link object by name
         
         Example:
             link = Link.get_by_name(model, "1")
-            print(f"属性: {link.property_name}")
+            print(f"Properties: {link.property_name}")
         """
         link = cls(no=name)
         link._get(model)
@@ -335,7 +336,7 @@ class Link:
     @classmethod
     def get_all(cls, model, names: List[str] = None) -> List['Link']:
         """
-        获取所有连接单元
+        Get all link objects
         
         Example:
             links = Link.get_all(model)
@@ -346,24 +347,24 @@ class Link:
             names = cls.get_name_list(model)
         return [cls.get_by_name(model, name) for name in names]
     
-    # ==================== 实例方法 ====================
+    # ==================== Instance methods ====================
     
     def set_property(self, model, property_name: str) -> int:
-        """设置连接属性"""
+        """Set link property."""
         self.property_name = property_name
         return model.LinkObj.SetProperty(str(self.no), property_name)
     
     def set_guid(self, model, guid: str) -> int:
-        """设置 GUID"""
+        """Set GUID."""
         self.guid = guid
         return model.LinkObj.SetGUID(str(self.no), guid)
     
     def get_local_axes(self, model) -> Tuple[float, bool]:
         """
-        获取局部轴角度
+        Get local-axis angle.
         
         Returns:
-            (angle, advanced) - 角度[deg]和是否使用高级参数
+            (angle, advanced) - angle[deg]and whether advanced settings are used
         """
         self._get_local_axes(model)
         return (self.local_axis_angle, self.advanced_axes)
@@ -375,25 +376,25 @@ class Link:
         item_type: LinkItemType = LinkItemType.OBJECT
     ) -> int:
         """
-        设置局部轴角度
+        Set local-axis angle.
         
         Args:
-            model: SapModel 对象
-            angle: 局部2和3轴绕正局部1轴旋转的角度 [deg]
-            item_type: 操作范围
+            model: SapModel object
+            angle: Rotation angle of local-2 and local-3 about positive local-1 [deg]
+            item_type: Operation scope
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         self.local_axis_angle = angle
         return model.LinkObj.SetLocalAxes(str(self.no), angle, int(item_type))
     
     def get_property_fd(self, model) -> Optional[str]:
         """
-        获取频率相关属性
+        Get frequency-dependent property.
         
         Returns:
-            频率相关属性名称，None 表示无
+            Frequency-dependent property name, or `None` if not set
         """
         self._get_property_fd(model)
         return self.fd_property_name
@@ -405,15 +406,15 @@ class Link:
         item_type: LinkItemType = LinkItemType.OBJECT
     ) -> int:
         """
-        设置频率相关属性
+        Set frequency-dependent property.
         
         Args:
-            model: SapModel 对象
-            prop_name: 频率相关属性名称，None 或 "None" 表示清除
-            item_type: 操作范围
+            model: SapModel object
+            prop_name: Frequency-dependent property name; `None` or `"None"` clears it
+            item_type: Operation scope
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         if prop_name is None:
             prop_name = "None"
@@ -421,17 +422,17 @@ class Link:
         return model.LinkObj.SetPropertyFD(str(self.no), prop_name, int(item_type))
 
     
-    # ==================== 高级局部轴方法 ====================
+    # ==================== Advanced local-axis methods ====================
     
     def get_local_axes_advanced(self, model) -> 'LinkLocalAxesAdvanced':
         """
-        获取高级局部轴设置
+        Get advanced local-axis settings
         
         API: GetLocalAxesAdvanced(Name, Active, AxVectOpt, AxCSys, AxDir[], AxPt[], AxVect[], 
                                    Plane2, PlVectOpt, PlCSys, PlDir[], PlPt[], PlVect[])
         
         Returns:
-            LinkLocalAxesAdvanced 数据对象
+            LinkLocalAxesAdvanced data object
         """
         result = model.LinkObj.GetLocalAxesAdvanced(
             str(self.no), False, 0, "", [], [], [], 0, 0, "", [], [], []
@@ -474,31 +475,31 @@ class Link:
         item_type: LinkItemType = LinkItemType.OBJECT
     ) -> int:
         """
-        设置高级局部轴
+        Set advanced local axes
         
         API: SetLocalAxesAdvanced(Name, Active, AxVectOpt, AxCSys, AxDir[], AxPt[], AxVect[],
                                    Plane2, PlVectOpt, PlCSys, PlDir[], PlPt[], PlVect[], ItemType)
         
         Args:
-            model: SapModel 对象
-            active: 是否激活高级局部轴
-            ax_vect_opt: 轴向量选项 (1=坐标方向, 2=两节点, 3=用户向量)
-            ax_csys: 轴坐标系
-            ax_dir: 轴方向数组 [primary, secondary]
-            ax_pt: 轴参考点数组 [pt1, pt2]
-            ax_vect: 轴向量 [x, y, z]
-            plane2: 平面2定义 (12 或 13)
-            pl_vect_opt: 平面向量选项
-            pl_csys: 平面坐标系
-            pl_dir: 平面方向数组 [primary, secondary]
-            pl_pt: 平面参考点数组 [pt1, pt2]
-            pl_vect: 平面向量 [x, y, z]
-            item_type: 操作范围
+            model: SapModel object
+            active: Whether advanced local axes are active
+            ax_vect_opt: axis-vector option (1=coordinate direction, 2=two points, 3=user vector)
+            ax_csys: axis coordinate system
+            ax_dir: axis direction array [primary, secondary]
+            ax_pt: axis reference-point array [pt1, pt2]
+            ax_vect: axis vector [x, y, z]
+            plane2: Plane-2 definition (`12` or `13`)
+            pl_vect_opt: plane-vector option
+            pl_csys: plane coordinate system
+            pl_dir: plane direction array [primary, secondary]
+            pl_pt: plane reference-point array [pt1, pt2]
+            pl_vect: plane vector [x, y, z]
+            item_type: Operation scope
             
         Returns:
-            0 表示成功
+            `0` on success
         """
-        # 设置默认值
+        # Set defaults
         if ax_dir is None:
             ax_dir = [0, 0]
         if ax_pt is None:
@@ -517,7 +518,7 @@ class Link:
             plane2, pl_vect_opt, pl_csys, pl_dir, pl_pt, pl_vect, int(item_type)
         )
     
-    # ==================== 便捷创建方法 ====================
+    # ==================== Convenience creation methods ====================
     
     @staticmethod
     def add_grounded(
@@ -527,33 +528,33 @@ class Link:
         property_name: str = "Default"
     ) -> int:
         """
-        创建接地连接单元（单节点）
+        Create grounded link object (single-joint)
         
         Args:
-            model: SapModel 对象
-            no: 连接单元编号
-            point: 节点编号
-            property_name: 连接属性名称
+            model: SapModel object
+            no: Link object ID
+            point: Point ID
+            property_name: Link-property name
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.LinkObj.AddByPoint(
             str(point), "", "", True, property_name, no
         )
         return com_ret(result)
     
-    # ==================== 分析单元方法 ====================
+    # ==================== Analysis-element methods ====================
     
     def get_elm(self, model) -> Optional[str]:
         """
-        获取分析单元名称
+        Get analysis-element name
         
         API: GetElm(Name, Elm) -> Long
-        注意: 每个 Link 对象对应一个分析单元，返回单个字符串
+        Note: Each `Link` object maps to one analysis element, so a single string is returned
         
         Returns:
-            分析单元名称，失败返回 None
+            Analysis-element name, or `None` on failure
         """
         result = model.LinkObj.GetElm(str(self.no), "")
         
@@ -563,18 +564,18 @@ class Link:
         
         return None
     
-    # ==================== 变换矩阵方法 ====================
+    # ==================== Transformation-matrix methods ====================
     
     def get_transformation_matrix(self, model, is_global: bool = True) -> List[float]:
         """
-        获取变换矩阵
+        Get transformation matrix
         
         Args:
-            model: SapModel 对象
-            is_global: 是否为全局坐标系
+            model: SapModel object
+            is_global: Whether to use global coordinate system
             
         Returns:
-            3x3 变换矩阵 (9个值)
+            3x3 transformation matrix (9values)
         """
         result = model.LinkObj.GetTransformationMatrix(str(self.no), [], is_global)
         
@@ -584,10 +585,10 @@ class Link:
         
         return [1, 0, 0, 0, 1, 0, 0, 0, 1]
     
-    # ==================== 选择方法 ====================
+    # ==================== Selection methods ====================
     
     def get_selected(self, model) -> bool:
-        """获取选择状态"""
+        """Get selection state"""
         result = model.LinkObj.GetSelected(str(self.no), False)
         return com_data(result, 0, False)
     
@@ -597,13 +598,13 @@ class Link:
         selected: bool,
         item_type: LinkItemType = LinkItemType.OBJECT
     ) -> int:
-        """设置选择状态"""
+        """Set selection state"""
         return model.LinkObj.SetSelected(str(self.no), selected, int(item_type))
     
-    # ==================== 组分配方法 ====================
+    # ==================== Group-assignment methods ====================
     
     def get_group_assign(self, model) -> List[str]:
-        """获取组分配"""
+        """Get group assignments"""
         result = model.LinkObj.GetGroupAssign(str(self.no), 0, [])
         num_groups = com_data(result, 0, 0)
         groups = com_data(result, 1)
@@ -618,13 +619,13 @@ class Link:
         remove: bool = False,
         item_type: LinkItemType = LinkItemType.OBJECT
     ) -> int:
-        """设置组分配"""
+        """Set group assignments"""
         return model.LinkObj.SetGroupAssign(str(self.no), group_name, remove, int(item_type))
     
-    # ==================== 名称方法 ====================
+    # ==================== Name methods ====================
     
     def change_name(self, model, new_name: str) -> int:
-        """更改连接单元名称"""
+        """Change link-object name"""
         ret = model.LinkObj.ChangeName(str(self.no), new_name)
         if ret == 0:
             self.no = new_name

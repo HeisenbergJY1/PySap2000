@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""全局参数测试 (Units, ModelSettings, ProjectInfo)"""
+"""Tests for global parameters (Units, ModelSettings, ProjectInfo)."""
 
 import pytest
 from PySap2000.global_parameters import (
@@ -16,7 +16,7 @@ pytestmark = pytest.mark.global_parameters
 
 
 class TestUnits:
-    """单位系统测试"""
+    """Unit systems."""
 
     def test_get_present_units(self, model):
         units = Units.get_present_units(model)
@@ -24,12 +24,12 @@ class TestUnits:
 
     def test_set_and_restore_units(self, model):
         original = Units.get_present_units(model)
-        # 切换到 kN-m
+        # Switch to kN-m-C
         ret = Units.set_present_units(model, UnitSystem.KN_M_C)
         assert ret == 0
         current = Units.get_present_units(model)
         assert current == UnitSystem.KN_M_C
-        # 恢复
+        # Restore
         Units.set_present_units(model, original)
 
     def test_get_database_units(self, model):
@@ -54,23 +54,23 @@ class TestUnits:
 
 
 class TestModelSettings:
-    """模型设置测试"""
+    """Model settings."""
 
     def test_get_active_dof(self, model):
         dof = ModelSettings.get_active_dof(model)
         assert isinstance(dof, DOFState)
 
     def test_set_active_dof_preset(self, model):
-        # 保存原始
+        # Save original DOF state
         original = ModelSettings.get_active_dof(model)
-        # 设置 XZ 平面
+        # Set XZ plane
         ret = ModelSettings.set_active_dof(model, ActiveDOF.XZ_PLANE)
         assert ret == 0
         dof = ModelSettings.get_active_dof(model)
         assert dof.ux is True
         assert dof.uy is False
         assert dof.uz is True
-        # 恢复
+        # Restore
         ModelSettings.set_active_dof(model, custom_dof=original.to_tuple())
 
     def test_set_3d_full(self, model):
@@ -79,7 +79,7 @@ class TestModelSettings:
         assert ret == 0
         dof = ModelSettings.get_active_dof(model)
         assert all([dof.ux, dof.uy, dof.uz, dof.rx, dof.ry, dof.rz])
-        # 恢复
+        # Restore
         ModelSettings.set_active_dof(model, custom_dof=original.to_tuple())
 
     def test_get_merge_tolerance(self, model):
@@ -93,7 +93,7 @@ class TestModelSettings:
         assert len(csys) > 0
 
     def test_model_lock_unlock(self, model):
-        # 确保解锁
+        # Ensure model is unlocked
         ModelSettings.unlock_model(model)
         assert ModelSettings.is_model_locked(model) is False
 
@@ -103,7 +103,7 @@ class TestModelSettings:
 
 
 class TestProjectInfo:
-    """项目信息测试"""
+    """Project info."""
 
     def test_get_all(self, model):
         info = ProjectInfo.get_all(model)
@@ -123,7 +123,7 @@ class TestProjectInfo:
 
 
 class TestDOFState:
-    """DOFState 纯数据类测试（不需要 SAP2000）"""
+    """DOFState dataclass (no SAP2000 required)."""
 
     def test_to_tuple(self):
         dof = DOFState(ux=True, uy=False, uz=True, rx=False, ry=True, rz=False)

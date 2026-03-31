@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-spring.py - 面单元弹簧函数
-对应 SAP2000 的 AreaObj 弹簧相关 API
+spring.py - Area spring helpers.
+
+Wraps SAP2000 `AreaObj` spring APIs.
 """
 
 from typing import Optional, List, Tuple
@@ -31,35 +32,35 @@ def set_area_spring(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置面单元弹簧
+    Assign springs to an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        spring_type: 弹簧类型
-            - SIMPLE_SPRING (1): 简单弹簧
-            - LINK_PROPERTY (2): 连接属性
-        stiffness: 弹簧刚度
-        simple_spring_type: 简单弹簧类型
-            - TENSION_COMPRESSION (1): 拉压
-            - COMPRESSION_ONLY (2): 仅压
-            - TENSION_ONLY (3): 仅拉
-        link_prop: 连接属性名称 (用于 LINK_PROPERTY 类型)
-        face: 面 (-1=底面, -2=顶面)
-        local_one_type: 局部1轴方向类型
-        direction: 方向
-        outward: 是否向外
-        vector: 用户向量
-        angle: 角度
-        replace: 是否替换现有弹簧
-        csys: 坐标系
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        spring_type: Spring type
+            - `SIMPLE_SPRING (1)`: simple spring
+            - `LINK_PROPERTY (2)`: link property
+        stiffness: Spring stiffness
+        simple_spring_type: Simple spring behavior type
+            - `TENSION_COMPRESSION (1)`: tension and compression
+            - `COMPRESSION_ONLY (2)`: compression only
+            - `TENSION_ONLY (3)`: tension only
+        link_prop: Link property name for `LINK_PROPERTY`
+        face: Face identifier (`-1`=bottom, `-2`=top)
+        local_one_type: Local-1 axis direction type
+        direction: Direction index
+        outward: Whether the spring acts outward
+        vector: User vector
+        angle: Angle
+        replace: Whether to replace existing springs
+        csys: Coordinate system
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
         
     Example:
-        # 设置面单元 "1" 底面的简单弹簧
+        # Set a simple spring on the bottom face of area "1"
         set_area_spring(model, "1", AreaSpringType.SIMPLE_SPRING, 1000.0, face=-1)
     """
     result = model.AreaObj.SetSpring(
@@ -79,18 +80,18 @@ def set_area_spring_data(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    使用数据对象设置面单元弹簧
+    Assign area springs from a data object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        data: AreaSpringData 对象
-        replace: 是否替换现有弹簧
-        csys: 坐标系
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        data: `AreaSpringData` instance
+        replace: Whether to replace existing springs
+        csys: Coordinate system
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     """
     return model.AreaObj.SetSpring(
         str(area_name), int(data.spring_type), data.stiffness, int(data.simple_spring_type),
@@ -104,20 +105,20 @@ def get_area_spring(
     area_name: str
 ) -> Optional[List[AreaSpringData]]:
     """
-    获取面单元弹簧
+    Get springs assigned to an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        AreaSpringData 对象列表，失败返回 None
+        List of `AreaSpringData`, or `None` if the query fails.
         
     Example:
         springs = get_area_spring(model, "1")
         if springs:
             for spring in springs:
-                print(f"刚度: {spring.stiffness}, 面: {spring.face}")
+                print(f"Stiffness: {spring.stiffness}, face: {spring.face}")
     """
     try:
         result = model.AreaObj.GetSpring(
@@ -163,15 +164,15 @@ def delete_area_spring(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    删除面单元弹簧
+    Delete springs assigned to an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     """
     return model.AreaObj.DeleteSpring(str(area_name), int(item_type))
 
@@ -181,14 +182,14 @@ def has_area_spring(
     area_name: str
 ) -> bool:
     """
-    检查面单元是否有弹簧
+    Check whether an area object has springs assigned.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        True 表示有弹簧，False 表示没有
+        `True` if springs are assigned, otherwise `False`.
     """
     springs = get_area_spring(model, area_name)
     return springs is not None and len(springs) > 0

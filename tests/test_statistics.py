@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""统计模块测试 (Statistics)
+"""Tests for the statistics module.
 
-注意: 统计依赖模型中已有的杆件和截面数据。
-测试只验证返回类型和基本逻辑，不验证具体数值。
+Statistics depend on existing frames/sections in the model. These tests only
+check return types and basic logic, not numeric accuracy.
 """
 
 import pytest
@@ -17,7 +17,7 @@ pytestmark = pytest.mark.statistics
 
 
 class TestSteelUsage:
-    """用钢量统计测试"""
+    """Steel usage statistics."""
 
     def test_get_total(self, model):
         total = get_steel_usage(model)
@@ -27,7 +27,7 @@ class TestSteelUsage:
     def test_get_by_section(self, model):
         result = get_steel_usage(model, group_by="section")
         assert isinstance(result, dict)
-        # 如果模型有杆件，应该有截面分组
+        # If the model has frames, expect section-grouped totals
         for key, val in result.items():
             assert isinstance(key, str)
             assert isinstance(val, float)
@@ -48,7 +48,7 @@ class TestSteelUsage:
 
 
 class TestCableUsage:
-    """用索量统计测试"""
+    """Cable usage statistics."""
 
     def test_get_total(self, model):
         total = get_cable_usage(model)

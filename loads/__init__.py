@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-loads - 荷载模块
+loads - Load module.
 
-包含所有荷载相关的数据类和函数
+Contains all load-related dataclasses and helper functions.
 
-结构:
-- point_load: 节点荷载 (力荷载、位移荷载)
-- frame_load: 框架荷载 (分布荷载、集中荷载)
-- area_load: 面荷载
-- cable_load: 索荷载
-- link_load: 连接荷载
+Structure:
+- `point_load`: Point loads (force and displacement)
+- `frame_load`: Frame loads (distributed and point)
+- `area_load`: Area loads
+- `cable_load`: Cable loads
+- `link_load`: Link loads
 """
 
 from .point_load import (
-    # 枚举
+    # Enums
     PointLoadItemType,
-    # 数据类
+    # Dataclasses
     PointLoadForceData,
     PointLoadDisplData,
-    # 函数
+    # Functions
     set_point_load_force,
     get_point_load_force,
     delete_point_load_force,
@@ -27,14 +27,14 @@ from .point_load import (
     delete_point_load_displ,
 )
 from .frame_load import (
-    # 枚举
+    # Enums
     FrameLoadType,
     FrameLoadDirection,
     FrameLoadItemType,
-    # 数据类
+    # Dataclasses
     FrameLoadDistributedData,
     FrameLoadPointData,
-    # 函数
+    # Functions
     set_frame_load_distributed,
     get_frame_load_distributed,
     delete_frame_load_distributed,
@@ -43,14 +43,14 @@ from .frame_load import (
     delete_frame_load_point,
 )
 from .area_load import (
-    # 枚举
+    # Enums
     AreaLoadDir,
     AreaTempLoadType,
     AreaStrainComponent,
     AreaWindPressureType,
     AreaDistType,
     AreaLoadItemType,
-    # 数据类
+    # Dataclasses
     AreaLoadGravity,
     AreaLoadUniform,
     AreaLoadSurfacePressure,
@@ -60,7 +60,7 @@ from .area_load import (
     AreaLoadRotate,
     AreaLoadUniformToFrame,
     AreaLoadWindPressure,
-    # 函数
+    # Functions
     set_area_load_gravity,
     get_area_load_gravity,
     delete_area_load_gravity,
@@ -90,17 +90,17 @@ from .area_load import (
     delete_area_load_wind_pressure,
 )
 from .cable_load import (
-    # 枚举
+    # Enums
     CableLoadDirection,
     CableLoadItemType,
-    # 数据类
+    # Dataclasses
     CableLoadDistributedData,
     CableLoadTemperatureData,
     CableLoadStrainData,
     CableLoadDeformationData,
     CableLoadGravityData,
     CableLoadTargetForceData,
-    # 函数
+    # Functions
     set_cable_load_distributed,
     get_cable_load_distributed,
     delete_cable_load_distributed,
@@ -121,13 +121,13 @@ from .cable_load import (
     delete_cable_load_target_force,
 )
 from .link_load import (
-    # 枚举
+    # Enums
     LinkLoadItemType,
-    # 数据类
+    # Dataclasses
     LinkLoadDeformationData,
     LinkLoadGravityData,
     LinkLoadTargetForceData,
-    # 函数
+    # Functions
     set_link_load_deformation,
     get_link_load_deformation,
     delete_link_load_deformation,
@@ -140,40 +140,40 @@ from .link_load import (
 )
 
 __all__ = [
-    # Point 荷载 - 枚举
+    # Point loads - Enums
     'PointLoadItemType',
-    # Point 荷载 - 数据类
+    # Point loads - Dataclasses
     'PointLoadForceData',
     'PointLoadDisplData',
-    # Point 荷载 - 函数
+    # Point loads - Functions
     'set_point_load_force',
     'get_point_load_force',
     'delete_point_load_force',
     'set_point_load_displ',
     'get_point_load_displ',
     'delete_point_load_displ',
-    # Frame 荷载 - 枚举
+    # Frame loads - Enums
     'FrameLoadType',
     'FrameLoadDirection',
     'FrameLoadItemType',
-    # Frame 荷载 - 数据类
+    # Frame loads - Dataclasses
     'FrameLoadDistributedData',
     'FrameLoadPointData',
-    # Frame 荷载 - 函数
+    # Frame loads - Functions
     'set_frame_load_distributed',
     'get_frame_load_distributed',
     'delete_frame_load_distributed',
     'set_frame_load_point',
     'get_frame_load_point',
     'delete_frame_load_point',
-    # Area 荷载 - 枚举
+    # Area loads - Enums
     'AreaLoadDir',
     'AreaTempLoadType',
     'AreaStrainComponent',
     'AreaWindPressureType',
     'AreaDistType',
     'AreaLoadItemType',
-    # Area 荷载 - 数据类
+    # Area loads - Dataclasses
     'AreaLoadGravity',
     'AreaLoadUniform',
     'AreaLoadSurfacePressure',
@@ -183,7 +183,7 @@ __all__ = [
     'AreaLoadRotate',
     'AreaLoadUniformToFrame',
     'AreaLoadWindPressure',
-    # Area 荷载 - 函数
+    # Area loads - Functions
     'set_area_load_gravity',
     'get_area_load_gravity',
     'delete_area_load_gravity',
@@ -211,17 +211,17 @@ __all__ = [
     'set_area_load_wind_pressure',
     'get_area_load_wind_pressure',
     'delete_area_load_wind_pressure',
-    # Cable 荷载 - 枚举
+    # Cable loads - Enums
     'CableLoadDirection',
     'CableLoadItemType',
-    # Cable 荷载 - 数据类
+    # Cable loads - Dataclasses
     'CableLoadDistributedData',
     'CableLoadTemperatureData',
     'CableLoadStrainData',
     'CableLoadDeformationData',
     'CableLoadGravityData',
     'CableLoadTargetForceData',
-    # Cable 荷载 - 函数
+    # Cable loads - Functions
     'set_cable_load_distributed',
     'get_cable_load_distributed',
     'delete_cable_load_distributed',
@@ -240,13 +240,13 @@ __all__ = [
     'set_cable_load_target_force',
     'get_cable_load_target_force',
     'delete_cable_load_target_force',
-    # Link 荷载 - 枚举
+    # Link loads - Enums
     'LinkLoadItemType',
-    # Link 荷载 - 数据类
+    # Link loads - Dataclasses
     'LinkLoadDeformationData',
     'LinkLoadGravityData',
     'LinkLoadTargetForceData',
-    # Link 荷载 - 函数
+    # Link loads - Functions
     'set_link_load_deformation',
     'get_link_load_deformation',
     'delete_link_load_deformation',

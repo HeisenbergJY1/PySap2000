@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-modifier.py - 杆件截面修改器相关函数
+modifier.py - Frame section modifier helpers.
 
-用于设置杆件的截面属性修改器（刚度折减等）
+Provides functions to assign frame property modifiers such as stiffness reduction factors.
 
 SAP2000 API:
 - FrameObj.SetModifiers(Name, Value[], ItemType)
@@ -30,34 +30,34 @@ def set_frame_modifiers(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置杆件截面修改器
-    
-    修改器用于调整截面属性，常用于刚度折减。
+    Set section property modifiers for a frame.
+
+    Modifiers are commonly used for stiffness reduction.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        area: 截面面积修改器 (A)
-        shear_2: 局部2方向剪切面积修改器 (As2)
-        shear_3: 局部3方向剪切面积修改器 (As3)
-        torsion: 扭转常数修改器 (J)
-        inertia_22: 局部2轴惯性矩修改器 (I22)
-        inertia_33: 局部3轴惯性矩修改器 (I33)
-        mass: 质量修改器
-        weight: 重量修改器
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        area: Area modifier (`A`)
+        shear_2: Local-2 shear-area modifier (`As2`)
+        shear_3: Local-3 shear-area modifier (`As3`)
+        torsion: Torsional constant modifier (`J`)
+        inertia_22: Local-2 inertia modifier (`I22`)
+        inertia_33: Local-3 inertia modifier (`I33`)
+        mass: Mass modifier
+        weight: Weight modifier
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
-        # 设置 I33 修改器为 0.5 (刚度折减50%)
+        # Set the I33 modifier to 0.5 (50% stiffness reduction)
         set_frame_modifiers(model, "1", inertia_33=0.5)
         
-        # 梁刚度折减 (I22=0.4, I33=0.4)
+        # Reduce beam stiffness (I22=0.4, I33=0.4)
         set_frame_modifiers(model, "1", inertia_22=0.4, inertia_33=0.4)
         
-        # 柱刚度折减 (A=0.7, I22=0.7, I33=0.7)
+        # Reduce column stiffness (A=0.7, I22=0.7, I33=0.7)
         set_frame_modifiers(model, "1", area=0.7, inertia_22=0.7, inertia_33=0.7)
     """
     modifiers = [area, shear_2, shear_3, torsion, inertia_22, inertia_33, mass, weight]
@@ -72,17 +72,17 @@ def set_frame_modifiers_tuple(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置杆件截面修改器（元组格式）
+    Set frame section modifiers from a tuple.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        modifiers: 8个修改器值的元组
-            (A, As2, As3, J, I22, I33, Mass, Weight)
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        modifiers: Tuple of 8 modifier values
+            `(A, As2, As3, J, I22, I33, Mass, Weight)`
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
         set_frame_modifiers_tuple(model, "1", (1, 1, 1, 1, 1, 0.5, 1, 1))
@@ -98,19 +98,19 @@ def get_frame_modifiers(
     frame_name: str
 ) -> Optional[FrameModifierData]:
     """
-    获取杆件截面修改器
+    Get frame section modifiers as a structured object.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        FrameModifierData 对象，失败返回 None
+        A `FrameModifierData` instance, or `None` if unavailable.
     
     Example:
         modifiers = get_frame_modifiers(model, "1")
         if modifiers:
-            print(f"I33修改器: {modifiers.inertia_33}")
+            print(f"I33 modifier: {modifiers.inertia_33}")
     """
     try:
         result = model.FrameObj.GetModifiers(str(frame_name), [0.0] * 8)
@@ -127,19 +127,19 @@ def get_frame_modifiers_tuple(
     frame_name: str
 ) -> Optional[Tuple[float, ...]]:
     """
-    获取杆件截面修改器（元组格式）
+    Get frame section modifiers as a tuple.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
     
     Returns:
-        8个修改器值的元组，失败返回 None
+        Tuple of 8 modifier values, or `None` if unavailable.
     
     Example:
         modifiers = get_frame_modifiers_tuple(model, "1")
         if modifiers:
-            print(f"修改器: {modifiers}")
+            print(f"Modifiers: {modifiers}")
     """
     try:
         result = model.FrameObj.GetModifiers(str(frame_name), [0.0] * 8)
@@ -157,15 +157,15 @@ def delete_frame_modifiers(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    删除杆件修改器（恢复默认值1.0）
+    Delete frame modifiers and restore defaults of `1.0`.
     
     Args:
-        model: SapModel 对象
-        frame_name: 杆件名称
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        frame_name: Frame object name
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
         delete_frame_modifiers(model, "1")

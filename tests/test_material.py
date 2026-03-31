@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""材料属性相关测试"""
+"""Tests for material properties."""
 
 import pytest
 from PySap2000.structure_core import Material, MaterialType, MaterialSymmetryType
@@ -8,7 +8,7 @@ pytestmark = pytest.mark.material
 
 
 class TestMaterialCreate:
-    """材料创建测试"""
+    """Create materials."""
 
     def test_create_steel(self, app):
         steel = Material(
@@ -38,7 +38,7 @@ class TestMaterialCreate:
 
 
 class TestMaterialQuery:
-    """材料查询测试"""
+    """Query materials."""
 
     def test_get_by_name(self, model):
         mat = Material.get_by_name(model, "Q355")
@@ -71,7 +71,7 @@ class TestMaterialQuery:
 
 
 class TestMaterialUpdate:
-    """材料更新测试"""
+    """Update materials."""
 
     def test_set_isotropic(self, model):
         mat = Material.get_by_name(model, "TestSteel")

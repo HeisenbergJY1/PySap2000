@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-frame_modifier.py - 命名杆件修改器
+frame_modifier.py - Named frame modifiers
 
-对应 SAP2000 的 NamedAssign.ModifierFrame API
+Wraps SAP2000 `NamedAssign.ModifierFrame`.
 
-创建可复用的杆件修改器定义，可被多个杆件引用。
+Creates reusable frame modifier definitions that can be referenced by multiple frame objects.
 
 SAP2000 API:
 - NamedAssign.ModifierFrame.ChangeName
@@ -14,15 +14,15 @@ SAP2000 API:
 - NamedAssign.ModifierFrame.GetNameList
 - NamedAssign.ModifierFrame.SetModifiers
 
-修改器数组 (8个值):
-- [0] area: 截面面积 (A)
-- [1] shear_2: 局部2方向剪切面积 (As2)
-- [2] shear_3: 局部3方向剪切面积 (As3)
-- [3] torsion: 扭转常数 (J)
-- [4] inertia_22: 局部2轴惯性矩 (I22)
-- [5] inertia_33: 局部3轴惯性矩 (I33)
-- [6] mass: 质量
-- [7] weight: 重量
+Modifier array (8 values):
+- [0] area: Section area (`A`)
+- [1] shear_2: Local-2 shear area (`As2`)
+- [2] shear_3: Local-3 shear area (`As3`)
+- [3] torsion: Torsional constant (`J`)
+- [4] inertia_22: Moment of inertia about local-2 (`I22`)
+- [5] inertia_33: Moment of inertia about local-3 (`I33`)
+- [6] mass: Mass
+- [7] weight: Weight
 """
 
 from dataclasses import dataclass
@@ -33,18 +33,18 @@ from PySap2000.com_helper import com_ret, com_data
 @dataclass
 class NamedFrameModifier:
     """
-    命名杆件修改器
+    Named frame modifier
     
     Attributes:
-        name: 修改器名称
-        area: 截面面积修改系数 (A)
-        shear_2: 局部2方向剪切面积修改系数 (As2)
-        shear_3: 局部3方向剪切面积修改系数 (As3)
-        torsion: 扭转常数修改系数 (J)
-        inertia_22: 局部2轴惯性矩修改系数 (I22)
-        inertia_33: 局部3轴惯性矩修改系数 (I33)
-        mass: 质量修改系数
-        weight: 重量修改系数
+        name: Modifier name
+        area: Section area modifier (`A`)
+        shear_2: Local-2 shear area modifier (`As2`)
+        shear_3: Local-3 shear area modifier (`As3`)
+        torsion: Torsional constant modifier (`J`)
+        inertia_22: Local-2 inertia modifier (`I22`)
+        inertia_33: Local-3 inertia modifier (`I33`)
+        mass: Mass modifier
+        weight: Weight modifier
     """
     name: str = ""
     area: float = 1.0
@@ -59,7 +59,7 @@ class NamedFrameModifier:
     _object_type: ClassVar[str] = "NamedAssign.ModifierFrame"
     
     def to_list(self) -> List[float]:
-        """转换为 API 需要的列表格式"""
+        """Convert to the list format required by the API"""
         return [
             self.area, self.shear_2, self.shear_3, self.torsion,
             self.inertia_22, self.inertia_33, self.mass, self.weight
@@ -67,7 +67,7 @@ class NamedFrameModifier:
     
     @classmethod
     def from_list(cls, name: str, values: List[float]) -> "NamedFrameModifier":
-        """从 API 返回的列表创建"""
+        """Build from the list returned by the API"""
         if len(values) >= 8:
             return cls(
                 name=name,
@@ -79,13 +79,13 @@ class NamedFrameModifier:
     
     def _create(self, model) -> int:
         """
-        创建或更新命名修改器
+        Create or update the named modifier
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.com_helper import com_ret
         return com_ret(model.NamedAssign.ModifierFrame.SetModifiers(
@@ -94,13 +94,13 @@ class NamedFrameModifier:
     
     def _get(self, model) -> int:
         """
-        从模型获取修改器数据
+        Load modifier data from the model
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.NamedAssign.ModifierFrame.GetModifiers(
             self.name, [0.0] * 8
@@ -121,27 +121,27 @@ class NamedFrameModifier:
     
     def _delete(self, model) -> int:
         """
-        删除命名修改器
+        Delete the named modifier
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.com_helper import com_ret
         return com_ret(model.NamedAssign.ModifierFrame.Delete(self.name))
     
     def change_name(self, model, new_name: str) -> int:
         """
-        重命名修改器
+        Rename the modifier
         
         Args:
-            model: SapModel 对象
-            new_name: 新名称
+            model: SAP2000 SapModel object
+            new_name: New name
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.com_helper import com_ret
         ret = com_ret(model.NamedAssign.ModifierFrame.ChangeName(self.name, new_name))
@@ -151,12 +151,12 @@ class NamedFrameModifier:
     
     @staticmethod
     def get_count(model) -> int:
-        """获取修改器数量"""
+        """Get the number of modifiers"""
         return model.NamedAssign.ModifierFrame.Count()
     
     @staticmethod
     def get_name_list(model) -> List[str]:
-        """获取所有修改器名称"""
+        """Get all modifier names"""
         result = model.NamedAssign.ModifierFrame.GetNameList(0, [])
         names = com_data(result, 1)
         if names:
@@ -165,7 +165,7 @@ class NamedFrameModifier:
     
     @classmethod
     def get_by_name(cls, model, name: str) -> Optional["NamedFrameModifier"]:
-        """按名称获取修改器"""
+        """Get a modifier by name"""
         mod = cls(name=name)
         ret = mod._get(model)
         if ret == 0:
@@ -174,7 +174,7 @@ class NamedFrameModifier:
     
     @classmethod
     def get_all(cls, model) -> List["NamedFrameModifier"]:
-        """获取所有修改器"""
+        """Get all modifiers"""
         names = cls.get_name_list(model)
         result = []
         for name in names:

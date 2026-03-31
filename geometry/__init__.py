@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-PySap2000 几何模块
+PySap2000 geometry module
 
-提供从 SAP2000 提取几何数据并转换为标准格式的功能
+Provides utilities to extract geometry data from SAP2000 and convert it to standard formats.
 """
 
 from .element_geometry import (

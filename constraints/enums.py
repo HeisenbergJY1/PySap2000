@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-enums.py - 约束相关枚举类型
+enums.py - Constraint-related enums.
 """
 
 from enum import IntEnum
@@ -8,26 +8,26 @@ from enum import IntEnum
 
 class ConstraintType(IntEnum):
     """
-    约束类型枚举 (eConstraintType)
+    Constraint type enum (`eConstraintType`).
     """
-    BODY = 1        # 刚体约束
-    DIAPHRAGM = 2   # 刚性隔板
-    PLATE = 3       # 板约束
-    ROD = 4         # 杆约束
-    BEAM = 5        # 梁约束
-    EQUAL = 6       # 等位移约束
-    LOCAL = 7       # 局部约束
-    WELD = 8        # 焊接约束
-    LINE = 13       # 线约束
+    BODY = 1        # Body constraint
+    DIAPHRAGM = 2   # Diaphragm constraint
+    PLATE = 3       # Plate constraint
+    ROD = 4         # Rod constraint
+    BEAM = 5        # Beam constraint
+    EQUAL = 6       # Equal displacement constraint
+    LOCAL = 7       # Local constraint
+    WELD = 8        # Welded constraint
+    LINE = 13       # Line constraint
 
 
 class ConstraintAxis(IntEnum):
     """
-    约束轴向枚举 (eConstraintAxis)
-    
-    用于 Diaphragm, Beam, Plate, Rod 等约束类型
+    Constraint axis enum (`eConstraintAxis`).
+
+    Used by constraint types such as `Diaphragm`, `Beam`, `Plate`, and `Rod`.
     """
-    X = 1           # X轴
-    Y = 2           # Y轴
-    Z = 3           # Z轴
-    AUTO = 4        # 自动确定
+    X = 1           # X axis
+    Y = 2           # Y axis
+    Z = 3           # Z axis
+    AUTO = 4        # Automatically determined

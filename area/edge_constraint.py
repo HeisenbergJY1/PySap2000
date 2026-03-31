@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-edge_constraint.py - 面单元边缘约束函数
-对应 SAP2000 的 AreaObj 边缘约束相关 API
+edge_constraint.py - Area edge-constraint helpers.
+
+Wraps SAP2000 `AreaObj` edge-constraint APIs.
 """
 
 from .enums import ItemType
@@ -15,24 +16,24 @@ def set_area_edge_constraint(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置面单元边缘约束
-    
-    边缘约束用于确保相邻面单元在边缘处的位移兼容性。
+    Set the edge-constraint state of an area object.
+
+    Edge constraints help enforce displacement compatibility between adjacent areas.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        constraint_exists: 是否存在边缘约束
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        constraint_exists: Whether edge constraints should exist
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
         
     Example:
-        # 启用边缘约束
+        # Enable edge constraints
         set_area_edge_constraint(model, "1", True)
         
-        # 禁用边缘约束
+        # Disable edge constraints
         set_area_edge_constraint(model, "1", False)
     """
     return model.AreaObj.SetEdgeConstraint(str(area_name), constraint_exists, int(item_type))
@@ -43,18 +44,18 @@ def get_area_edge_constraint(
     area_name: str
 ) -> bool:
     """
-    获取面单元边缘约束状态
+    Get the edge-constraint state of an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        True 表示存在边缘约束，False 表示不存在
+        `True` if edge constraints exist, otherwise `False`.
         
     Example:
         has_constraint = get_area_edge_constraint(model, "1")
-        print(f"边缘约束: {'启用' if has_constraint else '禁用'}")
+        print(f"Edge constraint: {'enabled' if has_constraint else 'disabled'}")
     """
     try:
         result = model.AreaObj.GetEdgeConstraint(str(area_name), False)
@@ -72,15 +73,15 @@ def enable_area_edge_constraint(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    启用面单元边缘约束
+    Enable edge constraints for an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     """
     return set_area_edge_constraint(model, area_name, True, item_type)
 
@@ -91,15 +92,15 @@ def disable_area_edge_constraint(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    禁用面单元边缘约束
+    Disable edge constraints for an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     """
     return set_area_edge_constraint(model, area_name, False, item_type)
 
@@ -109,13 +110,13 @@ def has_area_edge_constraint(
     area_name: str
 ) -> bool:
     """
-    检查面单元是否有边缘约束
+    Check whether an area object has edge constraints.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        True 表示有边缘约束，False 表示无
+        `True` if edge constraints are present, otherwise `False`.
     """
     return get_area_edge_constraint(model, area_name)

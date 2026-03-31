@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""分析控制相关测试"""
+"""Tests for analysis control."""
 
 import pytest
 from PySap2000.analyze import (
@@ -22,7 +22,7 @@ pytestmark = pytest.mark.analyze
 
 
 class TestActiveDOF:
-    """活动自由度测试"""
+    """Active degrees of freedom."""
 
     def test_get_active_dof(self, model):
         dof = get_active_dof(model)
@@ -31,23 +31,23 @@ class TestActiveDOF:
         assert isinstance(dof.uz, bool)
 
     def test_set_active_dof(self, model):
-        # 保存当前
+        # Save current DOF
         original = get_active_dof(model)
-        # 设置全部激活
+        # Enable all DOFs
         dof = ActiveDOF(ux=True, uy=True, uz=True, rx=True, ry=True, rz=True)
         ret = set_active_dof(model, dof)
         assert ret == 0
-        # 验证
+        # Verify
         current = get_active_dof(model)
         assert current.ux is True
         assert current.rz is True
-        # 恢复
+        # Restore
         if original:
             set_active_dof(model, original)
 
 
 class TestCaseControl:
-    """工况控制测试"""
+    """Load case run flags."""
 
     def test_get_case_status(self, model):
         statuses = get_case_status(model)
@@ -67,7 +67,7 @@ class TestCaseControl:
             original_run = flags[0].run
             ret = set_run_case_flag(model, name, not original_run)
             assert ret == 0
-            # 恢复
+            # Restore
             set_run_case_flag(model, name, original_run)
 
     def test_set_run_case_flag_all(self, model):
@@ -76,7 +76,7 @@ class TestCaseControl:
 
 
 class TestSolverOption:
-    """求解器选项测试"""
+    """Solver options."""
 
     def test_get_solver_option(self, model):
         opt = get_solver_option(model)
@@ -91,7 +91,7 @@ class TestSolverOption:
 
 
 class TestAnalysisModel:
-    """分析模型测试"""
+    """Analysis model and results cleanup."""
 
     def test_create_analysis_model(self, model):
         ret = create_analysis_model(model)

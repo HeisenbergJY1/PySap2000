@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-enums.py - 分析相关枚举
+enums.py - Analysis-related enums
 
-SAP2000 Analyze API 使用的枚举类型
+Enum types used by the SAP2000 `Analyze` API.
 """
 
 from enum import IntEnum
@@ -10,33 +10,33 @@ from enum import IntEnum
 
 class CaseStatus(IntEnum):
     """
-    工况分析状态
+    Analysis case status
     
-    对应 Analyze.GetCaseStatus 返回的 Status 值
+    Matches the `Status` values returned by `Analyze.GetCaseStatus`.
     """
-    NOT_RUN = 1           # 未运行
-    COULD_NOT_START = 2   # 无法启动
-    NOT_FINISHED = 3      # 未完成
-    FINISHED = 4          # 已完成
+    NOT_RUN = 1           # Not run
+    COULD_NOT_START = 2   # Could not start
+    NOT_FINISHED = 3      # Not finished
+    FINISHED = 4          # Finished
 
 
 class SolverType(IntEnum):
     """
-    求解器类型
+    Solver type
     
-    对应 Analyze.GetSolverOption_3 / SetSolverOption_3 的 SolverType 参数
+    Used for the `SolverType` parameter in `GetSolverOption_3` / `SetSolverOption_3`.
     """
-    STANDARD = 0          # 标准求解器
-    ADVANCED = 1          # 高级求解器
-    MULTI_THREADED = 2    # 多线程求解器
+    STANDARD = 0          # Standard solver
+    ADVANCED = 1          # Advanced solver
+    MULTI_THREADED = 2    # Multithreaded solver
 
 
 class SolverProcessType(IntEnum):
     """
-    求解器进程类型
+    Solver process type
     
-    对应 Analyze.GetSolverOption_3 / SetSolverOption_3 的 SolverProcessType 参数
+    Used for the `SolverProcessType` parameter in `GetSolverOption_3` / `SetSolverOption_3`.
     """
-    AUTO = 0              # 自动 (程序决定)
-    GUI_PROCESS = 1       # GUI 进程
-    SEPARATE_PROCESS = 2  # 独立进程
+    AUTO = 0              # Auto (program decides)
+    GUI_PROCESS = 1       # GUI process
+    SEPARATE_PROCESS = 2  # Separate process

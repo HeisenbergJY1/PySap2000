@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-functions - 函数定义模块
+functions - Function definition helpers.
 
-SAP2000 Func API 封装，包含各类函数定义
+Wraps the SAP2000 `Func` API and exposes various function definitions.
 
-子模块:
-- func_common: 函数通用管理
-- time_history: 时程函数
-- response_spectrum: 反应谱函数
+Submodules:
+- `func_common`: common function management
+- `time_history`: time-history functions
+- `response_spectrum`: response-spectrum functions
 """
 
 from .func_common import (
@@ -22,62 +22,62 @@ from .func_common import (
 )
 
 from .time_history import (
-    # 数据类
+    # Data classes
     CosineParams,
     RampParams,
     SawtoothParams,
     SineParams,
     TriangularParams,
     FromFileParams,
-    # 余弦函数
+    # Cosine functions
     get_func_th_cosine,
     set_func_th_cosine,
-    # 从文件
+    # File-based
     get_func_th_from_file,
     set_func_th_from_file,
-    # 斜坡函数
+    # Ramp functions
     get_func_th_ramp,
     set_func_th_ramp,
-    # 锯齿波函数
+    # Sawtooth functions
     get_func_th_sawtooth,
     set_func_th_sawtooth,
-    # 正弦函数
+    # Sine functions
     get_func_th_sine,
     set_func_th_sine,
-    # 三角波函数
+    # Triangular functions
     get_func_th_triangular,
     set_func_th_triangular,
-    # 用户定义函数
+    # User-defined functions
     get_func_th_user,
     set_func_th_user,
-    # 用户周期函数
+    # User-defined periodic functions
     get_func_th_user_periodic,
     set_func_th_user_periodic,
 )
 
 from .response_spectrum import (
-    # 枚举
+    # Enums
     Chinese2010SiteClass,
     Chinese2010DesignGroup,
-    # 数据类
+    # Data classes
     Chinese2010Params,
-    # 中国规范
+    # Chinese code helpers
     get_func_rs_chinese_2010,
     set_func_rs_chinese_2010,
-    # 用户定义
+    # User-defined helpers
     get_func_rs_user,
     set_func_rs_user,
-    # 从文件
+    # File-based helpers
     get_func_rs_from_file,
     set_func_rs_from_file,
 )
 
 __all__ = [
-    # 枚举
+    # Enums
     "FuncType",
     "Chinese2010SiteClass",
     "Chinese2010DesignGroup",
-    # 通用管理
+    # Common management
     "change_func_name",
     "convert_func_to_user",
     "get_func_count",
@@ -85,16 +85,16 @@ __all__ = [
     "get_func_name_list",
     "get_func_type",
     "get_func_values",
-    # 时程数据类
+    # Time-history data classes
     "CosineParams",
     "RampParams",
     "SawtoothParams",
     "SineParams",
     "TriangularParams",
     "FromFileParams",
-    # 反应谱数据类
+    # Response-spectrum data classes
     "Chinese2010Params",
-    # 时程函数
+    # Time-history functions
     "get_func_th_cosine",
     "set_func_th_cosine",
     "get_func_th_from_file",
@@ -111,7 +111,7 @@ __all__ = [
     "set_func_th_user",
     "get_func_th_user_periodic",
     "set_func_th_user_periodic",
-    # 反应谱函数
+    # Response-spectrum functions
     "get_func_rs_chinese_2010",
     "set_func_rs_chinese_2010",
     "get_func_rs_user",

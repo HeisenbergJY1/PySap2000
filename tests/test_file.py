@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""文件操作相关测试"""
+"""Tests for file helpers."""
 
 import pytest
 from PySap2000.file import save, Units
@@ -8,10 +8,10 @@ pytestmark = pytest.mark.file
 
 
 class TestFileOperations:
-    """文件操作测试"""
+    """Save and related helpers."""
 
     def test_save(self, model):
-        # 保存到当前路径
+        # Save to current path
         ret = save(model)
         assert ret == 0
 

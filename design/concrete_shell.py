@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-design/concrete_shell.py - 混凝土壳设计函数
+design/concrete_shell.py - Concrete shell design helpers
 
-SAP2000 DesignConcreteShell API 的 Python 封装。
-API 路径: SapModel.DesignConcreteShell
+Python wrapper for the SAP2000 `DesignConcreteShell` API.
+API path: `SapModel.DesignConcreteShell`
 """
 
 from typing import Union
@@ -15,27 +15,27 @@ from PySap2000.com_helper import com_ret, com_data
 
 
 def get_concrete_shell_code(model) -> str:
-    """获取当前混凝土壳设计规范
+    """Get the active concrete shell design code
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        规范名称字符串
+        Code name string
     """
     result = model.DesignConcreteShell.GetCode("")
     return com_data(result, 0, "")
 
 
 def set_concrete_shell_code(model, code: Union[ConcreteShellDesignCode, str]) -> int:
-    """设置混凝土壳设计规范
+    """Set the concrete shell design code
 
     Args:
-        model: SapModel 对象
-        code: 规范枚举或规范名称字符串
+        model: SAP2000 SapModel object
+        code: Code enum or code name string
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     if isinstance(code, ConcreteShellDesignCode):
         code_name = CONCRETE_SHELL_CODE_NAMES.get(code, "Eurocode 2-2004")
@@ -46,26 +46,26 @@ def set_concrete_shell_code(model, code: Union[ConcreteShellDesignCode, str]) ->
 
 
 def start_concrete_shell_design(model) -> int:
-    """开始混凝土壳设计
+    """Run concrete shell design
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignConcreteShell.StartDesign()
     return com_ret(ret)
 
 
 def delete_concrete_shell_results(model) -> int:
-    """删除所有混凝土壳设计结果
+    """Delete all concrete shell design results
 
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
 
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success, non-zero on failure
     """
     ret = model.DesignConcreteShell.DeleteResults()
     return com_ret(ret)

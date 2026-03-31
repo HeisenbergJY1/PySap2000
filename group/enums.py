@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-enums.py - 组相关枚举
+enums.py - Group-related enums.
 
-SAP2000 API 中组相关的枚举定义
+Defines group-related enums used by the SAP2000 API.
 """
 
 from enum import IntEnum
@@ -10,10 +10,10 @@ from enum import IntEnum
 
 class GroupObjectType(IntEnum):
     """
-    组内对象类型
-    
-    用于 GetAssignments 返回的 ObjectType
-    
+    Object type stored in a group.
+
+    Used for the `ObjectType` values returned by `GetAssignments`.
+
     SAP2000 API:
         1 = Point object
         2 = Frame object

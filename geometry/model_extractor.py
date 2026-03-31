@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-model_extractor.py - 从 SAP2000 提取几何数据
+model_extractor.py - Extract geometry data from SAP2000
 
-从 SAP2000 模型中提取单元几何信息，转换为标准的 Model3D 对象
+Extracts element geometry from a SAP2000 model and converts it to a standard `Model3D` object.
 
-优化版本：使用 database_tables 批量读取数据，大幅减少 API 调用次数
+Optimized version: uses `database_tables` for batch reads, greatly reducing API calls.
 """
 
 from typing import List, Optional, Callable, Dict, Any
@@ -22,12 +22,12 @@ from ..database_tables import DatabaseTables
 
 def _print_progress(current: int, total: int, bar_width: int = 30):
     """
-    打印对齐的进度条（使用美观的方块符号）
+    Print an aligned progress bar using block symbols.
     
     Args:
-        current: 当前进度
-        total: 总数
-        bar_width: 进度条宽度（方块数量）
+        current: Current progress
+        total: Total count
+        bar_width: Progress bar width (number of blocks)
     """
     if total == 0:
         return
@@ -35,25 +35,25 @@ def _print_progress(current: int, total: int, bar_width: int = 30):
     progress = current / total
     filled = int(bar_width * progress)
     
-    # 构建进度条：█ 表示已完成，░ 表示未完成
+    # Build progress bar: `█` = completed, `░` = remaining
     bar = "█" * filled + "░" * (bar_width - filled)
     percent = int(progress * 100)
     
-    # 计算 total 的位数，用于固定宽度对齐
+    # Compute total digit width for fixed-width alignment
     total_width = len(str(total))
     
-    # 固定宽度格式化，确保对齐
+    # Fixed-width formatting for alignment
     print(f"  [{bar}] {percent:3d}% ({current:>{total_width}}/{total})")
 
 
 class ModelExtractor:
-    """SAP2000 模型几何提取器"""
+    """SAP2000 model geometry extractor"""
     
     def __init__(self, sap_model, unit_scale: float = 0.001):
         """
         Args:
-            sap_model: SAP2000 的 SapModel 对象
-            unit_scale: 单位缩放系数（默认 0.001 = mm -> m）
+            sap_model: SAP2000 `SapModel` object
+            unit_scale: Unit scale factor (default `0.001 = mm -> m`)
         """
         self.model = sap_model
         self.unit_scale = unit_scale
@@ -64,14 +64,14 @@ class ModelExtractor:
         group_name: str = None
     ) -> Model3D:
         """
-        提取框架单元几何
+        Extract frame element geometry
         
         Args:
-            frame_names: 要提取的框架单元名称列表，None 表示全部
-            group_name: 按组过滤
+            frame_names: List of frame names to extract; `None` means all
+            group_name: Filter by group
             
         Returns:
-            Model3D 对象
+            `Model3D` object
             
         Example:
             extractor = ModelExtractor(sap_model)
@@ -80,14 +80,14 @@ class ModelExtractor:
         """
         model_3d = Model3D(model_name="SAP2000_Frame_Model")
         
-        # 获取框架单元列表
+        # Get frame element list
         if frame_names is None:
             if group_name:
                 ret = self.model.GroupDef.GetAssignments(group_name, 0, [], [])
                 if isinstance(ret, (list, tuple)) and len(ret) >= 3:
                     obj_types = list(ret[1]) if ret[1] else []
                     obj_names = list(ret[2]) if ret[2] else []
-                    # 过滤出框架单元 (type=2)
+                    # Filter frame elements (`type=2`)
                     frame_names = [
                         obj_names[i] for i in range(len(obj_types))
                         if obj_types[i] == 2
@@ -104,32 +104,32 @@ class ModelExtractor:
         total = len(frame_names)
         print(f"Extracting {total} frame elements...")
         
-        # 计算进度更新间隔：显示约 10 次进度
+        # Compute progress update interval: about 10 updates
         update_interval = max(1, total // 10)
         last_progress = -1
         
         for idx, frame_name in enumerate(frame_names):
-            # 每 10% 显示一次进度
+            # Show progress every ~10%
             current_progress = (idx + 1) * 10 // total if total > 0 else 0
             if current_progress > last_progress:
                 _print_progress(idx + 1, total)
                 last_progress = current_progress
             try:
-                # 获取端点
+                # Get endpoints
                 ret = self.model.FrameObj.GetPoints(str(frame_name), "", "")
                 if not isinstance(ret, (list, tuple)) or len(ret) < 2:
                     continue
                 point_i_name = ret[0]
                 point_j_name = ret[1]
                 
-                # 获取端点坐标
+                # Get endpoint coordinates.
                 ret_i = self.model.PointObj.GetCoordCartesian(point_i_name, 0, 0, 0)
                 ret_j = self.model.PointObj.GetCoordCartesian(point_j_name, 0, 0, 0)
                 
                 if not isinstance(ret_i, (list, tuple)) or not isinstance(ret_j, (list, tuple)):
                     continue
                 
-                # 应用单位缩放（mm -> m）
+                # Apply unit scaling (`mm -> m`)
                 point_i = Point3D(
                     x=ret_i[0] * self.unit_scale, 
                     y=ret_i[1] * self.unit_scale, 
@@ -141,24 +141,24 @@ class ModelExtractor:
                     z=ret_j[2] * self.unit_scale
                 )
                 
-                # 获取截面
+                # Get section
                 ret = self.model.FrameObj.GetSection(str(frame_name))
                 section_name = ret[0] if isinstance(ret, (list, tuple)) and len(ret) > 0 else ""
                 
-                # 获取截面类型和参数
+                # Get section type and parameters.
                 section_type, section_params, _ = self._get_section_info(section_name)
-                # 缩放截面参数（支持 SD/变截面的嵌套结构）
+                # Scale section parameters (supports nested SD/nonprismatic structures)
                 section_params = self._scale_section_params(section_params)
                 
-                # 获取局部坐标轴旋转角度
+                # Get local-axis rotation angle
                 local_axis_angle = self._get_frame_local_axis_angle(frame_name)
                 
-                # 优先使用材料覆盖项
+                # Prefer material overwrite when available
                 material_overwrite = get_frame_material_overwrite(self.model, frame_name)
                 if material_overwrite:
                     material = material_overwrite
                 else:
-                    # 使用 FrameSection 获取截面材料（最可靠）
+                    # Use `FrameSection` to get section material (most reliable)
                     material = ""
                     try:
                         section = FrameSection.get_by_name(self.model, section_name)
@@ -166,13 +166,13 @@ class ModelExtractor:
                     except Exception:
                         pass
                 
-                # 获取组（使用 get_frame_groups 函数，过滤掉 'ALL' 和系统组）
+                # Get groups (via `get_frame_groups`) and filter out `ALL` and system groups
                 groups = get_frame_groups(self.model, frame_name) or []
-                # 过滤掉 'ALL' 和以 '~' 开头的系统组
+                # Filter out `ALL` and system groups starting with `~`
                 user_groups = [g for g in groups if g and g != "ALL" and not g.startswith("~")]
                 group = user_groups[0] if user_groups else ""
                 
-                # 创建框架单元对象
+                # Create frame element object
                 frame_elem = FrameElement3D(
                     name=frame_name,
                     point_i=point_i,
@@ -200,25 +200,25 @@ class ModelExtractor:
         group_name: str = None
     ) -> Model3D:
         """
-        提取索单元几何
+        Extract cable element geometry
         
         Args:
-            cable_names: 要提取的索单元名称列表，None 表示全部
-            group_name: 按组过滤
+            cable_names: List of cable names to extract; `None` means all
+            group_name: Filter by group
             
         Returns:
-            Model3D 对象
+            `Model3D` object
         """
         model_3d = Model3D(model_name="SAP2000_Cable_Model")
         
-        # 获取索单元列表
+        # Get cable element list
         if cable_names is None:
             if group_name:
                 ret = self.model.GroupDef.GetAssignments(group_name, 0, [], [])
                 if isinstance(ret, (list, tuple)) and len(ret) >= 3:
                     obj_types = list(ret[1]) if ret[1] else []
                     obj_names = list(ret[2]) if ret[2] else []
-                    # 过滤出索单元 (type=3)
+                    # Filter cable elements (`type=3`)
                     cable_names = [
                         obj_names[i] for i in range(len(obj_types))
                         if obj_types[i] == 3
@@ -238,27 +238,27 @@ class ModelExtractor:
         last_progress = -1
         
         for idx, cable_name in enumerate(cable_names):
-            # 每 10% 显示一次进度
+            # Show progress every ~10%
             current_progress = (idx + 1) * 10 // total if total > 0 else 0
             if current_progress > last_progress:
                 _print_progress(idx + 1, total)
                 last_progress = current_progress
             try:
-                # 获取端点
+                # Get endpoints
                 ret = self.model.CableObj.GetPoints(str(cable_name), "", "")
                 if not isinstance(ret, (list, tuple)) or len(ret) < 2:
                     continue
                 point_i_name = ret[0]
                 point_j_name = ret[1]
                 
-                # 获取端点坐标
+                # Get endpoint coordinates.
                 ret_i = self.model.PointObj.GetCoordCartesian(point_i_name, 0, 0, 0)
                 ret_j = self.model.PointObj.GetCoordCartesian(point_j_name, 0, 0, 0)
                 
                 if not isinstance(ret_i, (list, tuple)) or not isinstance(ret_j, (list, tuple)):
                     continue
                 
-                # 应用单位缩放（mm -> m）
+                # Apply unit scaling (`mm -> m`)
                 point_i = Point3D(
                     x=ret_i[0] * self.unit_scale, 
                     y=ret_i[1] * self.unit_scale, 
@@ -270,11 +270,11 @@ class ModelExtractor:
                     z=ret_j[2] * self.unit_scale
                 )
                 
-                # 获取截面
+                # Get section
                 ret = self.model.CableObj.GetProperty(str(cable_name), "")
                 section_name = ret[0] if isinstance(ret, (list, tuple)) and len(ret) > 0 else ""
                 
-                # 使用 CableSection 获取截面属性
+                # Use `CableSection` to get section properties
                 material = ""
                 area = 0.0
                 diameter = 0.0
@@ -287,19 +287,19 @@ class ModelExtractor:
                 except Exception:
                     pass
                 
-                # 根据面积计算等效直径（假设圆形）
+                # Compute equivalent diameter from area (assuming a circle)
                 if area > 0:
                     diameter = 2 * (area / 3.14159265359) ** 0.5
                 else:
-                    diameter = 0.01 * self.unit_scale  # 默认 10mm，也要缩放
+                    diameter = 0.01 * self.unit_scale  # Default 10 mm, scaled as well
                 
-                # 获取组（使用 get_cable_groups 函数，过滤掉 'ALL' 和系统组）
+                # Get groups (via `get_cable_groups`) and filter out `ALL` and system groups
                 groups = get_cable_groups(self.model, cable_name) or []
-                # 过滤掉 'ALL' 和以 '~' 开头的系统组
+                # Filter out `ALL` and system groups starting with `~`
                 user_groups = [g for g in groups if g and g != "ALL" and not g.startswith("~")]
                 group = user_groups[0] if user_groups else ""
                 
-                # 创建索单元对象
+                # Create cable element object
                 cable_elem = CableElement3D(
                     name=cable_name,
                     point_i=point_i,
@@ -309,8 +309,8 @@ class ModelExtractor:
                     group=group,
                     diameter=diameter,
                     area=area,
-                    section_type="Circle",  # 索截面默认为圆形
-                    section_params={"diameter": diameter}  # 截面参数
+                    section_type="Circle",  # Cable section defaults to circle
+                    section_params={"diameter": diameter}  # Section parameters
                 )
                 
                 model_3d.add_element(cable_elem)
@@ -324,53 +324,53 @@ class ModelExtractor:
     
     def extract_all_elements(self, group_name: str = None) -> Model3D:
         """
-        提取所有单元（框架 + 索）
+        Extract all elements (frames + cables)
         
         Args:
-            group_name: 按组过滤
+            group_name: Filter by group
             
         Returns:
-            Model3D 对象
+            `Model3D` object
         """
         model_3d = Model3D(model_name="SAP2000_Complete_Model")
         
-        # 提取框架单元
+        # Extract frame elements
         frame_model = self.extract_frame_elements(group_name=group_name)
         model_3d.elements.extend(frame_model.elements)
         
-        # 提取索单元
+        # Extract cable elements
         cable_model = self.extract_cable_elements(group_name=group_name)
         model_3d.elements.extend(cable_model.elements)
         
         print(f"✓ Total extracted: {len(model_3d.elements)} elements")
         return model_3d
     
-    # ==================== 批量提取方法（优化版） ====================
+    # ==================== Batch extraction methods (optimized) ====================
     
     def extract_frame_elements_batch(self, group_name: str = None) -> Model3D:
         """
-        批量提取框架单元几何（优化版，使用 database_tables）
+        Batch extract frame element geometry (optimized, using `database_tables`).
         
-        使用 database_tables 一次性获取所有数据，大幅减少 API 调用次数。
-        对于大模型（5000+ 单元），速度提升 10-50 倍。
+        Uses `database_tables` to fetch all data in batches, greatly reducing API calls.
+        For large models (5000+ elements), this can be 10-50x faster.
         
         Args:
-            group_name: 按组过滤（可选）
+            group_name: Optional group filter
             
         Returns:
-            Model3D 对象
+            `Model3D` object
         """
         model_3d = Model3D(model_name="SAP2000_Frame_Model")
         start_time = time.time()
         
-        # 1. 批量获取节点坐标
+        # 1. Batch fetch joint coordinates
         joints_data = DatabaseTables.get_table_for_display(
             self.model, "Joint Coordinates", group_name=group_name or ""
         )
         if not joints_data:
             return model_3d
         
-        # 建立节点坐标索引 {节点名: (x, y, z)}
+        # Build joint-coordinate index `{joint_name: (x, y, z)}`
         joint_coords: Dict[str, tuple] = {}
         for row in joints_data.to_dict_list():
             joint_name = row.get("Joint", "")
@@ -382,14 +382,14 @@ class ModelExtractor:
             except (ValueError, TypeError):
                 continue
         
-        # 2. 批量获取杆件连接关系
+        # 2. Batch fetch frame connectivity
         conn_data = DatabaseTables.get_table_for_display(
             self.model, "Connectivity - Frame", group_name=group_name or ""
         )
         if not conn_data:
             return model_3d
         
-        # 建立杆件连接索引 {杆件名: (节点I, 节点J)}
+        # Build frame-connectivity index `{frame_name: (joint_i, joint_j)}`
         frame_connectivity: Dict[str, tuple] = {}
         for row in conn_data.to_dict_list():
             frame_name = row.get("Frame", "")
@@ -398,12 +398,12 @@ class ModelExtractor:
             if frame_name and joint_i and joint_j:
                 frame_connectivity[frame_name] = (joint_i, joint_j)
         
-        # 3. 批量获取截面分配
+        # 3. Batch fetch section assignments
         section_data = DatabaseTables.get_table_for_display(
             self.model, "Frame Section Assignments", group_name=group_name or ""
         )
         
-        # 建立截面分配索引 {杆件名: 截面名}
+        # Build section-assignment index `{frame_name: section_name}`
         frame_sections: Dict[str, str] = {}
         if section_data:
             for row in section_data.to_dict_list():
@@ -412,15 +412,15 @@ class ModelExtractor:
                 if frame_name:
                     frame_sections[frame_name] = section_name
         
-        # 4. 预加载截面信息（减少重复调用）
+        # 4. Preload section info (reduce repeated calls)
         unique_sections = set(frame_sections.values())
-        section_cache: Dict[str, tuple] = {}  # {截面名: (类型, 参数, 材料)}
+        section_cache: Dict[str, tuple] = {}  # `{section_name: (type, params, material)}`
         
         for section_name in unique_sections:
             if section_name and section_name not in section_cache:
                 section_cache[section_name] = self._get_section_info(section_name)
         
-        # 5. 批量获取组分配（这个仍需逐个获取，但可以优化）
+        # 5. Batch fetch group assignments (still per-element but optimized)
         frame_groups: Dict[str, str] = {}
         
         for frame_name in frame_connectivity.keys():
@@ -428,10 +428,10 @@ class ModelExtractor:
             user_groups = [g for g in groups if g and g != "ALL" and not g.startswith("~")]
             frame_groups[frame_name] = user_groups[0] if user_groups else ""
         
-        # 6. 组装 FrameElement3D 对象
+        # 6. Assemble `FrameElement3D` objects
         for frame_name, (joint_i, joint_j) in frame_connectivity.items():
             try:
-                # 获取节点坐标
+                # Get joint coordinates
                 if joint_i not in joint_coords or joint_j not in joint_coords:
                     continue
                 
@@ -441,26 +441,26 @@ class ModelExtractor:
                 point_i = Point3D(x=xi, y=yi, z=zi)
                 point_j = Point3D(x=xj, y=yj, z=zj)
                 
-                # 获取截面信息
+                # Get section information.
                 section_name = frame_sections.get(frame_name, "")
                 section_type, section_params, section_material = section_cache.get(
                     section_name, ("Unknown", {}, "")
                 )
                 
-                # 缩放截面参数（支持 SD/变截面的嵌套结构）
+                # Scale section parameters (supports nested SD/nonprismatic structures)
                 scaled_params = self._scale_section_params(section_params)
                 
-                # 获取材料（优先使用材料覆盖项）
+                # Get material (prefer overwrite)
                 material_overwrite = get_frame_material_overwrite(self.model, frame_name)
                 material = material_overwrite if material_overwrite else section_material
                 
-                # 获取组
+                # Get group
                 group = frame_groups.get(frame_name, "")
                 
-                # 获取局部坐标轴旋转角度
+                # Get local-axis rotation angle
                 local_axis_angle = self._get_frame_local_axis_angle(frame_name)
                 
-                # 创建框架单元对象
+                # Create frame element object
                 frame_elem = FrameElement3D(
                     name=frame_name,
                     point_i=point_i,
@@ -485,25 +485,25 @@ class ModelExtractor:
     
     def extract_cable_elements_batch(self, group_name: str = None) -> Model3D:
         """
-        批量提取索单元几何（优化版，使用 database_tables）
+        Batch extract cable element geometry (optimized, using `database_tables`).
         
         Args:
-            group_name: 按组过滤（可选）
+            group_name: Optional group filter
             
         Returns:
-            Model3D 对象
+            `Model3D` object
         """
         model_3d = Model3D(model_name="SAP2000_Cable_Model")
         start_time = time.time()
         
-        # 1. 获取节点坐标（可能已经有了，但这里独立获取）
+        # 1. Get joint coordinates (independent fetch)
         joints_data = DatabaseTables.get_table_for_display(
             self.model, "Joint Coordinates", group_name=group_name or ""
         )
         if not joints_data:
             return model_3d
         
-        # 建立节点坐标索引
+        # Build joint-coordinate index
         joint_coords: Dict[str, tuple] = {}
         for row in joints_data.to_dict_list():
             joint_name = row.get("Joint", "")
@@ -515,7 +515,7 @@ class ModelExtractor:
             except (ValueError, TypeError):
                 continue
         
-        # 2. 获取索连接关系
+        # 2. Get cable connectivity
         conn_data = DatabaseTables.get_table_for_display(
             self.model, "Connectivity - Cable", group_name=group_name or ""
         )
@@ -530,7 +530,7 @@ class ModelExtractor:
             if cable_name and joint_i and joint_j:
                 cable_connectivity[cable_name] = (joint_i, joint_j)
         
-        # 3. 获取截面分配
+        # 3. Get section assignments
         section_data = DatabaseTables.get_table_for_display(
             self.model, "Cable Section Assignments", group_name=group_name or ""
         )
@@ -539,14 +539,14 @@ class ModelExtractor:
         if section_data:
             for row in section_data.to_dict_list():
                 cable_name = row.get("Cable", "")
-                # 字段名是 "CableSect" 而不是 "Section"
+                # Field name is `CableSect` rather than `Section`
                 section_name = row.get("CableSect", "") or row.get("Section", "")
                 if cable_name:
                     cable_sections[cable_name] = section_name
         
-        # 4. 预加载索截面属性
+        # 4. Preload cable section properties
         unique_sections = set(cable_sections.values())
-        section_cache: Dict[str, tuple] = {}  # {截面名: (material, area, diameter)}
+        section_cache: Dict[str, tuple] = {}  # `{section_name: (material, area, diameter)}`
         
         for section_name in unique_sections:
             if section_name and section_name not in section_cache:
@@ -557,18 +557,18 @@ class ModelExtractor:
                     diameter = 2 * (area / 3.14159265359) ** 0.5 if area > 0 else 0.01 * self.unit_scale
                     section_cache[section_name] = (material, area, diameter)
                 except Exception as e:
-                    # 调试：打印获取截面失败的原因
+                    # Debug: print failure reason for section lookup
                     print(f"  Warning: Failed to get cable section '{section_name}': {e}")
                     section_cache[section_name] = ("", 0.0, 0.01 * self.unit_scale)
         
-        # 5. 获取组分配
+        # 5. Get group assignments
         cable_groups: Dict[str, str] = {}
         for cable_name in cable_connectivity.keys():
             groups = get_cable_groups(self.model, cable_name) or []
             user_groups = [g for g in groups if g and g != "ALL" and not g.startswith("~")]
             cable_groups[cable_name] = user_groups[0] if user_groups else ""
         
-        # 6. 组装 CableElement3D 对象
+        # 6. Assemble `CableElement3D` objects
         for cable_name, (joint_i, joint_j) in cable_connectivity.items():
             try:
                 if joint_i not in joint_coords or joint_j not in joint_coords:
@@ -611,24 +611,24 @@ class ModelExtractor:
     
     def extract_all_elements_batch(self, group_name: str = None) -> Model3D:
         """
-        批量提取所有单元（优化版）
+        Batch extract all elements (optimized)
         
-        使用 database_tables 批量读取，大幅提升性能。
+        Uses batch reads from `database_tables` for significant performance gains.
         
         Args:
-            group_name: 按组过滤（可选）
+            group_name: Optional group filter
             
         Returns:
-            Model3D 对象
+            `Model3D` object
         """
         model_3d = Model3D(model_name="SAP2000_Complete_Model")
         start_time = time.time()
         
-        # 提取框架单元
+        # Extract frame elements
         frame_model = self.extract_frame_elements_batch(group_name=group_name)
         model_3d.elements.extend(frame_model.elements)
         
-        # 提取索单元
+        # Extract cable elements
         cable_model = self.extract_cable_elements_batch(group_name=group_name)
         model_3d.elements.extend(cable_model.elements)
         
@@ -638,20 +638,20 @@ class ModelExtractor:
     
     def _scale_section_params(self, params: dict) -> dict:
         """
-        递归缩放截面参数
+        Recursively scale section parameters
         
-        对于普通截面，直接缩放数值参数。
-        对于 SD 截面和变截面，递归处理嵌套结构中的坐标和尺寸值。
+        For standard sections, scales numeric parameters directly.
+        For SD and nonprismatic sections, recursively scales nested coordinates and dimensions.
         
         Args:
-            params: 截面参数字典
+            params: Section parameter dictionary
             
         Returns:
-            缩放后的参数字典
+            Scaled parameter dictionary
         """
         scale = self.unit_scale
         
-        # SD 截面：缩放 shapes 中的 points 坐标
+        # SD sections: scale `points` coordinates in `shapes`
         if "shapes" in params:
             scaled_shapes = []
             for shape in params["shapes"]:
@@ -667,10 +667,10 @@ class ModelExtractor:
                 scaled_shapes.append(scaled_shape)
             return {"shapes": scaled_shapes}
         
-        # 变截面：递归缩放 start_section 和 end_section 的参数
+        # Nonprismatic sections: recursively scale `start_section` and `end_section`
         if "segments" in params and "start_section" in params:
             scaled = dict(params)
-            # segments 中的 length 也需要缩放
+            # Segment lengths also need scaling
             scaled_segments = []
             for seg in params.get("segments", []):
                 s = dict(seg)
@@ -685,19 +685,19 @@ class ModelExtractor:
                     scaled[key] = sec
             return scaled
         
-        # 普通截面：直接缩放数值
+        # Standard sections: scale numeric values directly
         return {k: v * scale if isinstance(v, (int, float)) else v
                 for k, v in params.items()}
     
     def _get_frame_local_axis_angle(self, frame_name: str) -> float:
         """
-        获取杆件局部坐标轴旋转角度
+        Get frame local-axis rotation angle
         
         Args:
-            frame_name: 杆件名称
+            frame_name: Frame name
             
         Returns:
-            旋转角度（度）
+            Rotation angle (degrees)
         """
         try:
             ret = self.model.FrameObj.GetLocalAxes(str(frame_name), 0.0, False)
@@ -709,37 +709,37 @@ class ModelExtractor:
     
     def _get_section_info(self, section_name: str) -> tuple:
         """
-        获取截面类型、参数和材料
+        Get section type, parameters, and material
         
         Returns:
             (section_type, section_params, material)
         """
         try:
-            # 确保 section_name 是字符串
+            # Ensure `section_name` is a string
             section_name = str(section_name)
             
-            # 获取截面类型
+            # Get section type.
             ret = self.model.PropFrame.GetTypeOAPI(section_name)
             if not isinstance(ret, (list, tuple)) or len(ret) < 2 or ret[-1] != 0:
                 return ("Unknown", {}, "")
             
             type_val = ret[0]
             
-            # 圆形截面 (9)
+            # Circle section (9)
             if type_val == 9:
                 ret = self.model.PropFrame.GetCircle(section_name)
                 if isinstance(ret, (list, tuple)) and ret[-1] == 0 and len(ret) >= 3:
                     material = ret[1] or "" if len(ret) >= 2 else ""
                     return ("Circle", {"diameter": ret[2]}, material)
             
-            # 矩形截面 (8)
+            # Rectangle section (8)
             elif type_val == 8:
                 ret = self.model.PropFrame.GetRectangle(section_name)
                 if isinstance(ret, (list, tuple)) and ret[-1] == 0 and len(ret) >= 4:
                     material = ret[1] or "" if len(ret) >= 2 else ""
                     return ("Rect", {"height": ret[2], "width": ret[3]}, material)
             
-            # 圆管截面 (7)
+            # Pipe section (7)
             elif type_val == 7:
                 ret = self.model.PropFrame.GetPipe(section_name)
                 if isinstance(ret, (list, tuple)) and ret[-1] == 0 and len(ret) >= 4:
@@ -749,7 +749,7 @@ class ModelExtractor:
                         "wall_thickness": ret[3]
                     }, material)
             
-            # 箱形截面 (6)
+            # Box section (6)
             elif type_val == 6:
                 ret = self.model.PropFrame.GetTube_1(section_name)
                 if isinstance(ret, (list, tuple)) and ret[-1] == 0 and len(ret) >= 6:
@@ -761,7 +761,7 @@ class ModelExtractor:
                         "web_thickness": ret[5]
                     }, material)
             
-            # 工字钢截面 (1)
+            # I-section (1)
             elif type_val == 1:
                 ret = self.model.PropFrame.GetISection_1(section_name)
                 if isinstance(ret, (list, tuple)) and ret[-1] == 0 and len(ret) >= 8:
@@ -775,7 +775,7 @@ class ModelExtractor:
                         "bottom_flange_thickness": ret[7]
                     }, material)
             
-            # 槽钢截面 (2)
+            # Channel section (2)
             elif type_val == 2:
                 ret = self.model.PropFrame.GetChannel_2(section_name)
                 if isinstance(ret, (list, tuple)) and ret[-1] == 0 and len(ret) >= 7:
@@ -788,7 +788,7 @@ class ModelExtractor:
                         "mirror": ret[6]
                     }, material)
             
-            # T型钢截面 (3)
+            # Tee section (3)
             elif type_val == 3:
                 ret = self.model.PropFrame.GetTee_1(section_name)
                 if isinstance(ret, (list, tuple)) and ret[-1] == 0 and len(ret) >= 7:
@@ -801,7 +801,7 @@ class ModelExtractor:
                         "mirror": ret[6]
                     }, material)
             
-            # 角钢截面 (4)
+            # Angle section (4)
             elif type_val == 4:
                 ret = self.model.PropFrame.GetAngle_1(section_name)
                 if isinstance(ret, (list, tuple)) and ret[-1] == 0 and len(ret) >= 6:
@@ -813,7 +813,7 @@ class ModelExtractor:
                         "web_thickness": ret[5]
                     }, material)
             
-            # 双角钢截面 (5)
+            # Double-angle section (5)
             elif type_val == 5:
                 ret = self.model.PropFrame.GetDblAngle_2(section_name)
                 if isinstance(ret, (list, tuple)) and ret[-1] == 0 and len(ret) >= 8:
@@ -826,15 +826,15 @@ class ModelExtractor:
                         "separation": ret[6]
                     }, material)
             
-            # SD 截面 (13) - Section Designer 自定义截面
+            # SD section (13) - Section Designer custom section
             elif type_val == 13:
                 return self._get_sd_section_info(section_name)
             
-            # 变截面 (14) - NonPrismatic
+            # Nonprismatic section (14)
             elif type_val == 14:
                 return self._get_nonprismatic_section_info(section_name)
             
-            # 未知类型或未匹配，使用 FrameSection 获取材料
+            # Unknown/unmatched type: use `FrameSection` for material fallback
             material = ""
             try:
                 section = FrameSection.get_by_name(self.model, section_name)
@@ -844,18 +844,18 @@ class ModelExtractor:
             return ("Unknown", {}, material)
             
         except Exception as e:
-            print(f"警告: 获取截面 '{section_name}' 信息失败: {e}")
+            print(f"Warning: Failed to get section '{section_name}'  info: {e}")
             return ("Unknown", {}, "")
 
     def _get_sd_section_info(self, section_name: str) -> tuple:
         """
-        获取 SD (Section Designer) 截面的形状信息
+        Get shape information for an SD (Section Designer) section
         
-        通过 GetSDSection 获取所有子形状列表，
-        再逐个调用对应的 Get 方法获取轮廓数据。
+        Uses `GetSDSection` to get all sub-shape names,
+        then calls matching `Get*` methods to extract profile data.
         
         Args:
-            section_name: SD 截面名称
+            section_name: SD section name
             
         Returns:
             ("SD", {"shapes": [...]}, material)
@@ -897,23 +897,23 @@ class ModelExtractor:
                 return ("Unknown", {}, material)
                 
         except Exception as e:
-            print(f"警告: 获取SD截面 '{section_name}' 信息失败: {e}")
+            print(f"Warning: Failed to get SD section '{section_name}'  info: {e}")
             return ("Unknown", {}, "")
     
     def _get_sd_shape_points(
         self, sd_shape, section_name: str, shape_name: str, shape_type: int
     ) -> dict:
         """
-        获取 SD 截面中单个子形状的轮廓点
+        Get profile points for a single sub-shape in an SD section
         
         Args:
-            sd_shape: PropFrame.SDShape COM 对象
-            section_name: SD 截面名称
-            shape_name: 子形状名称
-            shape_type: 子形状类型编号
+            sd_shape: `PropFrame.SDShape` COM object
+            section_name: SD section name
+            shape_name: Sub-shape name
+            shape_type: Sub-shape type ID
             
         Returns:
-            {"shape_type": int, "shape_name": str, "points": [...], "inner_points": [...]} 或 None
+            {"shape_type": int, "shape_name": str, "points": [...], "inner_points": [...]} or `None`
         """
         from .section_profile import (
             CircleProfile, RectProfile, IProfile, PipeProfile, BoxProfile,
@@ -1046,22 +1046,22 @@ class ModelExtractor:
                         pts = [(x_arr[j], y_arr[j]) for j in range(num_pts)]
                         return {"shape_type": shape_type, "shape_name": shape_name, "points": pts}
             
-            # 其他类型（加强筋、参考线等）跳过
+            # Other types (stiffeners, references, etc.) are skipped
             
         except Exception as e:
-            print(f"  警告: 获取SD子形状 '{shape_name}' (type={shape_type}) 失败: {e}")
+            print(f"  Warning: Failed to get SD sub-shape '{shape_name}' (type={shape_type}): {e}")
         
         return None
 
     def _get_nonprismatic_section_info(self, section_name: str) -> tuple:
         """
-        获取变截面 (NonPrismatic) 的截面信息
+        Get section information for a nonprismatic section
         
-        变截面由多段组成，每段有起始截面和结束截面。
-        返回起始截面和结束截面的轮廓信息，供渲染使用。
+        A nonprismatic section contains multiple segments, each with start/end sections.
+        Returns start/end section profile data for rendering.
         
         Args:
-            section_name: 变截面名称
+            section_name: Nonprismatic section name
             
         Returns:
             ("NonPrismatic", {"segments": [...], "start_section": {...}, "end_section": {...}}, material)
@@ -1081,7 +1081,7 @@ class ModelExtractor:
             ei33 = list(ret[5]) if ret[5] else []
             ei22 = list(ret[6]) if ret[6] else []
             
-            # 构建段信息
+            # Build segment information
             segments = []
             for i in range(num_segments):
                 segments.append({
@@ -1093,7 +1093,7 @@ class ModelExtractor:
                     "ei22": ei22[i] if i < len(ei22) else 1,
                 })
             
-            # 获取起点截面（第一段的起始截面）和终点截面（最后一段的结束截面）
+            # Get start section (first segment) and end section (last segment)
             first_sec_name = start_secs[0] if start_secs else ""
             last_sec_name = end_secs[-1] if end_secs else ""
             
@@ -1119,5 +1119,5 @@ class ModelExtractor:
             return ("NonPrismatic", params, material)
             
         except Exception as e:
-            print(f"警告: 获取变截面 '{section_name}' 信息失败: {e}")
+            print(f"Warning: Failed to get nonprismatic section '{section_name}'  info: {e}")
             return ("Unknown", {}, "")

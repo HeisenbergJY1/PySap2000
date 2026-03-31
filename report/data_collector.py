@@ -1,24 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-data_collector.py - 从 SAP2000 模型中采集计算书所需数据
+data_collector.py - Collect report data from a SAP2000 model.
 
-通过 DatabaseTables.GetTableForDisplayArray 提取所有数据，自动适配设计规范版本。
-不依赖 GetAvailableTables (该 API 在某些 comtypes 版本下参数不兼容)。
+Uses `DatabaseTables.GetTableForDisplayArray` to read report data while
+adapting automatically to supported design-code versions. It intentionally
+avoids `GetAvailableTables`, whose signature can be incompatible with some
+`comtypes` versions.
 
-采集两类数据:
-1. 单元信息 (表 2.5): 截面、长度、无支撑长度系数、计算长度系数、端部释放
-2. 钢结构设计结果 (表 5.1): 应力比、内力、稳定系数、长细比、超限信息
+Collects two groups of data:
+1. Frame element info (Table 2.5): section, length, unbraced ratios,
+   effective length factors, and end releases
+2. Steel design results (Table 5.1): stress ratio, internal forces,
+   stability factors, slenderness ratios, and exceedance status
 """
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Tuple
 
-from database_tables.tables import DatabaseTables, TableData
+from PySap2000.database_tables.tables import DatabaseTables, TableData
 
 
 @dataclass
 class FrameElementInfo:
-    """单元信息 (表 2.5)"""
+    """Frame element information (Table 2.5)."""
     no: str = ""
     section_name: str = ""
     length: float = 0.0
@@ -32,7 +36,7 @@ class FrameElementInfo:
 
 @dataclass
 class SteelDesignResultRow:
-    """钢结构设计结果 (表 5.1)"""
+    """Steel design result row (Table 5.1)."""
     index: int = 0
     frame_name: str = ""
     ratio: float = 0.0
@@ -45,11 +49,11 @@ class SteelDesignResultRow:
     phi_b2: float = 0.0
     slenderness_major: float = 0.0
     slenderness_minor: float = 0.0
-    exceeded: str = "无"
+    exceeded: str = "No"
 
 
 def _safe_float(value: Optional[str], default: float = 0.0) -> float:
-    """安全转换字符串为浮点数"""
+    """Safely convert a string value to `float`."""
     if value is None or value == "" or value == "None":
         return default
     try:
@@ -59,14 +63,14 @@ def _safe_float(value: Optional[str], default: float = 0.0) -> float:
 
 
 def _format_release(release_tuple: Tuple[bool, ...]) -> str:
-    """将释放元组转为可读字符串"""
+    """Convert a release tuple to a readable label string."""
     labels = ["U1", "U2", "U3", "R1", "R2", "R3"]
     released = [labels[i] for i in range(min(6, len(release_tuple))) if release_tuple[i]]
     return " ".join(released) if released else "---"
 
 
 def _try_get_table(model, table_key: str) -> Optional[TableData]:
-    """尝试获取表格，失败返回 None (不抛异常)"""
+    """Try to fetch a table and return `None` instead of raising."""
     try:
         return DatabaseTables.get_table_for_display(model, table_key)
     except Exception:
@@ -74,7 +78,7 @@ def _try_get_table(model, table_key: str) -> Optional[TableData]:
 
 
 def _build_table_index(table: TableData, key_field: str) -> Dict[str, List[int]]:
-    """为表格数据建立索引，加速按名称查找"""
+    """Build an index for faster lookup by name."""
     index: Dict[str, List[int]] = {}
     for i in range(table.num_records):
         val = table.get_value(i, key_field)
@@ -84,7 +88,7 @@ def _build_table_index(table: TableData, key_field: str) -> Dict[str, List[int]]
 
 
 def _first_match(table: TableData, row: int, field_candidates: List[str]) -> Optional[str]:
-    """在一行中尝试多个字段名，返回第一个有效值的结果"""
+    """Return the first non-empty value among candidate field names."""
     for fld in field_candidates:
         val = table.get_value(row, fld)
         if val is not None and val != "" and val != "None":
@@ -92,15 +96,12 @@ def _first_match(table: TableData, row: int, field_candidates: List[str]) -> Opt
     return None
 
 
-# 已知的中国规范版本后缀，按优先级排列
+# Known Chinese design-code suffixes, ordered by priority
 _CHINESE_SUFFIXES = ["Chinese 2018", "Chinese 2010"]
 
 
 def _find_steel_design_tables(model) -> Dict[str, Optional[str]]:
-    """
-    通过直接尝试已知表名来发现钢结构设计表格。
-    不依赖 GetAvailableTables。
-    """
+    """Discover steel design tables by probing known table names directly."""
     result: Dict[str, Optional[str]] = {
         "summary": None, "pmm": None, "overwrite": None
     }
@@ -113,14 +114,14 @@ def _find_steel_design_tables(model) -> Dict[str, Optional[str]]:
             if t and t.num_records > 0:
                 result["summary"] = key
 
-        # PMM Details
+        # PMM details
         if result["pmm"] is None:
             key = f"Steel Design 2 - PMM Details - {suffix}"
             t = _try_get_table(model, key)
             if t and t.num_records > 0:
                 result["pmm"] = key
 
-        # Overwrite
+        # Overwrites
         if result["overwrite"] is None:
             key = f"Steel Design Overwrites - {suffix}"
             t = _try_get_table(model, key)
@@ -134,13 +135,11 @@ def collect_frame_element_info(
     model,
     frame_names: List[str],
 ) -> List[FrameElementInfo]:
-    """
-    采集单元信息 (表 2.5)
-    """
+    """Collect frame element information (Table 2.5)."""
     from structure_core.frame import Frame
     from frame.release import get_frame_release
 
-    # 1. 基本信息 (截面、长度、释放)
+    # 1. Basic info: section, length, and end releases.
     results = []
     for name in frame_names:
         info = FrameElementInfo(no=name)
@@ -159,10 +158,10 @@ def collect_frame_element_info(
             pass
         results.append(info)
 
-    # 2. 从 DatabaseTables 获取无支撑长度系数和计算长度系数
+    # 2. Read unbraced ratios and effective length factors from DatabaseTables.
     design_tables = _find_steel_design_tables(model)
 
-    # 从 PMM Details 表
+    # Read from the PMM details table.
     pmm_key = design_tables.get("pmm")
     if pmm_key:
         pmm_table = _try_get_table(model, pmm_key)
@@ -173,14 +172,14 @@ def collect_frame_element_info(
                 if not rows:
                     continue
                 row = rows[0]
-                # 无支撑长度系数
+                # Unbraced length ratios
                 v = _first_match(pmm_table, row, ["LRatioMajor", "XLMajor", "UnbracedMajor"])
                 if v:
                     info.unbraced_ratio_major = _safe_float(v, 1.0)
                 v = _first_match(pmm_table, row, ["LRatioMinor", "XLMinor", "UnbracedMinor"])
                 if v:
                     info.unbraced_ratio_minor = _safe_float(v, 1.0)
-                # 计算长度系数 μ
+                # Effective length factors `mu`
                 v = _first_match(pmm_table, row, ["MueMajor", "MuMajor", "KMajor"])
                 if v:
                     info.mue_major = _safe_float(v, 1.0)
@@ -188,7 +187,7 @@ def collect_frame_element_info(
                 if v:
                     info.mue_minor = _safe_float(v, 1.0)
 
-    # 从 Overwrite 表补充
+    # Supplement values from the overwrite table.
     ow_key = design_tables.get("overwrite")
     if ow_key:
         ow_table = _try_get_table(model, ow_key)
@@ -220,8 +219,9 @@ def collect_steel_design_results(
     frame_names: List[str],
 ) -> List[SteelDesignResultRow]:
     """
-    采集钢结构设计结果 (表 5.1)
-    全部通过 DatabaseTables API 获取。
+    Collect steel design results (Table 5.1).
+
+    All values are read through the `DatabaseTables` API.
     """
     design_tables = _find_steel_design_tables(model)
 
@@ -229,7 +229,7 @@ def collect_steel_design_results(
     for idx, name in enumerate(frame_names, start=1):
         frame_data[name] = SteelDesignResultRow(index=idx, frame_name=name)
 
-    # ---- Summary 表: 应力比 ----
+    # ---- Summary table: stress ratio ----
     summary_key = design_tables.get("summary")
     if summary_key:
         st = _try_get_table(model, summary_key)
@@ -247,9 +247,9 @@ def collect_steel_design_results(
                         best_ratio = ratio
                         best_row = r
                 row_obj.ratio = best_ratio
-                row_obj.exceeded = "无" if best_ratio <= 1.0 else "有"
+                row_obj.exceeded = "No" if best_ratio <= 1.0 else "Yes"
 
-    # ---- PMM Details 表: 内力、稳定系数、长细比 ----
+    # ---- PMM details table: internal forces, stability factors, slenderness ----
     pmm_key = design_tables.get("pmm")
     if pmm_key:
         pt = _try_get_table(model, pmm_key)
@@ -259,7 +259,7 @@ def collect_steel_design_results(
                 rows = idx_map.get(name, [])
                 if not rows:
                     continue
-                # 找最大应力比行 (Chinese 2018 用 TotalRatio)
+                # Find the controlling row; Chinese 2018 uses `TotalRatio`.
                 best_row = rows[0]
                 best_ratio = _safe_float(
                     _first_match(pt, rows[0], ["TotalRatio", "Ratio"]))
@@ -270,39 +270,39 @@ def collect_steel_design_results(
                         best_ratio = ratio
                         best_row = r
 
-                # 轴力 N
+                # Axial force N
                 v = _first_match(pt, best_row, ["N", "PUorPD", "P"])
                 if v:
                     row_obj.n = _safe_float(v)
-                # M3 (Major)
+                # M3 (major)
                 v = _first_match(pt, best_row, ["MMajor", "MU3orMD3", "M3"])
                 if v:
                     row_obj.m3 = _safe_float(v)
-                # M2 (Minor)
+                # M2 (minor)
                 v = _first_match(pt, best_row, ["MMinor", "MU2orMD2", "M2"])
                 if v:
                     row_obj.m2 = _safe_float(v)
-                # φ3 轴心稳定 (Major)
+                # phi3: axial stability (major)
                 v = _first_match(pt, best_row, ["PhiMajor", "Phi3"])
                 if v:
                     row_obj.phi3 = _safe_float(v)
-                # φ2 轴心稳定 (Minor)
+                # phi2: axial stability (minor)
                 v = _first_match(pt, best_row, ["PhiMinor", "Phi2"])
                 if v:
                     row_obj.phi2 = _safe_float(v)
-                # φb3 弯曲稳定 (Major)
+                # phi_b3: flexural stability (major)
                 v = _first_match(pt, best_row, ["PhibMajor", "PhiB3", "Phib3"])
                 if v:
                     row_obj.phi_b3 = _safe_float(v)
-                # φb2 弯曲稳定 (Minor)
+                # phi_b2: flexural stability (minor)
                 v = _first_match(pt, best_row, ["PhibMinor", "PhiB2", "Phib2"])
                 if v:
                     row_obj.phi_b2 = _safe_float(v)
-                # 长细比 主轴
+                # Slenderness ratio about the major axis
                 v = _first_match(pt, best_row, ["LambdaMajor", "LamMajor"])
                 if v:
                     row_obj.slenderness_major = _safe_float(v)
-                # 长细比 次轴
+                # Slenderness ratio about the minor axis
                 v = _first_match(pt, best_row, ["LambdaMinor", "LamMinor"])
                 if v:
                     row_obj.slenderness_minor = _safe_float(v)
@@ -312,10 +312,11 @@ def collect_steel_design_results(
 
 def discover_tables(model, keyword: str = "Steel Design") -> List[str]:
     """
-    调试工具：通过直接尝试常见表名来发现可用表格。
-    绕开 GetAvailableTables 的 comtypes 兼容性问题。
+    Debug helper that discovers available tables by probing common names.
+
+    This avoids `GetAvailableTables` compatibility issues with `comtypes`.
     """
-    # 已知的钢结构设计表名模式
+    # Known steel design table name patterns
     candidates = []
     for suffix in _CHINESE_SUFFIXES:
         candidates.extend([
@@ -337,9 +338,7 @@ def discover_tables(model, keyword: str = "Steel Design") -> List[str]:
 
 
 def discover_table_fields(model, table_key: str) -> List[str]:
-    """
-    调试工具：列出指定表格的所有字段键名。
-    """
+    """Debug helper that lists all field keys for a table."""
     t = _try_get_table(model, table_key)
     if t:
         return t.field_keys

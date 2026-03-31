@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-misc_results.py - 杂项结果函数
+misc_results.py - Miscellaneous result helpers.
 
-SAP2000 Results API 的杂项结果函数封装
+Wraps miscellaneous result functions from the SAP2000 Results API.
 
 SAP2000 API:
-- Results.AssembledJointMass_1 - 组装节点质量
-- Results.BaseReactWithCentroid - 带质心的基底反力
-- Results.BucklingFactor - 屈曲因子
-- Results.GeneralizedDispl - 广义位移
-- Results.PanelZoneDeformation - 节点域变形
-- Results.PanelZoneForce - 节点域内力
-- Results.SectionCutAnalysis - 截面切割分析结果
-- Results.SectionCutDesign - 截面切割设计结果
-- Results.StepLabel - 步骤标签
+- `Results.AssembledJointMass_1` - assembled joint mass
+- `Results.BaseReactWithCentroid` - base reactions with centroid data
+- `Results.BucklingFactor` - buckling factors
+- `Results.GeneralizedDispl` - generalized displacements
+- `Results.PanelZoneDeformation` - panel zone deformations
+- `Results.PanelZoneForce` - panel zone forces
+- `Results.SectionCutAnalysis` - section-cut analysis results
+- `Results.SectionCutDesign` - section-cut design results
+- `Results.StepLabel` - step labels
 """
 
 from typing import List
@@ -32,15 +32,15 @@ def get_assembled_joint_mass(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[AssembledJointMassResult]:
     """
-    获取组装节点质量
+    Get assembled joint mass results.
     
     Args:
-        model: SapModel 对象
-        name: 点对象名、点元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Point object name, point element name, or group name
+        item_type: Element scope
             
     Returns:
-        AssembledJointMassResult 列表
+        List of `AssembledJointMassResult`.
     """
     result = model.Results.AssembledJointMass_1(
         name, int(item_type),
@@ -82,13 +82,13 @@ def get_assembled_joint_mass(
 
 def get_base_react_with_centroid(model) -> List[BaseReactWithCentroidResult]:
     """
-    获取带质心的基底反力
+    Get base reaction results with centroid data.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        BaseReactWithCentroidResult 列表
+        List of `BaseReactWithCentroidResult`.
     """
     result = model.Results.BaseReactWithCentroid(
         0, [], [], [],
@@ -156,13 +156,13 @@ def get_base_react_with_centroid(model) -> List[BaseReactWithCentroidResult]:
 
 def get_buckling_factor(model) -> List[BucklingFactorResult]:
     """
-    获取屈曲因子
+    Get buckling factor results.
     
     Args:
-        model: SapModel 对象
+        model: SAP2000 SapModel object
         
     Returns:
-        BucklingFactorResult 列表
+        List of `BucklingFactorResult`.
     """
     result = model.Results.BucklingFactor(
         0, [], [], [], []
@@ -191,14 +191,14 @@ def get_buckling_factor(model) -> List[BucklingFactorResult]:
 
 def get_generalized_displ(model, name: str) -> List[GeneralizedDisplResult]:
     """
-    获取广义位移结果
+    Get generalized displacement results.
     
     Args:
-        model: SapModel 对象
-        name: 广义位移名称
+        model: SAP2000 SapModel object
+        name: Generalized displacement name
         
     Returns:
-        GeneralizedDisplResult 列表
+        List of `GeneralizedDisplResult`.
     """
     result = model.Results.GeneralizedDispl(
         name,
@@ -236,15 +236,15 @@ def get_panel_zone_deformation(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[PanelZoneDeformationResult]:
     """
-    获取节点域变形结果
+    Get panel zone deformation results.
     
     Args:
-        model: SapModel 对象
-        name: 元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Element name or group name
+        item_type: Element scope
             
     Returns:
-        PanelZoneDeformationResult 列表
+        List of `PanelZoneDeformationResult`.
     """
     result = model.Results.PanelZoneDeformation(
         name, int(item_type),
@@ -291,15 +291,15 @@ def get_panel_zone_force(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[PanelZoneForceResult]:
     """
-    获取节点域内力结果
+    Get panel zone force results.
     
     Args:
-        model: SapModel 对象
-        name: 元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Element name or group name
+        item_type: Element scope
             
     Returns:
-        PanelZoneForceResult 列表
+        List of `PanelZoneForceResult`.
     """
     result = model.Results.PanelZoneForce(
         name, int(item_type),
@@ -342,14 +342,14 @@ def get_panel_zone_force(
 
 def get_section_cut_analysis(model, name: str) -> List[SectionCutAnalysisResult]:
     """
-    获取截面切割分析结果
+    Get section-cut analysis results.
     
     Args:
-        model: SapModel 对象
-        name: 截面切割名称
+        model: SAP2000 SapModel object
+        name: Section-cut name
         
     Returns:
-        SectionCutAnalysisResult 列表
+        List of `SectionCutAnalysisResult`.
     """
     result = model.Results.SectionCutAnalysis(
         name,
@@ -392,14 +392,14 @@ def get_section_cut_analysis(model, name: str) -> List[SectionCutAnalysisResult]
 
 def get_section_cut_design(model, name: str) -> List[SectionCutDesignResult]:
     """
-    获取截面切割设计结果
+    Get section-cut design results.
     
     Args:
-        model: SapModel 对象
-        name: 截面切割名称
+        model: SAP2000 SapModel object
+        name: Section-cut name
         
     Returns:
-        SectionCutDesignResult 列表
+        List of `SectionCutDesignResult`.
     """
     result = model.Results.SectionCutDesign(
         name,
@@ -442,14 +442,14 @@ def get_section_cut_design(model, name: str) -> List[SectionCutDesignResult]:
 
 def get_step_label(model, load_case: str) -> List[StepLabelResult]:
     """
-    获取步骤标签
+    Get step labels.
     
     Args:
-        model: SapModel 对象
-        load_case: 工况名称
+        model: SAP2000 SapModel object
+        load_case: Load case name
         
     Returns:
-        StepLabelResult 列表
+        List of `StepLabelResult`.
     """
     result = model.Results.StepLabel(
         load_case,

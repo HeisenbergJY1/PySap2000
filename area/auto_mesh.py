@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-auto_mesh.py - 面单元自动网格划分函数
-对应 SAP2000 的 AreaObj 自动网格划分相关 API
+auto_mesh.py - Area automatic meshing helpers.
+
+Wraps SAP2000 `AreaObj` automatic meshing APIs.
 """
 
 from typing import Optional
@@ -34,43 +35,43 @@ def set_area_auto_mesh(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置面单元自动网格划分
+    Configure automatic meshing for an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        mesh_type: 网格划分类型
-            - NO_MESH: 不划分
-            - MESH_BY_NUMBER: 按数量划分
-            - MESH_BY_MAX_SIZE: 按最大尺寸划分
-            - MESH_BY_POINTS_ON_EDGE: 按边上点划分
-            - COOKIE_CUT_BY_LINES: 按线切割
-            - COOKIE_CUT_BY_POINTS: 按点切割
-            - GENERAL_DIVIDE: 通用划分
-        n1, n2: 划分数量 (用于 MESH_BY_NUMBER)
-        max_size1, max_size2: 最大尺寸 (用于 MESH_BY_MAX_SIZE)
-        point_on_edge_from_line: 从线获取边上点
-        point_on_edge_from_point: 从点获取边上点
-        extend_cookie_cut_lines: 延伸切割线
-        rotation: 旋转角度
-        max_size_general: 通用最大尺寸
-        local_axes_on_edge: 边上局部轴
-        local_axes_on_face: 面上局部轴
-        restraints_on_edge: 边上约束
-        restraints_on_face: 面上约束
-        group: 组名称
-        sub_mesh: 是否子网格
-        sub_mesh_size: 子网格尺寸
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        mesh_type: Meshing mode
+            - `NO_MESH`: no meshing
+            - `MESH_BY_NUMBER`: divide by counts
+            - `MESH_BY_MAX_SIZE`: divide by maximum size
+            - `MESH_BY_POINTS_ON_EDGE`: divide by points on edges
+            - `COOKIE_CUT_BY_LINES`: cookie-cut using lines
+            - `COOKIE_CUT_BY_POINTS`: cookie-cut using points
+            - `GENERAL_DIVIDE`: general division
+        n1, n2: Division counts for `MESH_BY_NUMBER`
+        max_size1, max_size2: Maximum sizes for `MESH_BY_MAX_SIZE`
+        point_on_edge_from_line: Include edge points derived from lines
+        point_on_edge_from_point: Include edge points derived from points
+        extend_cookie_cut_lines: Whether cookie-cut lines should be extended
+        rotation: Rotation angle
+        max_size_general: General maximum size
+        local_axes_on_edge: Preserve local axes on edges
+        local_axes_on_face: Preserve local axes on faces
+        restraints_on_edge: Preserve restraints on edges
+        restraints_on_face: Preserve restraints on faces
+        group: Group name
+        sub_mesh: Whether to generate submesh
+        sub_mesh_size: Submesh size
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
         
     Example:
-        # 按数量划分 (4x4)
+        # Divide by count (4x4)
         set_area_auto_mesh(model, "1", AreaMeshType.MESH_BY_NUMBER, n1=4, n2=4)
         
-        # 按最大尺寸划分
+        # Divide by maximum size
         set_area_auto_mesh(model, "1", AreaMeshType.MESH_BY_MAX_SIZE, max_size1=0.5, max_size2=0.5)
     """
     return model.AreaObj.SetAutoMesh(
@@ -90,16 +91,16 @@ def set_area_auto_mesh_data(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    使用数据对象设置面单元自动网格划分
+    Configure area automatic meshing from a data object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        data: AreaAutoMeshData 对象
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        data: `AreaAutoMeshData` instance
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
         
     Example:
         data = AreaAutoMeshData(mesh_type=AreaMeshType.MESH_BY_NUMBER, n1=4, n2=4)
@@ -121,20 +122,20 @@ def get_area_auto_mesh(
     area_name: str
 ) -> Optional[AreaAutoMeshData]:
     """
-    获取面单元自动网格划分设置
+    Get automatic meshing settings for an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        AreaAutoMeshData 对象，失败返回 None
+        `AreaAutoMeshData`, or `None` if the query fails.
         
     Example:
         data = get_area_auto_mesh(model, "1")
         if data:
-            print(f"网格类型: {data.mesh_type}")
-            print(f"划分数量: {data.n1} x {data.n2}")
+            print(f"Mesh type: {data.mesh_type}")
+            print(f"Divisions: {data.n1} x {data.n2}")
     """
     try:
         result = model.AreaObj.GetAutoMesh(
@@ -172,14 +173,14 @@ def is_area_meshed(
     area_name: str
 ) -> bool:
     """
-    检查面单元是否设置了自动网格划分
+    Check whether automatic meshing is enabled for an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        True 表示有网格划分，False 表示无
+        `True` if automatic meshing is configured, otherwise `False`.
     """
     data = get_area_auto_mesh(model, area_name)
     if data:

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""框架单元相关测试"""
+"""Tests for frame objects."""
 
 import pytest
 from PySap2000.structure_core import Frame
@@ -9,7 +9,7 @@ pytestmark = pytest.mark.frame
 
 
 class TestFrameSection:
-    """框架截面测试"""
+    """Frame sections."""
 
     def test_create_frame_section(self, app):
         sec = FrameSection(
@@ -26,7 +26,7 @@ class TestFrameSection:
 
 
 class TestFrameCreate:
-    """框架单元创建测试"""
+    """Create frames."""
 
     def test_create_frame(self, app):
         ret = app.create_object(Frame(no=1, start_point=10, end_point=3, section="W14X30"))
@@ -34,7 +34,7 @@ class TestFrameCreate:
 
 
 class TestFrameQuery:
-    """框架单元查询测试"""
+    """Query frames."""
 
     def test_get_frame(self, app):
         f = app.get_object(Frame(no="1"))
@@ -67,7 +67,7 @@ class TestFrameQuery:
 
 
 class TestFrameUpdate:
-    """框架单元更新测试"""
+    """Update frames."""
 
     def test_rename_frame(self, app):
         ret = app.rename_object(Frame(no="1"), "F2")
@@ -79,6 +79,6 @@ class TestFrameUpdate:
         assert ret == 0
 
     def test_rename_back(self, app):
-        """恢复原名"""
+        """Restore original name."""
         ret = app.rename_object(Frame(no="F2"), "1")
         assert ret == 0

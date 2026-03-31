@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-edit - 编辑操作模块
+edit - edit operation helpers
 
-SAP2000 Edit API 封装
+Wrappers for SAP2000 Edit APIs.
 
-子模块:
-- edit_area: 面单元编辑
-- edit_frame: 框架编辑
-- edit_point: 点编辑
-- edit_solid: 实体编辑
-- edit_general: 通用编辑
+Submodules:
+- edit_area: Area editing
+- edit_frame: Frame editing
+- edit_point: Point editing
+- edit_solid: Solid editing
+- edit_general: General editing
 """
 
 from .edit_area import (
@@ -58,14 +58,14 @@ from .edit_general import (
 )
 
 __all__ = [
-    # 面单元编辑
+    # Area editing
     "divide_area",
     "expand_shrink_area",
     "merge_area",
     "add_point_to_area",
     "remove_point_from_area",
     "change_area_connectivity",
-    # 框架编辑
+    # Frame editing
     "divide_frame_at_distance",
     "divide_frame_at_intersections",
     "divide_frame_by_ratio",
@@ -73,15 +73,15 @@ __all__ = [
     "join_frame",
     "trim_frame",
     "change_frame_connectivity",
-    # 点编辑
+    # Point editing
     "align_point",
     "connect_point",
     "disconnect_point",
     "merge_point",
     "change_point_coordinates",
-    # 实体编辑
+    # Solid editing
     "divide_solid",
-    # 通用编辑
+    # General editing
     "extrude_area_to_solid_linear_normal",
     "extrude_area_to_solid_linear_user",
     "extrude_area_to_solid_radial",

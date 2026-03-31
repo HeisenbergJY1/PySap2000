@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-property.py - 连接单元属性分配相关函数
+property.py - Link property-assignment helpers.
 
-用于设置连接单元的属性分配（LinkObj 级别，非 PropLink）
+Helpers for assigning properties at the `LinkObj` level rather than defining
+`PropLink` properties.
 
 SAP2000 API:
 - LinkObj.SetProperty(Name, PropName, ItemType)
@@ -23,16 +24,16 @@ def set_link_property(
     item_type: LinkItemType = LinkItemType.OBJECT
 ) -> int:
     """
-    设置连接单元属性
+    Assign a link property.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        property_name: 连接属性名称
-        item_type: 操作范围
+        model: `SapModel` object
+        link_name: Link object name
+        property_name: Link property name
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     
     Example:
         set_link_property(model, "1", "Linear1")
@@ -42,14 +43,14 @@ def set_link_property(
 
 def get_link_property(model, link_name: str) -> Optional[str]:
     """
-    获取连接单元属性名称
+    Return the assigned link property name.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
+        model: `SapModel` object
+        link_name: Link object name
     
     Returns:
-        属性名称，失败返回 None
+        Property name, or `None` on failure
     """
     try:
         result = model.LinkObj.GetProperty(str(link_name), "")
@@ -66,16 +67,16 @@ def set_link_property_fd(
     item_type: LinkItemType = LinkItemType.OBJECT
 ) -> int:
     """
-    设置连接单元频率相关属性
+    Assign a frequency-dependent property to a link.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        property_name: 频率相关属性名称，None 或 "None" 表示清除
-        item_type: 操作范围
+        model: `SapModel` object
+        link_name: Link object name
+        property_name: Frequency-dependent property name; `None` clears it
+        item_type: Item scope
     
     Returns:
-        0 表示成功
+        `0` on success
     """
     if property_name is None:
         property_name = "None"
@@ -84,14 +85,14 @@ def set_link_property_fd(
 
 def get_link_property_fd(model, link_name: str) -> Optional[str]:
     """
-    获取连接单元频率相关属性名称
+    Return the frequency-dependent property name for a link.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
+        model: `SapModel` object
+        link_name: Link object name
     
     Returns:
-        频率相关属性名称，无则返回 None
+        Frequency-dependent property name, or `None`
     """
     try:
         result = model.LinkObj.GetPropertyFD(str(link_name), "")
@@ -105,14 +106,14 @@ def get_link_property_fd(model, link_name: str) -> Optional[str]:
 
 def get_link_property_info(model, link_name: str) -> Tuple[Optional[str], Optional[str]]:
     """
-    获取连接单元属性信息（包括频率相关属性）
+    Return both standard and frequency-dependent property information.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
+        model: `SapModel` object
+        link_name: Link object name
     
     Returns:
-        (property_name, fd_property_name) 元组
+        Tuple `(property_name, fd_property_name)`
     """
     prop = get_link_property(model, link_name)
     fd_prop = get_link_property_fd(model, link_name)

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-selection.py - 连接单元选择相关函数
+selection.py - Link selection helpers.
 
-用于设置和获取连接单元的选择状态
+Provides functions to set and query the selection state of link objects.
 
 SAP2000 API:
 - LinkObj.SetSelected(Name, Selected, ItemType)
@@ -21,16 +21,16 @@ def set_link_selected(
     item_type: LinkItemType = LinkItemType.OBJECT
 ) -> int:
     """
-    设置连接单元选择状态
+    Set the selection state of a link object.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
-        selected: True=选中, False=取消选中
-        item_type: 操作范围
+        model: SAP2000 SapModel object
+        link_name: Link object name
+        selected: `True` to select, `False` to deselect
+        item_type: Target scope for the operation
     
     Returns:
-        0 表示成功
+        `0` if successful.
     
     Example:
         set_link_selected(model, "1", True)
@@ -43,18 +43,18 @@ def get_link_selected(
     link_name: str
 ) -> bool:
     """
-    获取连接单元选择状态
+    Get the selection state of a link object.
     
     Args:
-        model: SapModel 对象
-        link_name: 连接单元名称
+        model: SAP2000 SapModel object
+        link_name: Link object name
     
     Returns:
-        True=选中, False=未选中
+        `True` if selected, otherwise `False`.
     
     Example:
         if get_link_selected(model, "1"):
-            print("连接单元已选中")
+            print("The link is selected")
     """
     try:
         result = model.LinkObj.GetSelected(str(link_name), False)
@@ -69,7 +69,7 @@ def select_link(
     link_name: str,
     item_type: LinkItemType = LinkItemType.OBJECT
 ) -> int:
-    """选中连接单元"""
+    """Select a link object."""
     return set_link_selected(model, link_name, True, item_type)
 
 
@@ -78,12 +78,12 @@ def deselect_link(
     link_name: str,
     item_type: LinkItemType = LinkItemType.OBJECT
 ) -> int:
-    """取消选中连接单元"""
+    """Deselect a link object."""
     return set_link_selected(model, link_name, False, item_type)
 
 
 def select_links(model, link_names: List[str]) -> int:
-    """批量选中连接单元"""
+    """Select multiple link objects."""
     ret = 0
     for name in link_names:
         result = set_link_selected(model, name, True)
@@ -93,7 +93,7 @@ def select_links(model, link_names: List[str]) -> int:
 
 
 def deselect_links(model, link_names: List[str]) -> int:
-    """批量取消选中连接单元"""
+    """Deselect multiple link objects."""
     ret = 0
     for name in link_names:
         result = set_link_selected(model, name, False)
@@ -103,5 +103,5 @@ def deselect_links(model, link_names: List[str]) -> int:
 
 
 def is_link_selected(model, link_name: str) -> bool:
-    """检查连接单元是否被选中"""
+    """Check whether a link object is selected."""
     return get_link_selected(model, link_name)

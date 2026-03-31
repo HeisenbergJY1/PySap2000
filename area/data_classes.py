@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-data_classes.py - Area 对象相关数据类
-对应 SAP2000 的 AreaObj 相关数据结构
+data_classes.py - Area-related data classes.
 
-注意: 荷载相关数据类已移至 loads/area_load.py
+Wraps data structures used by the SAP2000 `AreaObj` API.
+
+Note: Load-related data classes have been moved to `loads/area_load.py`.
 """
 
 from dataclasses import dataclass
@@ -15,11 +16,11 @@ from .enums import (
 )
 
 
-# ==================== 属性数据类 ====================
+# ==================== Property Data Classes ====================
 
 @dataclass
 class AreaSpringData:
-    """面单元弹簧数据"""
+    """Area spring data."""
     spring_type: AreaSpringType = AreaSpringType.SIMPLE_SPRING
     stiffness: float = 0.0
     simple_spring_type: AreaSimpleSpringType = AreaSimpleSpringType.TENSION_COMPRESSION
@@ -34,12 +35,12 @@ class AreaSpringData:
 
 @dataclass
 class AreaAutoMeshData:
-    """面单元自动网格划分设置"""
+    """Automatic meshing settings for an area object."""
     mesh_type: AreaMeshType = AreaMeshType.NO_MESH
-    n1: int = 2                          # 方向1划分数量
-    n2: int = 2                          # 方向2划分数量
-    max_size1: float = 0.0               # 方向1最大尺寸
-    max_size2: float = 0.0               # 方向2最大尺寸
+    n1: int = 2                          # Number of divisions in direction 1
+    n2: int = 2                          # Number of divisions in direction 2
+    max_size1: float = 0.0               # Maximum size in direction 1
+    max_size2: float = 0.0               # Maximum size in direction 2
     point_on_edge_from_line: bool = False
     point_on_edge_from_point: bool = False
     extend_cookie_cut_lines: bool = False
@@ -56,27 +57,27 @@ class AreaAutoMeshData:
 
 @dataclass
 class AreaLocalAxesData:
-    """面单元局部坐标轴数据"""
+    """Area local-axis data."""
     area_name: str = ""
-    angle: float = 0.0       # 局部坐标轴旋转角度 [deg]
-    advanced: bool = False    # 是否有高级设置
+    angle: float = 0.0        # Local-axis rotation angle [deg]
+    advanced: bool = False    # Whether advanced settings are enabled
 
 
 @dataclass
 class AreaLocalAxesAdvancedData:
-    """面单元高级局部坐标轴设置"""
+    """Advanced local-axis settings for an area object."""
     active: bool = False
-    plane2: int = 31  # 31=3-1平面, 32=3-2平面
+    plane2: int = 31  # 31=3-1 plane, 32=3-2 plane
     pl_vect_opt: PlaneRefVectorOption = PlaneRefVectorOption.COORDINATE_DIRECTION
     pl_csys: str = "Global"
-    pl_dir: Tuple[int, int] = (1, 2)  # 主方向和次方向
-    pl_pt: Tuple[str, str] = ("", "")  # 两个节点名称
-    pl_vect: Tuple[float, float, float] = (0.0, 0.0, 0.0)  # 用户向量
+    pl_dir: Tuple[int, int] = (1, 2)  # Primary and secondary directions
+    pl_pt: Tuple[str, str] = ("", "")  # Two point names
+    pl_vect: Tuple[float, float, float] = (0.0, 0.0, 0.0)  # User vector
 
 
 @dataclass
 class AreaThicknessData:
-    """面单元厚度覆盖数据"""
+    """Area thickness override data."""
     thickness_type: AreaThicknessType = AreaThicknessType.NO_OVERWRITE
     thickness_pattern: str = ""
     thickness_pattern_sf: float = 1.0
@@ -85,7 +86,7 @@ class AreaThicknessData:
 
 @dataclass
 class AreaOffsetData:
-    """面单元偏移数据"""
+    """Area offset data."""
     offset_type: AreaOffsetType = AreaOffsetType.NO_OFFSET
     offset_pattern: str = ""
     offset_pattern_sf: float = 1.0
@@ -94,26 +95,26 @@ class AreaOffsetData:
 
 @dataclass
 class AreaModifierData:
-    """面单元修改器数据 (10个值)"""
-    f11: float = 1.0    # 膜刚度 f11
-    f22: float = 1.0    # 膜刚度 f22
-    f12: float = 1.0    # 膜刚度 f12
-    m11: float = 1.0    # 弯曲刚度 m11
-    m22: float = 1.0    # 弯曲刚度 m22
-    m12: float = 1.0    # 弯曲刚度 m12
-    v13: float = 1.0    # 剪切刚度 v13
-    v23: float = 1.0    # 剪切刚度 v23
-    mass: float = 1.0   # 质量修改器
-    weight: float = 1.0 # 重量修改器
+    """Area modifier data with 10 values."""
+    f11: float = 1.0    # Membrane stiffness f11
+    f22: float = 1.0    # Membrane stiffness f22
+    f12: float = 1.0    # Membrane stiffness f12
+    m11: float = 1.0    # Bending stiffness m11
+    m22: float = 1.0    # Bending stiffness m22
+    m12: float = 1.0    # Bending stiffness m12
+    v13: float = 1.0    # Shear stiffness v13
+    v23: float = 1.0    # Shear stiffness v23
+    mass: float = 1.0   # Mass modifier
+    weight: float = 1.0 # Weight modifier
     
     def to_list(self) -> List[float]:
-        """转换为列表"""
+        """Return modifier values as a list."""
         return [self.f11, self.f22, self.f12, self.m11, self.m22,
                 self.m12, self.v13, self.v23, self.mass, self.weight]
     
     @classmethod
     def from_list(cls, values: List[float]) -> 'AreaModifierData':
-        """从列表创建"""
+        """Create an instance from a list."""
         if len(values) >= 10:
             return cls(
                 f11=values[0], f22=values[1], f12=values[2],
@@ -126,6 +127,6 @@ class AreaModifierData:
 
 @dataclass
 class AreaMassData:
-    """面单元质量数据"""
-    area_name: str           # 面单元名称
-    mass_per_area: float     # 单位面积质量
+    """Area mass data."""
+    area_name: str           # Area object name
+    mass_per_area: float     # Mass per unit area

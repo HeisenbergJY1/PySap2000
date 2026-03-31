@@ -1,43 +1,43 @@
 # -*- coding: utf-8 -*-
 """
-load_case.py - 荷载工况定义
+load_case.py - Load case definitions.
 
-对应 SAP2000 的 LoadCases API
+Wraps the SAP2000 `LoadCases` API.
 
-荷载工况（Load Case）是分析工况，定义了如何分析结构。
-每种工况类型有不同的子类型和参数设置。
+Load cases define how the structure is analyzed. Each case type has its own
+subtypes and parameter sets.
 
-SAP2000 API 结构:
-- LoadCases (基础 API)
-  - ChangeName, Count, Delete, GetNameList_1, GetTypeOAPI_2, SetDesignType
-- LoadCases.StaticLinear (线性静力)
-- LoadCases.StaticNonlinear (非线性静力)
-- LoadCases.ModalEigen (特征值模态)
-- LoadCases.ModalRitz (Ritz 模态)
-- LoadCases.ResponseSpectrum (反应谱)
-- LoadCases.DirHistLinear (直接积分线性时程)
-- LoadCases.DirHistNonlinear (直接积分非线性时程)
-- LoadCases.ModHistLinear (模态线性时程)
-- LoadCases.ModHistNonlinear (模态非线性时程)
-- LoadCases.Buckling (屈曲)
-- LoadCases.SteadyState (稳态)
-- LoadCases.PSD (功率谱密度)
-- LoadCases.MovingLoad (移动荷载)
-- LoadCases.Hyperstatic (超静定)
-- LoadCases.StaticLinearMultistep (多步线性静力)
-- LoadCases.StaticNonlinearMultistep (多步非线性静力)
-- LoadCases.StaticNonlinearStaged (分阶段施工)
+SAP2000 API structure:
+- `LoadCases` (base API)
+  - `ChangeName`, `Count`, `Delete`, `GetNameList_1`, `GetTypeOAPI_2`, `SetDesignType`
+- `LoadCases.StaticLinear`
+- `LoadCases.StaticNonlinear`
+- `LoadCases.ModalEigen`
+- `LoadCases.ModalRitz`
+- `LoadCases.ResponseSpectrum`
+- `LoadCases.DirHistLinear`
+- `LoadCases.DirHistNonlinear`
+- `LoadCases.ModHistLinear`
+- `LoadCases.ModHistNonlinear`
+- `LoadCases.Buckling`
+- `LoadCases.SteadyState`
+- `LoadCases.PSD`
+- `LoadCases.MovingLoad`
+- `LoadCases.Hyperstatic`
+- `LoadCases.StaticLinearMultistep`
+- `LoadCases.StaticNonlinearMultistep`
+- `LoadCases.StaticNonlinearStaged`
 
 Usage:
     from PySap2000.loading import LoadCase, LoadCaseType
     
-    # 获取所有荷载工况
+    # Get all load cases
     all_cases = LoadCase.get_all(model)
     
-    # 按类型获取
+    # Filter by type
     static_cases = LoadCase.get_name_list(model, LoadCaseType.LINEAR_STATIC)
     
-    # 获取工况信息
+    # Get load case information
     case = LoadCase.get_by_name(model, "DEAD")
     print(f"Type: {case.case_type.name}")
 """
@@ -52,68 +52,68 @@ from PySap2000.com_helper import com_ret, com_data
 
 class LoadCaseType(IntEnum):
     """
-    荷载工况类型
-    
-    对应 SAP2000 的 eLoadCaseType 枚举
+    Load case type.
+
+    Matches the SAP2000 `eLoadCaseType` enum.
     """
-    LINEAR_STATIC = 1               # 线性静力
-    NONLINEAR_STATIC = 2            # 非线性静力
-    MODAL = 3                       # 模态
-    RESPONSE_SPECTRUM = 4           # 反应谱
-    LINEAR_HISTORY = 5              # 模态线性时程
-    NONLINEAR_HISTORY = 6           # 模态非线性时程
-    LINEAR_DYNAMIC = 7              # 直接积分线性时程
-    NONLINEAR_DYNAMIC = 8           # 直接积分非线性时程
-    MOVING_LOAD = 9                 # 移动荷载
-    BUCKLING = 10                   # 屈曲
-    STEADY_STATE = 11               # 稳态
-    POWER_SPECTRAL_DENSITY = 12     # 功率谱密度
-    LINEAR_STATIC_MULTISTEP = 13    # 多步线性静力
-    HYPERSTATIC = 14                # 超静定
-    EXTERNAL_RESULTS = 15           # 外部结果
-    STAGED_CONSTRUCTION = 16        # 分阶段施工
-    NONLINEAR_STATIC_MULTISTEP = 17 # 多步非线性静力
+    LINEAR_STATIC = 1               # Linear static
+    NONLINEAR_STATIC = 2            # Nonlinear static
+    MODAL = 3                       # Modal
+    RESPONSE_SPECTRUM = 4           # Response spectrum
+    LINEAR_HISTORY = 5              # Modal linear time history
+    NONLINEAR_HISTORY = 6           # Modal nonlinear time history
+    LINEAR_DYNAMIC = 7              # Direct-integration linear time history
+    NONLINEAR_DYNAMIC = 8           # Direct-integration nonlinear time history
+    MOVING_LOAD = 9                 # Moving load
+    BUCKLING = 10                   # Buckling
+    STEADY_STATE = 11               # Steady state
+    POWER_SPECTRAL_DENSITY = 12     # Power spectral density
+    LINEAR_STATIC_MULTISTEP = 13    # Multi-step linear static
+    HYPERSTATIC = 14                # Hyperstatic
+    EXTERNAL_RESULTS = 15           # External results
+    STAGED_CONSTRUCTION = 16        # Staged construction
+    NONLINEAR_STATIC_MULTISTEP = 17 # Multi-step nonlinear static
 
 
 class ModalSubType(IntEnum):
     """
-    模态工况子类型
-    
-    仅适用于 LoadCaseType.MODAL
+    Modal load case subtype.
+
+    Only applies to `LoadCaseType.MODAL`.
     """
-    EIGEN = 1   # 特征值模态
-    RITZ = 2    # Ritz 模态
+    EIGEN = 1   # Eigen modal
+    RITZ = 2    # Ritz modal
 
 
 class TimeHistorySubType(IntEnum):
     """
-    时程工况子类型
-    
-    仅适用于 LoadCaseType.LINEAR_HISTORY
+    Time-history load case subtype.
+
+    Only applies to `LoadCaseType.LINEAR_HISTORY`.
     """
-    TRANSIENT = 1   # 瞬态
-    PERIODIC = 2    # 周期
+    TRANSIENT = 1   # Transient
+    PERIODIC = 2    # Periodic
 
 
 class DesignTypeOption(IntEnum):
     """
-    设计类型选项
+    Design type option.
     """
-    PROGRAM_DETERMINED = 0  # 程序自动确定
-    USER_SPECIFIED = 1      # 用户指定
+    PROGRAM_DETERMINED = 0  # Program determined
+    USER_SPECIFIED = 1      # User specified
 
 
 @dataclass
 class LoadCaseLoad:
     """
-    荷载工况中的单个荷载定义
-    
-    用于 StaticLinear 等工况的荷载设置
+    Single load definition inside a load case.
+
+    Used for load settings in `StaticLinear` and similar case types.
     
     Attributes:
-        load_type: "Load" (荷载模式) 或 "Accel" (加速度)
-        load_name: 荷载模式名称 或 方向 (UX, UY, UZ, RX, RY, RZ)
-        scale_factor: 比例系数
+        load_type: `"Load"` (load pattern) or `"Accel"` (acceleration)
+        load_name: Load pattern name or direction (`UX`, `UY`, `UZ`, `RX`, `RY`, `RZ`)
+        scale_factor: Scale factor
     """
     load_type: str = "Load"     # "Load" or "Accel"
     load_name: str = ""         # Pattern name or direction
@@ -123,20 +123,21 @@ class LoadCaseLoad:
 @dataclass
 class LoadCase:
     """
-    荷载工况定义
-    
-    对应 SAP2000 的 LoadCases
-    
-    这是一个基础类，提供所有工况类型的通用操作。
-    具体工况类型的详细设置需要通过对应的子 API 进行。
+    Load case definition.
+
+    Wraps SAP2000 `LoadCases`.
+
+    This is a base class that provides common operations across all load case
+    types. Detailed setup for specific case types must still be done through
+    the corresponding sub-APIs.
     
     Attributes:
-        name: 工况名称
-        case_type: 工况类型 (LoadCaseType)
-        sub_type: 子类型 (仅 Modal 和 LinearHistory 有效)
-        design_type: 设计类型 (LoadPatternType)
-        design_type_option: 设计类型选项
-        is_auto: 是否自动创建
+        name: Case name
+        case_type: Case type (`LoadCaseType`)
+        sub_type: Subtype, only meaningful for modal and linear-history cases
+        design_type: Design type (`LoadPatternType`)
+        design_type_option: Design type option
+        is_auto: Whether the case is auto-created
     """
     name: str = ""
     case_type: LoadCaseType = LoadCaseType.LINEAR_STATIC
@@ -150,13 +151,13 @@ class LoadCase:
     
     def _get(self, model) -> int:
         """
-        从模型获取荷载工况数据
+        Retrieve load case data from the model.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         result = model.LoadCases.GetTypeOAPI_2(
             self.name, 0, 0, 0, 0, 0
@@ -186,26 +187,26 @@ class LoadCase:
     
     def _delete(self, model) -> int:
         """
-        删除荷载工况
+        Delete the load case.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         return model.LoadCases.Delete(self.name)
     
     def change_name(self, model, new_name: str) -> int:
         """
-        重命名荷载工况
+        Rename the load case.
         
         Args:
-            model: SapModel 对象
-            new_name: 新名称
+            model: SAP2000 SapModel object
+            new_name: New name
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         ret = model.LoadCases.ChangeName(self.name, new_name)
         if ret == 0:
@@ -219,15 +220,15 @@ class LoadCase:
         design_type: LoadPatternType = LoadPatternType.DEAD
     ) -> int:
         """
-        设置设计类型
+        Set the design type.
         
         Args:
-            model: SapModel 对象
-            design_type_option: 设计类型选项 (程序确定/用户指定)
-            design_type: 设计类型 (仅当 design_type_option=USER_SPECIFIED 时有效)
+            model: SAP2000 SapModel object
+            design_type_option: Design type option (`program determined` or `user specified`)
+            design_type: Design type, only used when `design_type_option=USER_SPECIFIED`
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         ret = model.LoadCases.SetDesignType(
             self.name,
@@ -243,14 +244,14 @@ class LoadCase:
     @staticmethod
     def get_count(model, case_type: Optional[LoadCaseType] = None) -> int:
         """
-        获取荷载工况数量
+        Get the number of load cases.
         
         Args:
-            model: SapModel 对象
-            case_type: 工况类型 (可选，不指定则返回所有类型的总数)
+            model: SAP2000 SapModel object
+            case_type: Optional case type filter
             
         Returns:
-            荷载工况数量
+            Load case count.
         """
         if case_type is None:
             return model.LoadCases.Count()
@@ -263,14 +264,14 @@ class LoadCase:
         case_type: Optional[LoadCaseType] = None
     ) -> List[str]:
         """
-        获取荷载工况名称列表
+        Get the list of load case names.
         
         Args:
-            model: SapModel 对象
-            case_type: 工况类型 (可选，不指定则返回所有类型)
+            model: SAP2000 SapModel object
+            case_type: Optional case type filter
             
         Returns:
-            荷载工况名称列表
+            List of load case names.
         """
         if case_type is None:
             result = model.LoadCases.GetNameList_1(0, [])
@@ -285,14 +286,14 @@ class LoadCase:
     @classmethod
     def get_by_name(cls, model, name: str) -> Optional["LoadCase"]:
         """
-        按名称获取荷载工况
+        Get a load case by name.
         
         Args:
-            model: SapModel 对象
-            name: 工况名称
+            model: SAP2000 SapModel object
+            name: Case name
             
         Returns:
-            LoadCase 对象，如果不存在返回 None
+            `LoadCase` instance, or `None` if it does not exist.
         """
         case = cls(name=name)
         ret = case._get(model)
@@ -307,14 +308,14 @@ class LoadCase:
         case_type: Optional[LoadCaseType] = None
     ) -> List["LoadCase"]:
         """
-        获取所有荷载工况
+        Get all load cases.
         
         Args:
-            model: SapModel 对象
-            case_type: 工况类型 (可选，不指定则返回所有类型)
+            model: SAP2000 SapModel object
+            case_type: Optional case type filter
             
         Returns:
-            LoadCase 对象列表
+            List of `LoadCase`.
         """
         names = cls.get_name_list(model, case_type)
         result = []
@@ -326,12 +327,12 @@ class LoadCase:
     
     def get_modal_sub_type(self) -> Optional[ModalSubType]:
         """
-        获取模态子类型
-        
-        仅当 case_type == MODAL 时有效
+        Get the modal subtype.
+
+        Only valid when `case_type == MODAL`.
         
         Returns:
-            ModalSubType 或 None
+            `ModalSubType` or `None`.
         """
         if self.case_type == LoadCaseType.MODAL and self.sub_type in (1, 2):
             return ModalSubType(self.sub_type)
@@ -339,12 +340,12 @@ class LoadCase:
     
     def get_time_history_sub_type(self) -> Optional[TimeHistorySubType]:
         """
-        获取时程子类型
-        
-        仅当 case_type == LINEAR_HISTORY 时有效
+        Get the time-history subtype.
+
+        Only valid when `case_type == LINEAR_HISTORY`.
         
         Returns:
-            TimeHistorySubType 或 None
+            `TimeHistorySubType` or `None`.
         """
         if self.case_type == LoadCaseType.LINEAR_HISTORY and self.sub_type in (1, 2):
             return TimeHistorySubType(self.sub_type)
@@ -352,269 +353,269 @@ class LoadCase:
 
 
 # =============================================================================
-# 静力工况创建函数
+# Static case creation helpers
 # =============================================================================
 
 def create_static_linear_case(model, name: str) -> int:
     """
-    创建线性静力工况
+    Create a linear static load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.StaticLinear.SetCase(name)
 
 
 def create_static_nonlinear_case(model, name: str) -> int:
     """
-    创建非线性静力工况
+    Create a nonlinear static load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.StaticNonlinear.SetCase(name)
 
 
 # =============================================================================
-# 模态工况创建函数
+# Modal case creation helpers
 # =============================================================================
 
 def create_modal_eigen_case(model, name: str) -> int:
     """
-    创建特征值模态工况
+    Create an eigen modal load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.ModalEigen.SetCase(name)
 
 
 def create_modal_ritz_case(model, name: str) -> int:
     """
-    创建 Ritz 模态工况
+    Create a Ritz modal load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.ModalRitz.SetCase(name)
 
 
 # =============================================================================
-# 动力工况创建函数
+# Dynamic case creation helpers
 # =============================================================================
 
 def create_response_spectrum_case(model, name: str) -> int:
     """
-    创建反应谱工况
+    Create a response-spectrum load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.ResponseSpectrum.SetCase(name)
 
 
 def create_buckling_case(model, name: str) -> int:
     """
-    创建屈曲工况
+    Create a buckling load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.Buckling.SetCase(name)
 
 
 # =============================================================================
-# 时程工况创建函数
+# Time-history case creation helpers
 # =============================================================================
 
 def create_direct_history_linear_case(model, name: str) -> int:
     """
-    创建直接积分线性时程工况
+    Create a direct-integration linear time-history load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.DirHistLinear.SetCase(name)
 
 
 def create_direct_history_nonlinear_case(model, name: str) -> int:
     """
-    创建直接积分非线性时程工况
+    Create a direct-integration nonlinear time-history load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.DirHistNonlinear.SetCase(name)
 
 
 def create_modal_history_linear_case(model, name: str) -> int:
     """
-    创建模态线性时程工况
+    Create a modal linear time-history load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.ModHistLinear.SetCase(name)
 
 
 def create_modal_history_nonlinear_case(model, name: str) -> int:
     """
-    创建模态非线性时程工况
+    Create a modal nonlinear time-history load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.ModHistNonlinear.SetCase(name)
 
 
 # =============================================================================
-# 其他工况创建函数
+# Other case creation helpers
 # =============================================================================
 
 def create_steady_state_case(model, name: str) -> int:
     """
-    创建稳态工况
+    Create a steady-state load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.SteadyState.SetCase(name)
 
 
 def create_psd_case(model, name: str) -> int:
     """
-    创建功率谱密度工况
+    Create a power spectral density load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.PSD.SetCase(name)
 
 
 def create_moving_load_case(model, name: str) -> int:
     """
-    创建移动荷载工况
+    Create a moving load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.MovingLoad.SetCase(name)
 
 
 def create_hyperstatic_case(model, name: str) -> int:
     """
-    创建超静定工况
+    Create a hyperstatic load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.Hyperstatic.SetCase(name)
 
 
 # =============================================================================
-# 多步工况创建函数
+# Multi-step case creation helpers
 # =============================================================================
 
 def create_static_linear_multistep_case(model, name: str) -> int:
     """
-    创建多步线性静力工况
+    Create a multi-step linear static load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.StaticLinearMultistep.SetCase(name)
 
 
 def create_static_nonlinear_multistep_case(model, name: str) -> int:
     """
-    创建多步非线性静力工况
+    Create a multi-step nonlinear static load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.StaticNonlinearMultistep.SetCase(name)
 
 
 def create_staged_construction_case(model, name: str) -> int:
     """
-    创建分阶段施工工况
+    Create a staged-construction load case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     return model.LoadCases.StaticNonlinearStaged.SetCase(name)
 
 
 # =============================================================================
-# 静力工况荷载设置函数
+# Static-case load-setting helpers
 # =============================================================================
 
 def get_static_linear_loads(
@@ -622,14 +623,14 @@ def get_static_linear_loads(
     name: str
 ) -> Tuple[List[LoadCaseLoad], int]:
     """
-    获取线性静力工况的荷载数据
+    Get load definitions for a linear static case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
+        model: SAP2000 SapModel object
+        name: Case name
         
     Returns:
-        (荷载列表, 返回码)
+        Tuple `(loads, return_code)`.
     """
     result = model.LoadCases.StaticLinear.GetLoads(name, 0, [], [], [])
     
@@ -659,15 +660,15 @@ def set_static_linear_loads(
     loads: List[LoadCaseLoad]
 ) -> int:
     """
-    设置线性静力工况的荷载数据
+    Set load definitions for a linear static case.
     
     Args:
-        model: SapModel 对象
-        name: 工况名称
-        loads: 荷载列表
+        model: SAP2000 SapModel object
+        name: Case name
+        loads: List of load definitions
         
     Returns:
-        0 表示成功
+        `0` if successful.
     """
     if not loads:
         return -1

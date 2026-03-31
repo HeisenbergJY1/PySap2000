@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-data_classes.py - 分析结果数据类
+data_classes.py - Analysis result data classes.
 
-SAP2000 Analysis Results API 的数据类定义
+Data class definitions for the SAP2000 Analysis Results API.
 """
 
 from dataclasses import dataclass
@@ -12,22 +12,22 @@ from typing import List, Optional
 @dataclass
 class JointDisplResult:
     """
-    节点位移结果
+    Joint displacement result.
     
     SAP2000 API: Results.JointDispl
     
     Attributes:
-        obj: 点对象名称
-        elm: 点元素名称
-        load_case: 工况或组合名称
-        step_type: 步骤类型
-        step_num: 步骤号
-        u1: 局部1方向位移 [L]
-        u2: 局部2方向位移 [L]
-        u3: 局部3方向位移 [L]
-        r1: 绕局部1轴转角 [rad]
-        r2: 绕局部2轴转角 [rad]
-        r3: 绕局部3轴转角 [rad]
+        obj: Point object name
+        elm: Point element name
+        load_case: Load case or combination name
+        step_type: Step type
+        step_num: Step number
+        u1: Displacement in local direction 1 [L]
+        u2: Displacement in local direction 2 [L]
+        u3: Displacement in local direction 3 [L]
+        r1: Rotation about local axis 1 [rad]
+        r2: Rotation about local axis 2 [rad]
+        r3: Rotation about local axis 3 [rad]
     """
     obj: str = ""
     elm: str = ""
@@ -45,22 +45,22 @@ class JointDisplResult:
 @dataclass
 class JointReactResult:
     """
-    节点反力结果
+    Joint reaction result.
     
     SAP2000 API: Results.JointReact
     
     Attributes:
-        obj: 点对象名称
-        elm: 点元素名称
-        load_case: 工况或组合名称
-        step_type: 步骤类型
-        step_num: 步骤号
-        f1: 局部1方向反力 [F]
-        f2: 局部2方向反力 [F]
-        f3: 局部3方向反力 [F]
-        m1: 绕局部1轴反力矩 [FL]
-        m2: 绕局部2轴反力矩 [FL]
-        m3: 绕局部3轴反力矩 [FL]
+        obj: Point object name
+        elm: Point element name
+        load_case: Load case or combination name
+        step_type: Step type
+        step_num: Step number
+        f1: Reaction in local direction 1 [F]
+        f2: Reaction in local direction 2 [F]
+        f3: Reaction in local direction 3 [F]
+        m1: Reaction moment about local axis 1 [FL]
+        m2: Reaction moment about local axis 2 [FL]
+        m3: Reaction moment about local axis 3 [FL]
     """
     obj: str = ""
     elm: str = ""
@@ -78,24 +78,24 @@ class JointReactResult:
 @dataclass
 class FrameForceResult:
     """
-    框架单元内力结果
+    Frame element internal force result.
     
     SAP2000 API: Results.FrameForce
     
     Attributes:
-        obj: 线对象名称
-        obj_sta: 从对象I端到结果位置的距离 [L]
-        elm: 线元素名称
-        elm_sta: 从元素I端到结果位置的距离 [L]
-        load_case: 工况或组合名称
-        step_type: 步骤类型
-        step_num: 步骤号
-        p: 轴力 [F]
-        v2: 局部2方向剪力 [F]
-        v3: 局部3方向剪力 [F]
-        t: 扭矩 [FL]
-        m2: 绕局部2轴弯矩 [FL]
-        m3: 绕局部3轴弯矩 [FL]
+        obj: Line object name
+        obj_sta: Distance from the object's I-end to the result station [L]
+        elm: Line element name
+        elm_sta: Distance from the element's I-end to the result station [L]
+        load_case: Load case or combination name
+        step_type: Step type
+        step_num: Step number
+        p: Axial force [F]
+        v2: Shear force in local direction 2 [F]
+        v3: Shear force in local direction 3 [F]
+        t: Torque [FL]
+        m2: Bending moment about local axis 2 [FL]
+        m3: Bending moment about local axis 3 [FL]
     """
     obj: str = ""
     obj_sta: float = 0.0
@@ -115,23 +115,23 @@ class FrameForceResult:
 @dataclass
 class BaseReactResult:
     """
-    基底反力结果
+    Base reaction result.
     
     SAP2000 API: Results.BaseReact
     
     Attributes:
-        load_case: 工况或组合名称
-        step_type: 步骤类型
-        step_num: 步骤号
-        fx: 全局X方向反力 [F]
-        fy: 全局Y方向反力 [F]
-        fz: 全局Z方向反力 [F]
-        mx: 绕全局X轴反力矩 [FL]
-        my: 绕全局Y轴反力矩 [FL]
-        mz: 绕全局Z轴反力矩 [FL]
-        gx: 反力报告点全局X坐标 [L]
-        gy: 反力报告点全局Y坐标 [L]
-        gz: 反力报告点全局Z坐标 [L]
+        load_case: Load case or combination name
+        step_type: Step type
+        step_num: Step number
+        fx: Reaction in global X [F]
+        fy: Reaction in global Y [F]
+        fz: Reaction in global Z [F]
+        mx: Reaction moment about global X [FL]
+        my: Reaction moment about global Y [FL]
+        mz: Reaction moment about global Z [FL]
+        gx: Global X coordinate of the reaction report point [L]
+        gy: Global Y coordinate of the reaction report point [L]
+        gz: Global Z coordinate of the reaction report point [L]
     """
     load_case: str = ""
     step_type: str = ""
@@ -150,18 +150,18 @@ class BaseReactResult:
 @dataclass
 class ModalPeriodResult:
     """
-    模态周期结果
+    Modal period result.
     
     SAP2000 API: Results.ModalPeriod
     
     Attributes:
-        load_case: 模态工况名称
-        step_type: 步骤类型 (总是 "Mode")
-        step_num: 振型号
-        period: 周期 [s]
-        frequency: 频率 [1/s]
-        circ_freq: 圆频率 [rad/s]
-        eigenvalue: 特征值 [rad²/s²]
+        load_case: Modal case name
+        step_type: Step type, always `"Mode"`
+        step_num: Mode number
+        period: Period [s]
+        frequency: Frequency [1/s]
+        circ_freq: Circular frequency [rad/s]
+        eigenvalue: Eigenvalue [rad^2/s^2]
     """
     load_case: str = ""
     step_type: str = ""
@@ -175,22 +175,22 @@ class ModalPeriodResult:
 @dataclass
 class ModeShapeResult:
     """
-    振型结果
+    Mode shape result.
     
     SAP2000 API: Results.ModeShape
     
     Attributes:
-        obj: 点对象名称
-        elm: 点元素名称
-        load_case: 模态工况名称
-        step_type: 步骤类型 (总是 "Mode")
-        step_num: 振型号
-        u1: 局部1方向位移 [L]
-        u2: 局部2方向位移 [L]
-        u3: 局部3方向位移 [L]
-        r1: 绕局部1轴转角 [rad]
-        r2: 绕局部2轴转角 [rad]
-        r3: 绕局部3轴转角 [rad]
+        obj: Point object name
+        elm: Point element name
+        load_case: Modal case name
+        step_type: Step type, always `"Mode"`
+        step_num: Mode number
+        u1: Displacement in local direction 1 [L]
+        u2: Displacement in local direction 2 [L]
+        u3: Displacement in local direction 3 [L]
+        r1: Rotation about local axis 1 [rad]
+        r2: Rotation about local axis 2 [rad]
+        r3: Rotation about local axis 3 [rad]
     """
     obj: str = ""
     elm: str = ""
@@ -208,27 +208,27 @@ class ModeShapeResult:
 @dataclass
 class ModalMassRatioResult:
     """
-    模态参与质量比结果
+    Modal participating mass ratio result.
     
     SAP2000 API: Results.ModalParticipatingMassRatios
     
     Attributes:
-        load_case: 模态工况名称
-        step_type: 步骤类型 (总是 "Mode")
-        step_num: 振型号
-        period: 周期 [s]
-        ux: UX方向参与质量比
-        uy: UY方向参与质量比
-        uz: UZ方向参与质量比
-        sum_ux: UX方向累计参与质量比
-        sum_uy: UY方向累计参与质量比
-        sum_uz: UZ方向累计参与质量比
-        rx: RX方向参与质量比
-        ry: RY方向参与质量比
-        rz: RZ方向参与质量比
-        sum_rx: RX方向累计参与质量比
-        sum_ry: RY方向累计参与质量比
-        sum_rz: RZ方向累计参与质量比
+        load_case: Modal case name
+        step_type: Step type, always `"Mode"`
+        step_num: Mode number
+        period: Period [s]
+        ux: Participating mass ratio in UX
+        uy: Participating mass ratio in UY
+        uz: Participating mass ratio in UZ
+        sum_ux: Cumulative participating mass ratio in UX
+        sum_uy: Cumulative participating mass ratio in UY
+        sum_uz: Cumulative participating mass ratio in UZ
+        rx: Participating mass ratio in RX
+        ry: Participating mass ratio in RY
+        rz: Participating mass ratio in RZ
+        sum_rx: Cumulative participating mass ratio in RX
+        sum_ry: Cumulative participating mass ratio in RY
+        sum_rz: Cumulative participating mass ratio in RZ
     """
     load_case: str = ""
     step_type: str = ""
@@ -251,34 +251,34 @@ class ModalMassRatioResult:
 @dataclass
 class AreaForceShellResult:
     """
-    壳单元内力结果
+    Shell internal force result.
     
     SAP2000 API: Results.AreaForceShell
     
     Attributes:
-        obj: 面对象名称
-        elm: 面元素名称
-        point_elm: 结果报告点元素名称
-        load_case: 工况或组合名称
-        step_type: 步骤类型
-        step_num: 步骤号
-        f11: 膜力F11 [F/L]
-        f22: 膜力F22 [F/L]
-        f12: 膜剪力F12 [F/L]
-        f_max: 最大主膜力 [F/L]
-        f_min: 最小主膜力 [F/L]
-        f_angle: 最大主膜力方向角 [deg]
-        f_vm: Von Mises膜力 [F/L]
-        m11: 弯矩M11 [FL/L]
-        m22: 弯矩M22 [FL/L]
-        m12: 扭矩M12 [FL/L]
-        m_max: 最大主弯矩 [FL/L]
-        m_min: 最小主弯矩 [FL/L]
-        m_angle: 最大主弯矩方向角 [deg]
-        v13: 横向剪力V13 [F/L]
-        v23: 横向剪力V23 [F/L]
-        v_max: 最大横向剪力 [F/L]
-        v_angle: 最大横向剪力方向角 [deg]
+        obj: Area object name
+        elm: Area element name
+        point_elm: Reporting point element name
+        load_case: Load case or combination name
+        step_type: Step type
+        step_num: Step number
+        f11: Membrane force F11 [F/L]
+        f22: Membrane force F22 [F/L]
+        f12: Membrane shear force F12 [F/L]
+        f_max: Maximum principal membrane force [F/L]
+        f_min: Minimum principal membrane force [F/L]
+        f_angle: Direction angle of the maximum principal membrane force [deg]
+        f_vm: Von Mises membrane force [F/L]
+        m11: Bending moment M11 [FL/L]
+        m22: Bending moment M22 [FL/L]
+        m12: Twisting moment M12 [FL/L]
+        m_max: Maximum principal bending moment [FL/L]
+        m_min: Minimum principal bending moment [FL/L]
+        m_angle: Direction angle of the maximum principal bending moment [deg]
+        v13: Transverse shear force V13 [F/L]
+        v23: Transverse shear force V23 [F/L]
+        v_max: Maximum transverse shear force [F/L]
+        v_angle: Direction angle of the maximum transverse shear force [deg]
     """
     obj: str = ""
     elm: str = ""
@@ -306,13 +306,13 @@ class AreaForceShellResult:
 
 
 # =============================================================================
-# 面单元附加结果
+# Additional area results
 # =============================================================================
 
 @dataclass
 class AreaJointForcePlaneResult:
     """
-    平面单元节点力结果
+    Plane element joint force result.
     
     SAP2000 API: Results.AreaJointForcePlane
     """
@@ -333,7 +333,7 @@ class AreaJointForcePlaneResult:
 @dataclass
 class AreaJointForceShellResult:
     """
-    壳单元节点力结果
+    Shell element joint force result.
     
     SAP2000 API: Results.AreaJointForceShell
     """
@@ -354,7 +354,7 @@ class AreaJointForceShellResult:
 @dataclass
 class AreaStrainShellResult:
     """
-    壳单元应变结果
+    Shell strain result.
     
     SAP2000 API: Results.AreaStrainShell
     """
@@ -380,7 +380,7 @@ class AreaStrainShellResult:
 @dataclass
 class AreaStrainShellLayeredResult:
     """
-    分层壳单元应变结果
+    Layered shell strain result.
     
     SAP2000 API: Results.AreaStrainShellLayered
     """
@@ -409,7 +409,7 @@ class AreaStrainShellLayeredResult:
 @dataclass
 class AreaStressPlaneResult:
     """
-    平面单元应力结果
+    Plane element stress result.
     
     SAP2000 API: Results.AreaStressPlane
     """
@@ -432,7 +432,7 @@ class AreaStressPlaneResult:
 @dataclass
 class AreaStressShellResult:
     """
-    壳单元应力结果
+    Shell stress result.
     
     SAP2000 API: Results.AreaStressShell
     """
@@ -465,7 +465,7 @@ class AreaStressShellResult:
 @dataclass
 class AreaStressShellLayeredResult:
     """
-    分层壳单元应力结果
+    Layered shell stress result.
     
     SAP2000 API: Results.AreaStressShellLayered
     """
@@ -492,13 +492,13 @@ class AreaStressShellLayeredResult:
 
 
 # =============================================================================
-# 节点附加结果
+# Additional joint results
 # =============================================================================
 
 @dataclass
 class AssembledJointMassResult:
     """
-    组装节点质量结果
+    Assembled joint mass result.
     
     SAP2000 API: Results.AssembledJointMass_1
     """
@@ -515,7 +515,7 @@ class AssembledJointMassResult:
 @dataclass
 class BaseReactWithCentroidResult:
     """
-    带质心的基底反力结果
+    Base reaction result with centroid data.
     
     SAP2000 API: Results.BaseReactWithCentroid
     """
@@ -545,7 +545,7 @@ class BaseReactWithCentroidResult:
 @dataclass
 class BucklingFactorResult:
     """
-    屈曲因子结果
+    Buckling factor result.
     
     SAP2000 API: Results.BucklingFactor
     """
@@ -558,7 +558,7 @@ class BucklingFactorResult:
 @dataclass
 class FrameJointForceResult:
     """
-    框架节点力结果
+    Frame joint force result.
     
     SAP2000 API: Results.FrameJointForce
     """
@@ -579,7 +579,7 @@ class FrameJointForceResult:
 @dataclass
 class GeneralizedDisplResult:
     """
-    广义位移结果
+    Generalized displacement result.
     
     SAP2000 API: Results.GeneralizedDispl
     """
@@ -594,7 +594,7 @@ class GeneralizedDisplResult:
 @dataclass
 class JointAccResult:
     """
-    节点加速度结果
+    Joint acceleration result.
     
     SAP2000 API: Results.JointAcc
     """
@@ -614,7 +614,7 @@ class JointAccResult:
 @dataclass
 class JointAccAbsResult:
     """
-    节点绝对加速度结果
+    Absolute joint acceleration result.
     
     SAP2000 API: Results.JointAccAbs
     """
@@ -634,7 +634,7 @@ class JointAccAbsResult:
 @dataclass
 class JointDisplAbsResult:
     """
-    节点绝对位移结果
+    Absolute joint displacement result.
     
     SAP2000 API: Results.JointDisplAbs
     """
@@ -654,7 +654,7 @@ class JointDisplAbsResult:
 @dataclass
 class JointRespSpecResult:
     """
-    节点反应谱结果
+    Joint response spectrum result.
     
     SAP2000 API: Results.JointRespSpec
     """
@@ -674,7 +674,7 @@ class JointRespSpecResult:
 @dataclass
 class JointVelResult:
     """
-    节点速度结果
+    Joint velocity result.
     
     SAP2000 API: Results.JointVel
     """
@@ -694,7 +694,7 @@ class JointVelResult:
 @dataclass
 class JointVelAbsResult:
     """
-    节点绝对速度结果
+    Absolute joint velocity result.
     
     SAP2000 API: Results.JointVelAbs
     """
@@ -712,13 +712,13 @@ class JointVelAbsResult:
 
 
 # =============================================================================
-# 连接单元结果
+# Link results
 # =============================================================================
 
 @dataclass
 class LinkDeformationResult:
     """
-    连接单元变形结果
+    Link deformation result.
     
     SAP2000 API: Results.LinkDeformation
     """
@@ -738,7 +738,7 @@ class LinkDeformationResult:
 @dataclass
 class LinkForceResult:
     """
-    连接单元内力结果
+    Link internal force result.
     
     SAP2000 API: Results.LinkForce
     """
@@ -759,7 +759,7 @@ class LinkForceResult:
 @dataclass
 class LinkJointForceResult:
     """
-    连接单元节点力结果
+    Link joint force result.
     
     SAP2000 API: Results.LinkJointForce
     """
@@ -778,13 +778,13 @@ class LinkJointForceResult:
 
 
 # =============================================================================
-# 模态附加结果
+# Additional modal results
 # =============================================================================
 
 @dataclass
 class ModalLoadParticipationRatioResult:
     """
-    模态荷载参与比结果
+    Modal load participation ratio result.
     
     SAP2000 API: Results.ModalLoadParticipationRatios
     """
@@ -798,7 +798,7 @@ class ModalLoadParticipationRatioResult:
 @dataclass
 class ModalParticipationFactorResult:
     """
-    模态参与因子结果
+    Modal participation factor result.
     
     SAP2000 API: Results.ModalParticipationFactors
     """
@@ -817,13 +817,13 @@ class ModalParticipationFactorResult:
 
 
 # =============================================================================
-# 节点域结果
+# Panel zone results
 # =============================================================================
 
 @dataclass
 class PanelZoneDeformationResult:
     """
-    节点域变形结果
+    Panel zone deformation result.
     
     SAP2000 API: Results.PanelZoneDeformation
     """
@@ -842,7 +842,7 @@ class PanelZoneDeformationResult:
 @dataclass
 class PanelZoneForceResult:
     """
-    节点域内力结果
+    Panel zone force result.
     
     SAP2000 API: Results.PanelZoneForce
     """
@@ -859,13 +859,13 @@ class PanelZoneForceResult:
 
 
 # =============================================================================
-# 截面切割结果
+# Section-cut results
 # =============================================================================
 
 @dataclass
 class SectionCutAnalysisResult:
     """
-    截面切割分析结果
+    Section-cut analysis result.
     
     SAP2000 API: Results.SectionCutAnalysis
     """
@@ -884,7 +884,7 @@ class SectionCutAnalysisResult:
 @dataclass
 class SectionCutDesignResult:
     """
-    截面切割设计结果
+    Section-cut design result.
     
     SAP2000 API: Results.SectionCutDesign
     """
@@ -901,13 +901,13 @@ class SectionCutDesignResult:
 
 
 # =============================================================================
-# 实体单元结果
+# Solid element results
 # =============================================================================
 
 @dataclass
 class SolidJointForceResult:
     """
-    实体单元节点力结果
+    Solid element joint force result.
     
     SAP2000 API: Results.SolidJointForce
     """
@@ -928,7 +928,7 @@ class SolidJointForceResult:
 @dataclass
 class SolidStrainResult:
     """
-    实体单元应变结果
+    Solid element strain result.
     
     SAP2000 API: Results.SolidStrain
     """
@@ -962,7 +962,7 @@ class SolidStrainResult:
 @dataclass
 class SolidStressResult:
     """
-    实体单元应力结果
+    Solid element stress result.
     
     SAP2000 API: Results.SolidStress
     """
@@ -994,13 +994,13 @@ class SolidStressResult:
 
 
 # =============================================================================
-# 步骤标签
+# Step labels
 # =============================================================================
 
 @dataclass
 class StepLabelResult:
     """
-    步骤标签结果
+    Step label result.
     
     SAP2000 API: Results.StepLabel
     """

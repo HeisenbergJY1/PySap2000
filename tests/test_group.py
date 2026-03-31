@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""组定义相关测试"""
+"""Tests for group definitions."""
 
 import pytest
 from PySap2000.group import Group, GroupObjectType
@@ -8,7 +8,7 @@ pytestmark = pytest.mark.group
 
 
 class TestGroupCreate:
-    """组创建测试"""
+    """Create groups."""
 
     def test_create_group(self, model):
         g = Group(name="TestGroup")
@@ -22,7 +22,7 @@ class TestGroupCreate:
 
 
 class TestGroupQuery:
-    """组查询测试"""
+    """Query groups."""
 
     def test_get_count(self, model):
         count = Group.get_count(model)
@@ -55,13 +55,13 @@ class TestGroupQuery:
 
 
 class TestGroupUpdate:
-    """组更新测试"""
+    """Update groups."""
 
     def test_rename_group(self, model):
         g = Group(name="TestGroup2")
         ret = g.change_name(model, "TestGroup2R")
         assert ret == 0
-        # 改回来
+        # Revert name
         g.change_name(model, "TestGroup2")
 
     def test_clear_group(self, model):

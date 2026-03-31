@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""截面定义相关测试"""
+"""Tests for section definitions."""
 
 import pytest
 from PySap2000.section import (
@@ -13,7 +13,7 @@ pytestmark = pytest.mark.section
 
 
 class TestFrameSection:
-    """框架截面测试"""
+    """Frame sections."""
 
     def test_create_rect_section(self, app):
         sec = FrameSection(
@@ -42,7 +42,7 @@ class TestFrameSection:
 
 
 class TestCableSection:
-    """索截面测试"""
+    """Cable sections."""
 
     def test_create_cable_section(self, app):
         sec = CableSection(name="TestCAB", material="Q355", area=300.0)
@@ -56,7 +56,7 @@ class TestCableSection:
 
 
 class TestAreaSection:
-    """面截面测试"""
+    """Area sections."""
 
     def test_create_shell_section(self, app):
         sec = AreaSection(
@@ -75,7 +75,7 @@ class TestAreaSection:
 
 
 class TestLinkSection:
-    """连接截面测试"""
+    """Link sections."""
 
     def test_create_linear_section(self, app):
         sec = LinkSection(

@@ -1,28 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-mass_source.py - 质量源定义
+mass_source.py - Mass source definitions.
 
-对应 SAP2000 的 SourceMass API
+Wraps the SAP2000 `SourceMass` API.
 
-质量源用于定义动力分析中的质量来源，可以包括：
-- 单元自重 (MassFromElements)
-- 指定质量 (MassFromMasses)
-- 荷载模式 (MassFromLoads)
+Mass sources define where mass comes from in dynamic analysis, including:
+- element self-mass (`MassFromElements`)
+- explicitly assigned masses (`MassFromMasses`)
+- load patterns (`MassFromLoads`)
 
 SAP2000 API:
-- SourceMass.SetMassSource - 创建/修改质量源
-- SourceMass.GetMassSource - 获取质量源数据
-- SourceMass.GetNameList - 获取所有质量源名称
-- SourceMass.Count - 获取质量源数量
-- SourceMass.ChangeName - 重命名质量源
-- SourceMass.Delete - 删除质量源
-- SourceMass.GetDefault - 获取默认质量源
-- SourceMass.SetDefault - 设置默认质量源
+- `SourceMass.SetMassSource` - create or update a mass source
+- `SourceMass.GetMassSource` - get mass source data
+- `SourceMass.GetNameList` - get all mass source names
+- `SourceMass.Count` - get the number of mass sources
+- `SourceMass.ChangeName` - rename a mass source
+- `SourceMass.Delete` - delete a mass source
+- `SourceMass.GetDefault` - get the default mass source
+- `SourceMass.SetDefault` - set the default mass source
 
 Usage:
     from PySap2000.loading import MassSource, MassSourceLoad
     
-    # 创建质量源
+    # Create a mass source
     ms = MassSource(
         name="MyMassSource",
         mass_from_elements=True,
@@ -33,10 +33,10 @@ Usage:
     )
     ms._create(model)
     
-    # 获取质量源
+    # Get a mass source
     ms = MassSource.get_by_name(model, "MSSSRC1")
     
-    # 获取默认质量源
+    # Get the default mass source
     default_name = MassSource.get_default_name(model)
 """
 
@@ -49,11 +49,11 @@ from PySap2000.com_helper import com_ret, com_data
 @dataclass
 class MassSourceLoad:
     """
-    质量源中的荷载模式定义
+    Load pattern definition within a mass source.
     
     Attributes:
-        load_pattern: 荷载模式名称
-        scale_factor: 比例系数
+        load_pattern: Load pattern name
+        scale_factor: Scale factor
     """
     load_pattern: str
     scale_factor: float = 1.0
@@ -62,17 +62,17 @@ class MassSourceLoad:
 @dataclass
 class MassSource:
     """
-    质量源定义
-    
-    用于定义动力分析中的质量来源
+    Mass source definition.
+
+    Used to define mass sources for dynamic analysis.
     
     Attributes:
-        name: 质量源名称
-        mass_from_elements: 是否包含单元自重
-        mass_from_masses: 是否包含指定质量
-        mass_from_loads: 是否包含荷载模式
-        is_default: 是否为默认质量源
-        loads: 荷载模式列表 (仅当 mass_from_loads=True 时有效)
+        name: Mass source name
+        mass_from_elements: Whether element self-mass is included
+        mass_from_masses: Whether explicitly assigned masses are included
+        mass_from_loads: Whether load patterns are included
+        is_default: Whether this is the default mass source
+        loads: List of load patterns, used when `mass_from_loads=True`
     """
     name: str = ""
     mass_from_elements: bool = True
@@ -85,15 +85,15 @@ class MassSource:
     
     def _create(self, model) -> int:
         """
-        创建或修改质量源
-        
-        如果同名质量源已存在，则会被覆盖
+        Create or update a mass source.
+
+        If a mass source with the same name already exists, it is overwritten.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         num_loads = len(self.loads)
         load_patterns = [ld.load_pattern for ld in self.loads] if self.loads else []
@@ -112,13 +112,13 @@ class MassSource:
     
     def _get(self, model) -> int:
         """
-        从模型获取质量源数据
+        Retrieve mass source data from the model.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         result = model.SourceMass.GetMassSource(
             self.name, False, False, False, False, 0, [], []
@@ -145,28 +145,28 @@ class MassSource:
     
     def _delete(self, model) -> int:
         """
-        删除质量源
-        
-        注意: 不能删除默认质量源
+        Delete a mass source.
+
+        Note: The default mass source cannot be deleted.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         return model.SourceMass.Delete(self.name)
     
     def change_name(self, model, new_name: str) -> int:
         """
-        重命名质量源
+        Rename a mass source.
         
         Args:
-            model: SapModel 对象
-            new_name: 新名称
+            model: SAP2000 SapModel object
+            new_name: New name
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         ret = model.SourceMass.ChangeName(self.name, new_name)
         if ret == 0:
@@ -175,13 +175,13 @@ class MassSource:
     
     def set_as_default(self, model) -> int:
         """
-        设置为默认质量源
+        Set this mass source as the default.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` if successful.
         """
         ret = model.SourceMass.SetDefault(self.name)
         if ret == 0:
@@ -191,26 +191,26 @@ class MassSource:
     @staticmethod
     def get_count(model) -> int:
         """
-        获取质量源数量
+        Get the number of mass sources.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            质量源数量
+            Mass source count.
         """
         return model.SourceMass.Count()
     
     @staticmethod
     def get_name_list(model) -> List[str]:
         """
-        获取所有质量源名称
+        Get the names of all mass sources.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            质量源名称列表
+            List of mass source names.
         """
         result = model.SourceMass.GetNameList(0, [])
         names = com_data(result, 1)
@@ -221,13 +221,13 @@ class MassSource:
     @staticmethod
     def get_default_name(model) -> str:
         """
-        获取默认质量源名称
+        Get the name of the default mass source.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            默认质量源名称
+            Default mass source name.
         """
         result = model.SourceMass.GetDefault("")
         name = com_data(result, 0)
@@ -236,14 +236,14 @@ class MassSource:
     @classmethod
     def get_by_name(cls, model, name: str) -> Optional["MassSource"]:
         """
-        按名称获取质量源
+        Get a mass source by name.
         
         Args:
-            model: SapModel 对象
-            name: 质量源名称
+            model: SAP2000 SapModel object
+            name: Mass source name
             
         Returns:
-            MassSource 对象，如果不存在返回 None
+            `MassSource` instance, or `None` if it does not exist.
         """
         ms = cls(name=name)
         ret = ms._get(model)
@@ -254,13 +254,13 @@ class MassSource:
     @classmethod
     def get_all(cls, model) -> List["MassSource"]:
         """
-        获取所有质量源
+        Get all mass sources.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            MassSource 对象列表
+            List of `MassSource`.
         """
         names = cls.get_name_list(model)
         result = []
@@ -273,13 +273,13 @@ class MassSource:
     @classmethod
     def get_default(cls, model) -> Optional["MassSource"]:
         """
-        获取默认质量源
+        Get the default mass source.
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            默认 MassSource 对象
+            Default `MassSource` instance.
         """
         name = cls.get_default_name(model)
         if name:
@@ -288,15 +288,15 @@ class MassSource:
     
     def add_load(self, load_pattern: str, scale_factor: float = 1.0) -> None:
         """
-        添加荷载模式到质量源
+        Add a load pattern to the mass source.
         
         Args:
-            load_pattern: 荷载模式名称
-            scale_factor: 比例系数
+            load_pattern: Load pattern name
+            scale_factor: Scale factor
         """
         self.loads.append(MassSourceLoad(load_pattern, scale_factor))
         self.mass_from_loads = True
     
     def clear_loads(self) -> None:
-        """清除所有荷载模式"""
+        """Clear all load patterns."""
         self.loads = []

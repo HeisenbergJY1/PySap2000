@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pysap2000"
 dynamic = ["version"]
-description = "SAP2000 Python API 封装库，通过 comtypes 调用 COM 接口"
+description = "Python wrapper for SAP2000 via comtypes COM automation"
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 authors = [
     {name = "JIANGYAO-AISA"}
 ]
@@ -20,7 +20,6 @@ classifiers = [
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Physics",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -78,6 +77,7 @@ include = [
     "PySap2000.group",
     "PySap2000.link",
     "PySap2000.loading",
+    "PySap2000.loading.functions",
     "PySap2000.loads",
     "PySap2000.named_assigns",
     "PySap2000.point",
@@ -87,6 +87,7 @@ include = [
     "PySap2000.selection",
     "PySap2000.statistics",
     "PySap2000.structure_core",
+    "PySap2000.utils",
 ]
 exclude = [
     "converters*",
@@ -94,11 +95,10 @@ exclude = [
     "export_docs*",
     "langchain_agent*",
     "tests*",
-    "utils*",
     "view*",
     "visualization*",
     "web_agent*",
-    "dluba,api*",
+    "dlubal_api*",
 ]
 
 [tool.setuptools.package-data]
@@ -107,17 +107,26 @@ exclude = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
+    "analyze: Analyze tests",
     "application: Application tests",
-    "point: Point tests",
-    "material: Material tests",
-    "frame: Frame tests",
-    "cable: Cable tests",
     "area: Area tests",
+    "cable: Cable tests",
+    "constraints: Constraints tests",
+    "database_tables: Database Tables tests",
+    "design: Design tests",
+    "edit: Edit tests",
+    "file: File tests",
+    "frame: Frame tests",
+    "global_parameters: Global Parameters tests",
+    "group: Group tests",
     "link: Link tests",
     "loading: Loading tests",
-    "constraints: Constraints tests",
+    "loads: Loads tests",
+    "material: Material tests",
     "named_assigns: NamedAssigns tests",
-    "edit: Edit tests",
-    "statistics: Statistics tests",
+    "point: Point tests",
+    "results: Results tests",
+    "section: Section tests",
     "selection: Selection tests",
+    "statistics: Statistics tests",
 ]

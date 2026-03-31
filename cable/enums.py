@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-enums.py - Cable 对象相关枚举类型
-对应 SAP2000 的 CableObj 相关枚举
+enums.py - Cable-related enums.
+
+Contains enums used by the SAP2000 `CableObj` API.
 """
 
 from enum import IntEnum
@@ -9,26 +10,26 @@ from enum import IntEnum
 
 class CableType(IntEnum):
     """
-    索类型定义
-    
-    对应 SAP2000 CableObj.SetCableData 的 CableType 参数
+    Cable definition type for tension/sag input.
+
+    Matches the `CableType` argument of `CableObj.SetCableData`.
     """
-    MINIMUM_TENSION_AT_I_END = 1    # I端最小张力
-    MINIMUM_TENSION_AT_J_END = 2    # J端最小张力
-    TENSION_AT_I_END = 3            # I端张力 [F]
-    TENSION_AT_J_END = 4            # J端张力 [F]
-    HORIZONTAL_TENSION = 5          # 水平张力分量 [F]
-    MAXIMUM_VERTICAL_SAG = 6        # 最大垂直垂度 [L]
-    LOW_POINT_VERTICAL_SAG = 7      # 最低点垂直垂度 [L]
-    UNDEFORMED_LENGTH = 8           # 未变形长度 [L]
-    RELATIVE_UNDEFORMED_LENGTH = 9  # 相对未变形长度
+    MINIMUM_TENSION_AT_I_END = 1    # Minimum tension at the I-end
+    MINIMUM_TENSION_AT_J_END = 2    # Minimum tension at the J-end
+    TENSION_AT_I_END = 3            # Tension at the I-end [F]
+    TENSION_AT_J_END = 4            # Tension at the J-end [F]
+    HORIZONTAL_TENSION = 5          # Horizontal tension component [F]
+    MAXIMUM_VERTICAL_SAG = 6        # Maximum vertical sag [L]
+    LOW_POINT_VERTICAL_SAG = 7      # Vertical sag at the lowest point [L]
+    UNDEFORMED_LENGTH = 8           # Undeformed length [L]
+    RELATIVE_UNDEFORMED_LENGTH = 9  # Relative undeformed length
 
 
 class CableDefinitionType(IntEnum):
     """
-    索定义类型 (用于截面指派)
-    
-    对应 SAP2000 CableObj 的定义方式
+    Cable geometry definition type.
+
+    Describes how the cable object is defined in the SAP2000 API.
     """
-    BY_POINTS = 1       # 通过节点定义
-    BY_COORDINATES = 2  # 通过坐标定义
+    BY_POINTS = 1       # Defined by points
+    BY_COORDINATES = 2  # Defined by coordinates

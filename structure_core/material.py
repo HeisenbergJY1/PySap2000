@@ -1,27 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-material.py - 材料属性
-对应 SAP2000 的 PropMaterial
+material.py - Material properties.
+
+Maps to SAP2000 `PropMaterial`.
 
 Usage:
     from structure_core import Material, MaterialType
     
-    # 获取材料
+    # Fetch a material
     mat = Material.get_by_name(model, "4000Psi")
-    print(f"弹性模量: {mat.e}, 泊松比: {mat.u}")
+    print(f"Elastic modulus: {mat.e}, Poisson ratio: {mat.u}")
     
-    # 创建钢材
+    # Create a steel material
     steel = Material(
         name="MySteel",
         type=MaterialType.STEEL,
-        e=2.0e11,  # 弹性模量 Pa
-        u=0.3,     # 泊松比
-        a=1.2e-5,  # 热膨胀系数
-        w=76.98e3  # 重量密度 N/m³
+        e=2.0e11,  # Elastic modulus [Pa]
+        u=0.3,     # Poisson ratio
+        a=1.2e-5,  # Thermal expansion coefficient
+        w=76.98e3  # Weight density [N/m^3]
     )
     steel._create(model)
     
-    # 从材料库添加材料
+    # Add a material from the material library
     name = Material.add_from_library(
         model, MaterialType.REBAR, 
         "United States", "ASTM A706", "Grade 60"
@@ -37,8 +38,9 @@ from PySap2000.com_helper import com_ret, com_data
 
 class MaterialType(IntEnum):
     """
-    材料类型
-    对应 SAP2000 的 eMatType 枚举
+    Material type.
+
+    Matches the SAP2000 `eMatType` enum.
     """
     STEEL = 1           # eMatType_Steel
     CONCRETE = 2        # eMatType_Concrete
@@ -51,35 +53,36 @@ class MaterialType(IntEnum):
 
 class MaterialSymmetryType(IntEnum):
     """
-    材料对称类型
-    对应 SAP2000 的 SymType
+    Material symmetry type.
+
+    Matches SAP2000 `SymType`.
     """
-    ISOTROPIC = 0      # 各向同性
-    ORTHOTROPIC = 1    # 正交各向异性
-    ANISOTROPIC = 2    # 各向异性
-    UNIAXIAL = 3       # 单轴
+    ISOTROPIC = 0      # Isotropic
+    ORTHOTROPIC = 1    # Orthotropic
+    ANISOTROPIC = 2    # Anisotropic
+    UNIAXIAL = 3       # Uniaxial
 
 
 class WeightMassOption(IntEnum):
     """
-    SetWeightAndMass 的 MyOption 参数
+    `MyOption` values for `SetWeightAndMass`.
     """
-    WEIGHT = 1  # 指定重量密度 [F/L³]
-    MASS = 2    # 指定质量密度 [M/L³]
+    WEIGHT = 1  # Weight density [F/L^3]
+    MASS = 2    # Mass density [M/L^3]
 
 
 @dataclass
 class MaterialDamping:
     """
-    材料阻尼数据
+    Material damping data.
     
     Attributes:
-        name: 材料名称
-        modal_ratio: 模态阻尼比
-        viscous_mass_coeff: 粘性比例阻尼的质量系数
-        viscous_stiff_coeff: 粘性比例阻尼的刚度系数
-        hysteretic_mass_coeff: 滞回比例阻尼的质量系数
-        hysteretic_stiff_coeff: 滞回比例阻尼的刚度系数
+        name: Material name
+        modal_ratio: Modal damping ratio
+        viscous_mass_coeff: Viscous mass-proportional damping coefficient
+        viscous_stiff_coeff: Viscous stiffness-proportional damping coefficient
+        hysteretic_mass_coeff: Hysteretic mass-proportional damping coefficient
+        hysteretic_stiff_coeff: Hysteretic stiffness-proportional damping coefficient
     """
     name: str = ""
     modal_ratio: float = 0.0
@@ -92,65 +95,65 @@ class MaterialDamping:
 @dataclass
 class Material:
     """
-    材料属性 - 对应 SAP2000 PropMaterial
+    Material property object mapping to SAP2000 `PropMaterial`.
     
     Attributes:
-        name: 材料名称
-        type: 材料类型 (eMatType)
-        symmetry_type: 对称类型
-        e: 弹性模量 [F/L²]
-        u: 泊松比
-        g: 剪切模量 [F/L²] (各向同性材料由程序计算)
-        a: 热膨胀系数 [1/T]
-        w: 重量密度 [F/L³]
-        m: 质量密度 [M/L³]
-        color: 显示颜色 (-1 表示自动分配)
-        notes: 备注
-        guid: 全局唯一标识符
+        name: Material name
+        type: Material type (`eMatType`)
+        symmetry_type: Symmetry type
+        e: Elastic modulus [F/L^2]
+        u: Poisson ratio
+        g: Shear modulus [F/L^2] (computed for isotropic materials)
+        a: Thermal expansion coefficient [1/T]
+        w: Weight density [F/L^3]
+        m: Mass density [M/L^3]
+        color: Display color (`-1` means auto-assign)
+        notes: Notes
+        guid: Globally unique identifier
     """
     
-    # 标识
+    # Identity
     name: str = ""
     
-    # 类型
+    # Type
     type: MaterialType = MaterialType.STEEL
     symmetry_type: MaterialSymmetryType = MaterialSymmetryType.ISOTROPIC
     
-    # 力学属性
-    e: float = 0.0      # 弹性模量
-    u: float = 0.0      # 泊松比
-    g: float = 0.0      # 剪切模量 (只读，由程序计算)
-    a: float = 0.0      # 热膨胀系数
+    # Mechanical properties
+    e: float = 0.0      # Elastic modulus
+    u: float = 0.0      # Poisson ratio
+    g: float = 0.0      # Shear modulus (read-only, computed by SAP2000)
+    a: float = 0.0      # Thermal expansion coefficient
     
-    # 物理属性
-    w: float = 0.0      # 重量密度
-    m: float = 0.0      # 质量密度
+    # Physical properties
+    w: float = 0.0      # Weight density
+    m: float = 0.0      # Mass density
     
-    # 可选属性
+    # Optional attributes
     color: int = -1
     notes: str = ""
     guid: Optional[str] = None
     
-    # 类属性
+    # Class metadata
     _object_type: ClassVar[str] = "PropMaterial"
 
-    # ==================== 公开方法 ====================
+    # ==================== Public Methods ====================
     
     @classmethod
     def get_by_name(cls, model, name: str) -> 'Material':
         """
-        获取指定名称的材料
+        Fetch a material by name.
         
         Args:
-            model: SapModel 对象
-            name: 材料名称
+            model: `SapModel` object
+            name: Material name
             
         Returns:
-            填充了数据的 Material 对象
+            A populated `Material` object
             
         Example:
             mat = Material.get_by_name(model, "4000Psi")
-            print(f"弹性模量: {mat.e}")
+            print(f"Elastic modulus: {mat.e}")
         """
         material = cls(name=name)
         material._get(model)
@@ -159,13 +162,13 @@ class Material:
     @classmethod
     def get_all(cls, model) -> List['Material']:
         """
-        获取所有材料
+        Fetch all materials.
         
         Args:
-            model: SapModel 对象
+            model: `SapModel` object
             
         Returns:
-            Material 对象列表
+            List of `Material` objects
             
         Example:
             materials = Material.get_all(model)
@@ -185,20 +188,20 @@ class Material:
     @staticmethod
     def get_count(model, mat_type: Optional[MaterialType] = None) -> int:
         """
-        获取材料总数
+        Return the total number of materials.
         
         Args:
-            model: SapModel 对象
-            mat_type: 材料类型 (可选，不指定则返回所有类型的数量)
+            model: `SapModel` object
+            mat_type: Optional material type filter
             
         Returns:
-            材料数量
+            Number of materials
             
         Example:
-            # 获取所有材料数量
+            # Get the total number of materials
             total = Material.get_count(model)
             
-            # 获取钢材数量
+            # Get the number of steel materials
             steel_count = Material.get_count(model, MaterialType.STEEL)
         """
         if mat_type is not None:
@@ -208,20 +211,20 @@ class Material:
     @staticmethod
     def get_name_list(model, mat_type: Optional[MaterialType] = None) -> List[str]:
         """
-        获取材料名称列表
+        Return the list of material names.
         
         Args:
-            model: SapModel 对象
-            mat_type: 材料类型 (可选，不指定则返回所有类型)
+            model: `SapModel` object
+            mat_type: Optional material type filter
             
         Returns:
-            材料名称列表
+            List of material names
             
         Example:
-            # 获取所有材料名称
+            # Get all material names
             names = Material.get_name_list(model)
             
-            # 获取混凝土材料名称
+            # Get concrete material names
             concrete_names = Material.get_name_list(model, MaterialType.CONCRETE)
         """
         if mat_type is not None:
@@ -241,18 +244,18 @@ class Material:
         user_name: str = ""
     ) -> str:
         """
-        从材料库添加材料
+        Add a material from the built-in library.
         
         Args:
-            model: SapModel 对象
-            mat_type: 材料类型
-            region: 区域名称 (如 "United States", "China")
-            standard: 标准名称 (如 "ASTM A706", "GB 50010")
-            grade: 等级名称 (如 "Grade 60", "C30")
-            user_name: 用户指定名称 (可选)
+            model: `SapModel` object
+            mat_type: Material type
+            region: Region name such as `"United States"` or `"China"`
+            standard: Standard name such as `"ASTM A706"`
+            grade: Grade name such as `"Grade 60"` or `"C30"`
+            user_name: Optional user-specified material name
             
         Returns:
-            程序分配的材料名称
+            Material name assigned by SAP2000
             
         Example:
             name = Material.add_from_library(
@@ -261,7 +264,7 @@ class Material:
             )
         """
         result = model.PropMaterial.AddMaterial(
-            "",  # Name - 由程序返回
+            "",  # Name - returned by SAP2000
             mat_type.value,
             region,
             standard,
@@ -273,14 +276,14 @@ class Material:
 
     def set_weight(self, model, weight: float) -> int:
         """
-        设置重量密度
+        Set weight density
         
         Args:
-            model: SapModel 对象
-            weight: 重量密度 [F/L³]
+            model: SapModel object
+            weight: Weight density [F/L³]
             
         Returns:
-            0 表示成功，非0 表示失败
+            `0` on success, nonzero on failure
         """
         self.w = weight
         return model.PropMaterial.SetWeightAndMass(
@@ -291,14 +294,14 @@ class Material:
     
     def set_mass(self, model, mass: float) -> int:
         """
-        设置质量密度
+        Set mass density
         
         Args:
-            model: SapModel 对象
-            mass: 质量密度 [M/L³]
+            model: SapModel object
+            mass: Mass density [M/L³]
             
         Returns:
-            0 表示成功，非0 表示失败
+            `0` on success, nonzero on failure
         """
         self.m = mass
         return model.PropMaterial.SetWeightAndMass(
@@ -309,16 +312,16 @@ class Material:
     
     def set_isotropic(self, model, e: float, u: float, a: float = 0.0) -> int:
         """
-        设置各向同性力学属性
+        Set isotropic mechanical properties
         
         Args:
-            model: SapModel 对象
-            e: 弹性模量 [F/L²]
-            u: 泊松比
-            a: 热膨胀系数 [1/T]
+            model: SapModel object
+            e: Elastic modulus [F/L²]
+            u: Poisson's ratio
+            a: Thermal expansion coefficient [1/T]
             
         Returns:
-            0 表示成功，非0 表示失败
+            `0` on success, nonzero on failure
         """
         self.e = e
         self.u = u
@@ -328,14 +331,14 @@ class Material:
     
     def change_name(self, model, new_name: str) -> int:
         """
-        修改材料名称
+        Change material name
         
         Args:
-            model: SapModel 对象
-            new_name: 新名称
+            model: SapModel object
+            new_name: New name
             
         Returns:
-            0 表示成功，非0 表示失败
+            `0` on success, nonzero on failure
         """
         ret = model.PropMaterial.ChangeName(self.name, new_name)
         if ret == 0:
@@ -344,14 +347,14 @@ class Material:
     
     def get_damping(self, model, temp: float = 0.0) -> 'MaterialDamping':
         """
-        获取材料阻尼数据
+        Get material damping data
         
         Args:
-            model: SapModel 对象
-            temp: 温度 (仅用于温度相关材料)
+            model: SapModel object
+            temp: Temperature (for temperature-dependent materials only)
             
         Returns:
-            MaterialDamping 数据对象
+            `MaterialDamping` data object
         """
         result = model.PropMaterial.GetDamping(self.name, temp)
         
@@ -379,19 +382,19 @@ class Material:
         temp: float = 0.0
     ) -> int:
         """
-        设置材料阻尼数据
+        Set material damping data
         
         Args:
-            model: SapModel 对象
-            modal_ratio: 模态阻尼比
-            viscous_mass_coeff: 粘性比例阻尼的质量系数
-            viscous_stiff_coeff: 粘性比例阻尼的刚度系数
-            hysteretic_mass_coeff: 滞回比例阻尼的质量系数
-            hysteretic_stiff_coeff: 滞回比例阻尼的刚度系数
-            temp: 温度 (仅用于温度相关材料)
+            model: SapModel object
+            modal_ratio: Modal damping ratio
+            viscous_mass_coeff: Mass coefficient for viscous proportional damping
+            viscous_stiff_coeff: Stiffness coefficient for viscous proportional damping
+            hysteretic_mass_coeff: Mass coefficient for hysteretic proportional damping
+            hysteretic_stiff_coeff: Stiffness coefficient for hysteretic proportional damping
+            temp: Temperature (for temperature-dependent materials only)
             
         Returns:
-            0 表示成功，非0 表示失败
+            `0` on success, nonzero on failure
         """
         return model.PropMaterial.SetDamping(
             self.name,
@@ -403,11 +406,11 @@ class Material:
             temp
         )
 
-    # ==================== 内部方法 ====================
+    # ==================== Internal methods ====================
     
     def _get(self, model) -> 'Material':
-        """从 SAP2000 获取材料数据"""
-        # 1. 获取类型
+        """Fetch material data from SAP2000"""
+        # 1. Get type
         result = model.PropMaterial.GetTypeOAPI(self.name)
         
         mat_type = com_data(result, 0)
@@ -415,14 +418,14 @@ class Material:
         ret = com_ret(result)
         
         if mat_type is None:
-            from exceptions import MaterialError
-            raise MaterialError(f"获取材料 {self.name} 类型失败")
+            from PySap2000.exceptions import MaterialError
+            raise MaterialError(f"Failed to get material {self.name} type")
         
         if ret != 0:
-            from exceptions import MaterialError
-            raise MaterialError(f"材料 {self.name} 不存在")
+            from PySap2000.exceptions import MaterialError
+            raise MaterialError(f"Material {self.name} does not exist")
         
-        # 设置类型
+        # Set type
         try:
             self.type = MaterialType(mat_type)
         except ValueError:
@@ -433,7 +436,7 @@ class Material:
         except ValueError:
             self.symmetry_type = MaterialSymmetryType.ISOTROPIC
         
-        # 2. 根据对称类型获取力学属性
+        # 2. Get mechanical properties by symmetry type
         if self.symmetry_type == MaterialSymmetryType.ISOTROPIC:
             result = model.PropMaterial.GetMPIsotropic(self.name)
             self.e = com_data(result, 0, 0.0)
@@ -447,7 +450,7 @@ class Material:
             self.u = 0
             self.g = 0
         
-        # 3. 获取重量和质量密度
+        # 3. Get weight and mass density
         result = model.PropMaterial.GetWeightAndMass(self.name)
         self.w = com_data(result, 0, 0.0)
         self.m = com_data(result, 1, 0.0)
@@ -455,8 +458,8 @@ class Material:
         return self
     
     def _create(self, model) -> int:
-        """在 SAP2000 中创建材料"""
-        # 1. 初始化材料
+        """Create material in SAP2000."""
+        # 1. Initialize material
         ret = model.PropMaterial.SetMaterial(
             self.name, 
             self.type.value,
@@ -468,7 +471,7 @@ class Material:
         if ret != 0:
             return ret
         
-        # 2. 设置力学属性
+        # 2. Set mechanical properties
         if self.symmetry_type == MaterialSymmetryType.ISOTROPIC:
             ret = model.PropMaterial.SetMPIsotropic(
                 self.name, self.e, self.u, self.a
@@ -481,7 +484,7 @@ class Material:
         if ret != 0:
             return ret
         
-        # 3. 设置重量/质量密度
+        # 3. Set weight/mass density
         if self.w > 0:
             ret = model.PropMaterial.SetWeightAndMass(
                 self.name, WeightMassOption.WEIGHT, self.w
@@ -494,41 +497,75 @@ class Material:
         return ret
     
     def _delete(self, model) -> int:
-        """删除材料"""
+        """Delete material."""
         return model.PropMaterial.Delete(self.name)
     
     def _update(self, model) -> int:
-        """更新材料（SAP2000 的 SetMaterial 会覆盖）"""
-        return self._create(model)
+        """
+        Update properties of an existing material.
 
-    # ==================== 便捷属性 ====================
+        Updates only mechanical and physical properties; it does not create a
+        new material. Raises `MaterialError` if the material does not exist.
+        """
+        existing = self.get_name_list(model)
+        if self.name not in existing:
+            from PySap2000.exceptions import MaterialError
+            raise MaterialError(
+                f"Material '{self.name}' does not exist and cannot be updated. Use `_create` to create it first."
+            )
+        
+        ret = 0
+        if self.symmetry_type == MaterialSymmetryType.ISOTROPIC:
+            ret = model.PropMaterial.SetMPIsotropic(
+                self.name, self.e, self.u, self.a
+            )
+        elif self.symmetry_type == MaterialSymmetryType.UNIAXIAL:
+            ret = model.PropMaterial.SetMPUniaxial(
+                self.name, self.e, self.a
+            )
+        
+        if ret != 0:
+            return ret
+        
+        if self.w > 0:
+            ret = model.PropMaterial.SetWeightAndMass(
+                self.name, WeightMassOption.WEIGHT, self.w
+            )
+        elif self.m > 0:
+            ret = model.PropMaterial.SetWeightAndMass(
+                self.name, WeightMassOption.MASS, self.m
+            )
+        
+        return ret
+
+    # ==================== Convenience properties ====================
     
     @property
     def elastic_modulus(self) -> float:
-        """弹性模量"""
+        """Elastic modulus"""
         return self.e
     
     @property
     def poisson_ratio(self) -> float:
-        """泊松比"""
+        """Poisson's ratio"""
         return self.u
     
     @property
     def shear_modulus(self) -> float:
-        """剪切模量"""
+        """Shear modulus"""
         return self.g
     
     @property
     def thermal_expansion(self) -> float:
-        """热膨胀系数"""
+        """Thermal expansion coefficient"""
         return self.a
     
     @property
     def weight_density(self) -> float:
-        """重量密度"""
+        """Weight density"""
         return self.w
     
     @property
     def mass_density(self) -> float:
-        """质量密度"""
+        """Mass density"""
         return self.m

@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-area_results.py - 面单元结果函数
+area_results.py - Area result helpers.
 
-SAP2000 Results API 的面单元结果函数封装
+Wraps area-result functions from the SAP2000 Results API.
 
 SAP2000 API:
-- Results.AreaForceShell - 壳单元内力
-- Results.AreaJointForcePlane - 平面单元节点力
-- Results.AreaJointForceShell - 壳单元节点力
-- Results.AreaStrainShell - 壳单元应变
-- Results.AreaStrainShellLayered - 分层壳单元应变
-- Results.AreaStressPlane - 平面单元应力
-- Results.AreaStressShell - 壳单元应力
-- Results.AreaStressShellLayered - 分层壳单元应力
+- `Results.AreaForceShell` - shell internal forces
+- `Results.AreaJointForcePlane` - plane element joint forces
+- `Results.AreaJointForceShell` - shell element joint forces
+- `Results.AreaStrainShell` - shell strains
+- `Results.AreaStrainShellLayered` - layered shell strains
+- `Results.AreaStressPlane` - plane element stresses
+- `Results.AreaStressShell` - shell stresses
+- `Results.AreaStressShellLayered` - layered shell stresses
 """
 
 from typing import List
@@ -32,27 +32,27 @@ def get_area_force_shell(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[AreaForceShellResult]:
     """
-    获取壳单元内力结果
-    
-    仅适用于分配了壳截面属性的面单元（不适用于平面或实体属性）。
-    返回的内力是单位长度的内力。
+    Get shell internal force results for area elements.
+
+    This only applies to area objects assigned shell section properties, not
+    plane or solid properties. Returned forces are per unit length.
     
     Args:
-        model: SapModel 对象
-        name: 面对象名、面元素名或组名
-        item_type: 元素类型
-            - OBJECT_ELM: 指定对象对应的元素
-            - ELEMENT: 指定元素
-            - GROUP_ELM: 组内所有元素
-            - SELECTION_ELM: 所有选中元素 (忽略name)
+        model: SAP2000 SapModel object
+        name: Area object name, area element name, or group name
+        item_type: Element scope
+            - `OBJECT_ELM`: elements associated with the specified object
+            - `ELEMENT`: the specified element
+            - `GROUP_ELM`: all elements in the group
+            - `SELECTION_ELM`: all selected elements, ignoring `name`
             
     Returns:
-        AreaForceShellResult 列表
+        List of `AreaForceShellResult`.
         
     Example:
         results = get_area_force_shell(model, "1", ItemTypeElm.OBJECT_ELM)
         for r in results:
-            print(f"点 {r.point_elm}: F11={r.f11}, M11={r.m11}")
+            print(f"Point {r.point_elm}: F11={r.f11}, M11={r.m11}")
     """
     result = model.Results.AreaForceShell(
         name, int(item_type),
@@ -127,15 +127,15 @@ def get_area_joint_force_plane(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[AreaJointForcePlaneResult]:
     """
-    获取平面单元节点力结果
+    Get joint force results for plane area elements.
     
     Args:
-        model: SapModel 对象
-        name: 面对象名、面元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Area object name, area element name, or group name
+        item_type: Element scope
             
     Returns:
-        AreaJointForcePlaneResult 列表
+        List of `AreaJointForcePlaneResult`.
     """
     result = model.Results.AreaJointForcePlane(
         name, int(item_type),
@@ -186,15 +186,15 @@ def get_area_joint_force_shell(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[AreaJointForceShellResult]:
     """
-    获取壳单元节点力结果
+    Get joint force results for shell area elements.
     
     Args:
-        model: SapModel 对象
-        name: 面对象名、面元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Area object name, area element name, or group name
+        item_type: Element scope
             
     Returns:
-        AreaJointForceShellResult 列表
+        List of `AreaJointForceShellResult`.
     """
     result = model.Results.AreaJointForceShell(
         name, int(item_type),
@@ -245,15 +245,15 @@ def get_area_strain_shell(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[AreaStrainShellResult]:
     """
-    获取壳单元应变结果
+    Get shell strain results for area elements.
     
     Args:
-        model: SapModel 对象
-        name: 面对象名、面元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Area object name, area element name, or group name
+        item_type: Element scope
             
     Returns:
-        AreaStrainShellResult 列表
+        List of `AreaStrainShellResult`.
     """
     result = model.Results.AreaStrainShell(
         name, int(item_type),
@@ -315,15 +315,15 @@ def get_area_strain_shell_layered(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[AreaStrainShellLayeredResult]:
     """
-    获取分层壳单元应变结果
+    Get layered shell strain results for area elements.
     
     Args:
-        model: SapModel 对象
-        name: 面对象名、面元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Area object name, area element name, or group name
+        item_type: Element scope
             
     Returns:
-        AreaStrainShellLayeredResult 列表
+        List of `AreaStrainShellLayeredResult`.
     """
     result = model.Results.AreaStrainShellLayered(
         name, int(item_type),
@@ -391,15 +391,15 @@ def get_area_stress_plane(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[AreaStressPlaneResult]:
     """
-    获取平面单元应力结果
+    Get plane element stress results for area elements.
     
     Args:
-        model: SapModel 对象
-        name: 面对象名、面元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Area object name, area element name, or group name
+        item_type: Element scope
             
     Returns:
-        AreaStressPlaneResult 列表
+        List of `AreaStressPlaneResult`.
     """
     result = model.Results.AreaStressPlane(
         name, int(item_type),
@@ -454,15 +454,15 @@ def get_area_stress_shell(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[AreaStressShellResult]:
     """
-    获取壳单元应力结果
+    Get shell stress results for area elements.
     
     Args:
-        model: SapModel 对象
-        name: 面对象名、面元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Area object name, area element name, or group name
+        item_type: Element scope
             
     Returns:
-        AreaStressShellResult 列表
+        List of `AreaStressShellResult`.
     """
     result = model.Results.AreaStressShell(
         name, int(item_type),
@@ -539,15 +539,15 @@ def get_area_stress_shell_layered(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[AreaStressShellLayeredResult]:
     """
-    获取分层壳单元应力结果
+    Get layered shell stress results for area elements.
     
     Args:
-        model: SapModel 对象
-        name: 面对象名、面元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Area object name, area element name, or group name
+        item_type: Element scope
             
     Returns:
-        AreaStressShellLayeredResult 列表
+        List of `AreaStressShellLayeredResult`.
     """
     result = model.Results.AreaStressShellLayered(
         name, int(item_type),

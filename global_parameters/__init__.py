@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-global_parameters - 全局参数模块
-包含单位系统、项目信息、自由度设置等全局参数
+global_parameters - Global model parameters.
+
+Includes unit systems, project information, degrees of freedom, and related settings.
 """
 
 from .units import Units, UnitSystem

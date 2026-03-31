@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
 """
-point_projection.py - 点投影功能
+point_projection.py - Point projection utilities
 
-将节点投影到直线或杆件上
+Project points onto lines or frame objects.
 
-功能:
-- project_point_to_line: 将点投影到由两点定义的直线上
-- project_points_to_line: 批量投影多个点到直线上
-- project_point_to_frame: 将点投影到杆件所在直线上
-- project_points_to_frame: 批量投影多个点到杆件所在直线上
-- move_point_on_line: 根据比例将点移动到直线上指定位置
-- move_point_to_intersection: 将点移动到两条直线的交点
+Functions:
+- `project_point_to_line`: project one point onto a line defined by two points
+- `project_points_to_line`: project multiple points onto a line
+- `project_point_to_frame`: project one point onto a frame centerline
+- `project_points_to_frame`: project multiple points onto a frame centerline
+- `move_point_on_line`: move a point to a ratio-based location on a line
+- `move_point_to_intersection`: move a point to the intersection of two lines
 
 Usage:
     from PySap2000.edit.point_projection import project_point_to_line, move_point_on_line
     
-    # 将节点 922 投影到节点 1160 和 738 连成的直线上
+    # Project point 922 onto the line through points 1160 and 738
     project_point_to_line(model, "922", "1160", "738")
     
-    # 将节点移动到直线上 t=0.5 的位置 (中点)
+    # Move the point to `t=0.5` on the line (midpoint)
     move_point_on_line(model, "922", "1160", "738", t=0.5)
     
-    # 将节点移动到两条直线的交点
+    # Move the point to the intersection of two lines
     move_point_to_intersection(model, "711", "559", "1064", "770", "678")
 """
 
@@ -31,23 +31,23 @@ import numpy as np
 
 def _get_point_coord(model, point_name: str) -> Tuple[float, float, float]:
     """
-    获取节点坐标 (使用当前模型单位)
+    Get point coordinates (using current model units)
     
     Args:
-        model: SapModel 对象
-        point_name: 节点名称
+        model: SAP2000 SapModel object
+        point_name: Point name
         
     Returns:
-        (x, y, z) 坐标元组
+        Coordinate tuple `(x, y, z)`
     """
     ret = model.PointObj.GetCoordCartesian(str(point_name), 0.0, 0.0, 0.0)
     if isinstance(ret, (list, tuple)) and len(ret) >= 3:
         return (ret[0], ret[1], ret[2])
-    raise ValueError(f"无法获取节点 {point_name} 的坐标")
+    raise ValueError(f"Failed to get point {point_name} coordinates")
 
 
 def _change_point_coord(model, name: str, x: float, y: float, z: float) -> int:
-    """修改节点坐标 (使用当前模型单位)"""
+    """Change point coordinates (using current model units)"""
     return model.EditPoint.ChangeCoordinates_1(name, x, y, z, "Global")
 
 
@@ -57,15 +57,15 @@ def _calc_point_on_line(
     t: float
 ) -> Tuple[float, float, float]:
     """
-    根据比例 t 计算直线 AB 上的点坐标
+    Compute point coordinates on line AB using ratio `t`
     
     Args:
-        point_a: 起点 A (x, y, z)
-        point_b: 终点 B (x, y, z)
-        t: 比例，0=A点，1=B点
+        point_a: Start point A `(x, y, z)`
+        point_b: End point B `(x, y, z)`
+        t: Ratio (`0` at A, `1` at B)
         
     Returns:
-        点坐标 (x, y, z)
+        Point coordinates `(x, y, z)`
     """
     x1, y1, z1 = point_a
     x2, y2, z2 = point_b
@@ -84,25 +84,25 @@ def _calc_lines_intersection(
     p4: Tuple[float, float, float]
 ) -> Optional[Tuple[float, float, float]]:
     """
-    计算两条3D直线的最近点（近似交点）
+    Compute nearest points between two 3D lines (approximate intersection).
     
-    直线1: P1 + t * (P2 - P1)
-    直线2: P3 + s * (P4 - P3)
+    Line 1: `P1 + t * (P2 - P1)`
+    Line 2: `P3 + s * (P4 - P3)`
     
-    在3D空间中两条直线通常不相交，这里计算两直线最近点的中点作为"交点"
+    In 3D, lines are usually skew; this computes the midpoint of nearest points as an approximate intersection.
     
     Args:
-        p1, p2: 直线1上的两点
-        p3, p4: 直线2上的两点
+        p1, p2: Two points on line 1
+        p3, p4: Two points on line 2
         
     Returns:
-        交点坐标 (x, y, z)，如果直线平行返回 None
+        Intersection coordinates `(x, y, z)`, or `None` if lines are parallel
     """
-    # 方向向量
+    # Direction vectors
     d1 = np.array([p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]])
     d2 = np.array([p4[0] - p3[0], p4[1] - p3[1], p4[2] - p3[2]])
     
-    # 起点差向量
+    # Start-point difference vector
     r = np.array([p1[0] - p3[0], p1[1] - p3[1], p1[2] - p3[2]])
     
     a = np.dot(d1, d1)  # |d1|^2
@@ -114,18 +114,18 @@ def _calc_lines_intersection(
     denom = a * c - b * b
     
     if abs(denom) < 1e-10:
-        # 直线平行
+        # Lines are parallel
         return None
     
-    # 计算参数 t 和 s
+    # Compute parameters `t` and `s`
     t = (b * e - c * d) / denom
     s = (a * e - b * d) / denom
     
-    # 两直线上的最近点
+    # Nearest points on the two lines
     point_on_line1 = np.array(p1) + t * d1
     point_on_line2 = np.array(p3) + s * d2
     
-    # 返回两点的中点作为交点
+    # Return midpoint of the two nearest points as intersection
     intersection = (point_on_line1 + point_on_line2) / 2
     
     return (float(intersection[0]), float(intersection[1]), float(intersection[2]))
@@ -137,39 +137,39 @@ def _calc_projection(
     point_p: Tuple[float, float, float]
 ) -> Tuple[Tuple[float, float, float], float]:
     """
-    计算点 P 在直线 AB 上的投影点坐标
+    Compute the projection of point P onto line AB
     
     Args:
-        point_a: 直线上的点 A (x, y, z)
-        point_b: 直线上的点 B (x, y, z)
-        point_p: 待投影点 P (x, y, z)
+        point_a: Point A on the line `(x, y, z)`
+        point_b: Point B on the line `(x, y, z)`
+        point_p: Point P to project `(x, y, z)`
         
     Returns:
-        (投影点坐标, 比例t)
-        - 投影点坐标: (x, y, z)
-        - 比例t: 投影点在AB上的位置，0=A点，1=B点
+        (projection coordinates, ratio `t`)
+        - Projection coordinates: `(x, y, z)`
+        - Ratio `t`: position on AB (`0`=A, `1`=B)
     """
     x1, y1, z1 = point_a
     x2, y2, z2 = point_b
     x, y, z = point_p
     
-    # 向量 AB
+    # Vector AB
     ab = (x2 - x1, y2 - y1, z2 - z1)
-    # 向量 AP
+    # Vector AP
     ap = (x - x1, y - y1, z - z1)
     
     # AB · AB
     ab_dot_ab = ab[0]**2 + ab[1]**2 + ab[2]**2
     if ab_dot_ab == 0:
-        return point_a, 0.0  # A、B 重合，返回 A
+        return point_a, 0.0  # A and B coincide; return A
     
     # AP · AB
     ap_dot_ab = ap[0]*ab[0] + ap[1]*ab[1] + ap[2]*ab[2]
     
-    # 参数 t (比例)
+    # Parameter `t` (ratio)
     t = ap_dot_ab / ab_dot_ab
     
-    # 投影点坐标
+    # Projection coordinates
     proj = (
         x1 + t * ab[0],
         y1 + t * ab[1],
@@ -179,7 +179,7 @@ def _calc_projection(
 
 
 def _save_and_set_units(model):
-    """保存当前单位并切换到 N-mm-C"""
+    """Save current units and switch to `N-mm-C`"""
     from PySap2000.global_parameters.units import Units, UnitSystem
     original = Units.get_present_units(model)
     Units.set_present_units(model, UnitSystem.N_MM_C)
@@ -187,7 +187,7 @@ def _save_and_set_units(model):
 
 
 def _restore_units(model, original):
-    """恢复原单位"""
+    """Restore original units"""
     from PySap2000.global_parameters.units import Units
     Units.set_present_units(model, original)
 
@@ -201,35 +201,35 @@ def move_point_on_line(
     apply: bool = True
 ) -> Tuple[float, float, float]:
     """
-    根据比例 t 将点移动到直线上指定位置
+    Move a point to a ratio-based location on a line
     
     Args:
-        model: SapModel 对象
-        point_name: 要移动的节点名称
-        line_start: 直线起点 (A点)，可以是节点名称或坐标元组 (x, y, z)
-        line_end: 直线终点 (B点)，可以是节点名称或坐标元组 (x, y, z)
-        t: 比例值
-            - t=0: 移动到起点 A
-            - t=1: 移动到终点 B
-            - t=0.5: 移动到中点
-            - 0<t<1: 在线段内部
-        apply: 是否应用修改 (True=修改节点坐标, False=仅计算)
+        model: SAP2000 SapModel object
+        point_name: Point name to move
+        line_start: Line start point (A), point name or coordinate tuple `(x, y, z)`
+        line_end: Line end point (B), point name or coordinate tuple `(x, y, z)`
+        t: Ratio value
+            - `t=0`: move to start point A
+            - `t=1`: move to end point B
+            - `t=0.5`: move to midpoint
+            - `0<t<1`: inside segment
+        apply: Whether to apply updates (`True` changes coordinates, `False` only computes)
         
     Returns:
-        新坐标 (x, y, z)，单位为 mm
+        New coordinates `(x, y, z)` in mm
         
     Example:
-        # 将节点移动到直线中点
+        # Move the point to the line midpoint
         coord = move_point_on_line(model, "520", "778", "453", t=0.5)
         
-        # 将节点移动到距起点 30% 的位置
+        # Move the point to 30% from the start point
         coord = move_point_on_line(model, "520", "778", "453", t=0.3)
     """
-    # 保存并切换单位
+    # Save and switch units
     original_units = _save_and_set_units(model)
     
     try:
-        # 获取直线上的点坐标
+        # Get line-point coordinates
         if isinstance(line_start, str):
             point_a = _get_point_coord(model, line_start)
         else:
@@ -240,16 +240,16 @@ def move_point_on_line(
         else:
             point_b = line_end
         
-        # 根据比例计算新坐标
+        # Compute new coordinates from ratio
         new_coord = _calc_point_on_line(point_a, point_b, t)
         
-        # 应用修改
+        # Apply updates
         if apply:
             _change_point_coord(model, point_name, new_coord[0], new_coord[1], new_coord[2])
         
         return new_coord
     finally:
-        # 恢复原单位
+        # Restore original units
         _restore_units(model, original_units)
 
 
@@ -263,31 +263,31 @@ def move_point_to_intersection(
     apply: bool = True
 ) -> Optional[Tuple[float, float, float]]:
     """
-    将点移动到两条直线的交点
+    Move a point to the intersection of two lines
     
-    在3D空间中，两条直线通常不会精确相交，此函数计算两直线最近点的中点作为"交点"。
+    In 3D, two lines are usually not exactly intersecting; this function uses the midpoint of nearest points as an approximate intersection.
     
     Args:
-        model: SapModel 对象
-        point_name: 要移动的节点名称
-        line1_start: 直线1的起点，可以是节点名称或坐标元组 (x, y, z)
-        line1_end: 直线1的终点
-        line2_start: 直线2的起点
-        line2_end: 直线2的终点
-        apply: 是否应用修改 (True=修改节点坐标, False=仅计算)
+        model: SAP2000 SapModel object
+        point_name: Point name to move
+        line1_start: Start of line 1, point name or coordinate tuple `(x, y, z)`
+        line1_end: End of line 1
+        line2_start: Start of line 2
+        line2_end: End of line 2
+        apply: Whether to apply updates (`True` changes coordinates, `False` only computes)
         
     Returns:
-        交点坐标 (x, y, z)，单位为 mm。如果直线平行返回 None
+        Intersection coordinates `(x, y, z)` in mm, or `None` if lines are parallel
         
     Example:
-        # 将节点 711 移动到直线 559-1064 和直线 770-678 的交点
+        # Move point 711 to the intersection of lines 559-1064 and 770-678
         coord = move_point_to_intersection(model, "711", "559", "1064", "770", "678")
     """
-    # 保存并切换单位
+    # Save and switch units
     original_units = _save_and_set_units(model)
     
     try:
-        # 获取直线1的点坐标
+        # Get coordinates for line 1
         if isinstance(line1_start, str):
             p1 = _get_point_coord(model, line1_start)
         else:
@@ -298,7 +298,7 @@ def move_point_to_intersection(
         else:
             p2 = line1_end
         
-        # 获取直线2的点坐标
+        # Get coordinates for line 2
         if isinstance(line2_start, str):
             p3 = _get_point_coord(model, line2_start)
         else:
@@ -309,20 +309,20 @@ def move_point_to_intersection(
         else:
             p4 = line2_end
         
-        # 计算交点
+        # Compute intersection
         intersection = _calc_lines_intersection(p1, p2, p3, p4)
         
         if intersection is None:
-            print("警告: 两条直线平行，无法计算交点")
+            print("Warning: lines are parallel; cannot compute intersection")
             return None
         
-        # 应用修改
+        # Apply updates
         if apply:
             _change_point_coord(model, point_name, intersection[0], intersection[1], intersection[2])
         
         return intersection
     finally:
-        # 恢复原单位
+        # Restore original units
         _restore_units(model, original_units)
 
 
@@ -334,36 +334,36 @@ def project_point_to_line(
     apply: bool = True
 ) -> Tuple[Tuple[float, float, float], float]:
     """
-    将点投影到直线上
+    Project a point onto a line
     
-    计算点在由两点定义的直线上的垂直投影，并可选择更新节点坐标。
-    内部使用 N-mm-C 单位进行计算，完成后恢复原单位。
+    Computes the orthogonal projection of a point onto a line defined by two points, optionally updating coordinates.
+    Uses `N-mm-C` units internally and restores original units after completion.
     
     Args:
-        model: SapModel 对象
-        point_name: 待投影的节点名称
-        line_start: 直线上的点1 (A点)，可以是节点名称或坐标元组 (x, y, z)
-        line_end: 直线上的点2 (B点)，可以是节点名称或坐标元组 (x, y, z)
-        apply: 是否应用修改 (True=修改节点坐标, False=仅计算)
+        model: SAP2000 SapModel object
+        point_name: Point name to project
+        line_start: Point 1 on line (A), point name or coordinate tuple `(x, y, z)`
+        line_end: Point 2 on line (B), point name or coordinate tuple `(x, y, z)`
+        apply: Whether to apply updates (`True` changes coordinates, `False` only computes)
         
     Returns:
-        (投影坐标, 比例t)
-        - 投影坐标: (x, y, z)，单位为 mm
-        - 比例t: 投影点在AB上的位置，0=A点，1=B点，0-1之间表示在线段内
+        (projection coordinates, ratio `t`)
+        - Projection coordinates `(x, y, z)` in mm
+        - Ratio `t`: position on AB (`0`=A, `1`=B, values between `0` and `1` are inside the segment)
         
     Example:
-        # 使用节点名称定义直线
+        # Define line with point names
         coord, t = project_point_to_line(model, "922", "1160", "738")
-        print(f"投影坐标: {coord}, 比例: {t:.4f}")
+        print(f"Projection: {coord}, Ratio: {t:.4f}")
         
-        # 仅计算不修改
+        # Compute only, do not update
         coord, t = project_point_to_line(model, "922", "1160", "738", apply=False)
     """
-    # 保存并切换单位
+    # Save and switch units
     original_units = _save_and_set_units(model)
     
     try:
-        # 获取直线上的点坐标
+        # Get line-point coordinates
         if isinstance(line_start, str):
             point_a = _get_point_coord(model, line_start)
         else:
@@ -374,19 +374,19 @@ def project_point_to_line(
         else:
             point_b = line_end
         
-        # 获取待投影点坐标
+        # Get point coordinates for projection
         point_p = _get_point_coord(model, point_name)
         
-        # 计算投影
+        # Compute projection
         proj, t = _calc_projection(point_a, point_b, point_p)
         
-        # 应用修改
+        # Apply updates
         if apply:
             _change_point_coord(model, point_name, proj[0], proj[1], proj[2])
         
         return proj, t
     finally:
-        # 恢复原单位
+        # Restore original units
         _restore_units(model, original_units)
 
 
@@ -398,32 +398,32 @@ def project_points_to_line(
     apply: bool = True
 ) -> List[Tuple[str, Tuple[float, float, float], float]]:
     """
-    批量将多个点投影到直线上
+    Project multiple points onto a line
     
-    内部使用 N-mm-C 单位进行计算，完成后恢复原单位。
+    Uses `N-mm-C` units internally and restores original units after completion.
     
     Args:
-        model: SapModel 对象
-        point_names: 待投影的节点名称列表
-        line_start: 直线上的点1 (A点)，可以是节点名称或坐标元组 (x, y, z)
-        line_end: 直线上的点2 (B点)，可以是节点名称或坐标元组 (x, y, z)
-        apply: 是否应用修改 (True=修改节点坐标, False=仅计算)
+        model: SAP2000 SapModel object
+        point_names: List of point names to project
+        line_start: Point 1 on line (A), point name or coordinate tuple `(x, y, z)`
+        line_end: Point 2 on line (B), point name or coordinate tuple `(x, y, z)`
+        apply: Whether to apply updates (`True` changes coordinates, `False` only computes)
         
     Returns:
-        [(节点名称, 投影坐标, 比例t), ...] 列表
-        - 投影坐标: (x, y, z)，单位为 mm
-        - 比例t: 投影点在AB上的位置，0=A点，1=B点
+        List of `[(point_name, projection, ratio_t), ...]`
+        - Projection coordinates `(x, y, z)` in mm
+        - Ratio `t`: position on AB (`0`=A, `1`=B)
         
     Example:
         results = project_points_to_line(model, ["922", "923"], "1160", "738")
         for name, coord, t in results:
-            print(f"{name}: {coord}, 比例: {t:.4f}")
+            print(f"{name}: {coord}, Ratio: {t:.4f}")
     """
-    # 保存并切换单位
+    # Save and switch units
     original_units = _save_and_set_units(model)
     
     try:
-        # 获取直线上的点坐标
+        # Get line-point coordinates
         if isinstance(line_start, str):
             point_a = _get_point_coord(model, line_start)
         else:
@@ -446,7 +446,7 @@ def project_points_to_line(
         
         return results
     finally:
-        # 恢复原单位
+        # Restore original units
         _restore_units(model, original_units)
 
 
@@ -457,26 +457,26 @@ def project_point_to_frame(
     apply: bool = True
 ) -> Tuple[Tuple[float, float, float], float]:
     """
-    将点投影到杆件所在直线上
+    Project a point onto a frame centerline
     
     Args:
-        model: SapModel 对象
-        point_name: 待投影的节点名称
-        frame_name: 杆件名称 (用于定义投影直线)
-        apply: 是否应用修改 (True=修改节点坐标, False=仅计算)
+        model: SAP2000 SapModel object
+        point_name: Point name to project
+        frame_name: Frame name (defines the projection line)
+        apply: Whether to apply updates (`True` changes coordinates, `False` only computes)
         
     Returns:
-        (投影坐标, 比例t)
-        - 投影坐标: (x, y, z)
-        - 比例t: 投影点在杆件上的位置，0=I端，1=J端
+        (projection coordinates, ratio `t`)
+        - Projection: (x, y, z)
+        - ratio_t: Projection position on the frame (`0`=I end, `1`=J end)
         
     Example:
         coord, t = project_point_to_frame(model, "922", "F100")
     """
-    # 获取杆件端点
+    # Get frame endpoints
     ret = model.FrameObj.GetPoints(str(frame_name), "", "")
     if not isinstance(ret, (list, tuple)) or len(ret) < 2:
-        raise ValueError(f"无法获取杆件 {frame_name} 的端点")
+        raise ValueError(f"Failed to get frame {frame_name} endpoints")
     
     point_i, point_j = ret[0], ret[1]
     
@@ -490,27 +490,27 @@ def project_points_to_frame(
     apply: bool = True
 ) -> List[Tuple[str, Tuple[float, float, float], float]]:
     """
-    批量将多个点投影到杆件所在直线上
+    Project multiple points onto a frame centerline
     
     Args:
-        model: SapModel 对象
-        point_names: 待投影的节点名称列表
-        frame_name: 杆件名称 (用于定义投影直线)
-        apply: 是否应用修改 (True=修改节点坐标, False=仅计算)
+        model: SAP2000 SapModel object
+        point_names: List of point names to project
+        frame_name: Frame name (defines the projection line)
+        apply: Whether to apply updates (`True` changes coordinates, `False` only computes)
         
     Returns:
-        [(节点名称, 投影坐标, 比例t), ...] 列表
-        - 比例t: 投影点在杆件上的位置，0=I端，1=J端
+        List of `[(point_name, projection, ratio_t), ...]`
+        - ratio_t: Projection position on the frame (`0`=I end, `1`=J end)
         
     Example:
         results = project_points_to_frame(model, ["922", "923"], "F100")
         for name, coord, t in results:
-            print(f"{name}: {coord}, 比例: {t:.4f}")
+            print(f"{name}: {coord}, Ratio: {t:.4f}")
     """
-    # 获取杆件端点
+    # Get frame endpoints
     ret = model.FrameObj.GetPoints(str(frame_name), "", "")
     if not isinstance(ret, (list, tuple)) or len(ret) < 2:
-        raise ValueError(f"无法获取杆件 {frame_name} 的端点")
+        raise ValueError(f"Failed to get frame {frame_name} endpoints")
     
     point_i, point_j = ret[0], ret[1]
     
@@ -529,7 +529,7 @@ if __name__ == '__main__':
     model = app.model
     
     # =========================================================================
-    # 将点移动到两条直线的交点
+    # Move a point to the intersection of two lines
     # =========================================================================
     point_to_move = "1139"
     line1_start = "1223"
@@ -544,22 +544,22 @@ if __name__ == '__main__':
         apply=True
     )
     if coord:
-        print(f"节点 {point_to_move} 已移动到交点: ({coord[0]:.3f}, {coord[1]:.3f}, {coord[2]:.3f}) mm")
+        print(f"Point {point_to_move} moved to intersection: ({coord[0]:.3f}, {coord[1]:.3f}, {coord[2]:.3f}) mm")
     
     # =========================================================================
-    # 示例1: 单个点投影到直线
+    # Example 1: Project one point onto a line
     # =========================================================================
     # coord, t = project_point_to_line(model, "922", "1160", "738")
-    # print(f"投影坐标: {coord}, 比例: {t:.4f}")
+    # print(f"Projection: {coord}, Ratio: {t:.4f}")
     
     # =========================================================================
-    # 示例2: 根据比例移动点到直线上指定位置
+    # Example 2: Move a point to a ratio-based location on a line
     # =========================================================================
-    # coord = move_point_on_line(model, "520", "778", "453", t=0.5)  # 移动到中点
+    # coord = move_point_on_line(model, "520", "778", "453", t=0.5)  # move to midpoint
     
     # =========================================================================
-    # 示例3: 将点移动到两条直线的交点
+    # Example 3: Move a point to the intersection of two lines
     # =========================================================================
     # coord = move_point_to_intersection(model, "711", "559", "1064", "770", "678")
     
-    print("完成")
+    print("Done")

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-cable_modifier.py - 命名索单元修改器
+cable_modifier.py - Named cable modifiers
 
-对应 SAP2000 的 NamedAssign.ModifierCable API
+Wraps SAP2000 `NamedAssign.ModifierCable`.
 
-创建可复用的索单元修改器定义，可被多个索单元引用。
+Creates reusable cable modifier definitions that can be referenced by multiple cable objects.
 
 SAP2000 API:
 - NamedAssign.ModifierCable.ChangeName
@@ -14,10 +14,10 @@ SAP2000 API:
 - NamedAssign.ModifierCable.GetNameList
 - NamedAssign.ModifierCable.SetModifiers
 
-修改器数组 (3个值):
-- [0] area: 截面面积
-- [1] mass: 质量
-- [2] weight: 重量
+Modifier array (3 values):
+- [0] area: Section area
+- [1] mass: Mass
+- [2] weight: Weight
 """
 
 from dataclasses import dataclass
@@ -28,13 +28,13 @@ from PySap2000.com_helper import com_ret, com_data
 @dataclass
 class NamedCableModifier:
     """
-    命名索单元修改器
+    Named cable modifier
     
     Attributes:
-        name: 修改器名称
-        area: 截面面积修改系数
-        mass: 质量修改系数
-        weight: 重量修改系数
+        name: Modifier name
+        area: Section area modifier
+        mass: Mass modifier
+        weight: Weight modifier
     """
     name: str = ""
     area: float = 1.0
@@ -44,12 +44,12 @@ class NamedCableModifier:
     _object_type: ClassVar[str] = "NamedAssign.ModifierCable"
     
     def to_list(self) -> List[float]:
-        """转换为 API 需要的列表格式"""
+        """Convert to the list format required by the API"""
         return [self.area, self.mass, self.weight]
     
     @classmethod
     def from_list(cls, name: str, values: List[float]) -> "NamedCableModifier":
-        """从 API 返回的列表创建"""
+        """Build from the list returned by the API"""
         if len(values) >= 3:
             return cls(
                 name=name,
@@ -59,13 +59,13 @@ class NamedCableModifier:
     
     def _create(self, model) -> int:
         """
-        创建或更新命名修改器
+        Create or update the named modifier
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.com_helper import com_ret
         return com_ret(model.NamedAssign.ModifierCable.SetModifiers(
@@ -74,13 +74,13 @@ class NamedCableModifier:
     
     def _get(self, model) -> int:
         """
-        从模型获取修改器数据
+        Load modifier data from the model
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         result = model.NamedAssign.ModifierCable.GetModifiers(
             self.name, [0.0] * 3
@@ -96,27 +96,27 @@ class NamedCableModifier:
     
     def _delete(self, model) -> int:
         """
-        删除命名修改器
+        Delete the named modifier
         
         Args:
-            model: SapModel 对象
+            model: SAP2000 SapModel object
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.com_helper import com_ret
         return com_ret(model.NamedAssign.ModifierCable.Delete(self.name))
     
     def change_name(self, model, new_name: str) -> int:
         """
-        重命名修改器
+        Rename the modifier
         
         Args:
-            model: SapModel 对象
-            new_name: 新名称
+            model: SAP2000 SapModel object
+            new_name: New name
             
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.com_helper import com_ret
         ret = com_ret(model.NamedAssign.ModifierCable.ChangeName(self.name, new_name))
@@ -126,12 +126,12 @@ class NamedCableModifier:
     
     @staticmethod
     def get_count(model) -> int:
-        """获取修改器数量"""
+        """Get the number of modifiers"""
         return model.NamedAssign.ModifierCable.Count()
     
     @staticmethod
     def get_name_list(model) -> List[str]:
-        """获取所有修改器名称"""
+        """Get all modifier names"""
         result = model.NamedAssign.ModifierCable.GetNameList(0, [])
         names = com_data(result, 1)
         if names:
@@ -140,7 +140,7 @@ class NamedCableModifier:
     
     @classmethod
     def get_by_name(cls, model, name: str) -> Optional["NamedCableModifier"]:
-        """按名称获取修改器"""
+        """Get a modifier by name"""
         mod = cls(name=name)
         ret = mod._get(model)
         if ret == 0:
@@ -149,7 +149,7 @@ class NamedCableModifier:
     
     @classmethod
     def get_all(cls, model) -> List["NamedCableModifier"]:
-        """获取所有修改器"""
+        """Get all modifiers"""
         names = cls.get_name_list(model)
         result = []
         for name in names:

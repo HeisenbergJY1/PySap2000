@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-link_results.py - 连接单元结果函数
+link_results.py - Link result helpers.
 
-SAP2000 Results API 的连接单元结果函数封装
+Wraps link-result functions from the SAP2000 Results API.
 
 SAP2000 API:
-- Results.LinkDeformation - 连接单元变形
-- Results.LinkForce - 连接单元内力
-- Results.LinkJointForce - 连接单元节点力
+- `Results.LinkDeformation` - link deformations
+- `Results.LinkForce` - link internal forces
+- `Results.LinkJointForce` - link joint forces
 """
 
 from typing import List
@@ -22,15 +22,15 @@ def get_link_deformation(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[LinkDeformationResult]:
     """
-    获取连接单元变形结果
+    Get deformation results for link elements.
     
     Args:
-        model: SapModel 对象
-        name: 连接对象名、连接元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Link object name, link element name, or group name
+        item_type: Element scope
             
     Returns:
-        LinkDeformationResult 列表
+        List of `LinkDeformationResult`.
     """
     result = model.Results.LinkDeformation(
         name, int(item_type),
@@ -79,15 +79,15 @@ def get_link_force(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[LinkForceResult]:
     """
-    获取连接单元内力结果
+    Get internal force results for link elements.
     
     Args:
-        model: SapModel 对象
-        name: 连接对象名、连接元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Link object name, link element name, or group name
+        item_type: Element scope
             
     Returns:
-        LinkForceResult 列表
+        List of `LinkForceResult`.
     """
     result = model.Results.LinkForce(
         name, int(item_type),
@@ -138,15 +138,15 @@ def get_link_joint_force(
     item_type: ItemTypeElm = ItemTypeElm.OBJECT_ELM
 ) -> List[LinkJointForceResult]:
     """
-    获取连接单元节点力结果
+    Get joint force results for link elements.
     
     Args:
-        model: SapModel 对象
-        name: 连接对象名、连接元素名或组名
-        item_type: 元素类型
+        model: SAP2000 SapModel object
+        name: Link object name, link element name, or group name
+        item_type: Element scope
             
     Returns:
-        LinkJointForceResult 列表
+        List of `LinkJointForceResult`.
     """
     result = model.Results.LinkJointForce(
         name, int(item_type),

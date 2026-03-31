@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
-"""分析结果相关测试
+"""Tests for analysis results.
 
-注意：结果测试依赖分析已运行。如果模型未分析，部分测试可能返回空列表。
+These tests assume analysis has been run; some helpers may return empty lists
+if the model has not been analyzed.
 """
 
 import pytest
 from PySap2000.results import (
-    # 输出设置
+    # Output selection
     deselect_all_cases_and_combos,
     set_case_selected_for_output,
     get_case_selected_for_output,
     select_cases_for_output,
     get_option_base_react_loc,
     set_option_base_react_loc,
-    # 枚举
+    # Enums
     ItemTypeElm,
 )
 
@@ -21,7 +22,7 @@ pytestmark = pytest.mark.results
 
 
 class TestResultsSetup:
-    """输出设置测试"""
+    """Output setup."""
 
     def test_deselect_all(self, model):
         ret = deselect_all_cases_and_combos(model)

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-frame.py - 框架杆件数据对象
-对应 SAP2000 的 FrameObj
+frame.py - Frame element data object.
 
-这是一个纯数据类，只包含核心 CRUD 操作。
-扩展功能（荷载、释放、修改器等）请使用:
-- loads/frame_load.py - 荷载函数
-- types_for_frames/ - 其他扩展函数
+Maps to SAP2000 `FrameObj`.
+
+This is a pure data class that only contains core CRUD behavior.
+For extended behavior such as loads, releases, and modifiers, use:
+- `loads/frame_load.py` for loads
+- the `frame/` package for sections, releases, modifiers, and related helpers
 
 API Reference:
     - AddByCoord(xi, yi, zi, xj, yj, zj, Name, PropName, UserName, CSys) -> Long
@@ -21,11 +22,11 @@ API Reference:
 Usage:
     from PySap2000.structure_core import Frame
     
-    # 通过节点创建杆件
+    # Create a frame by point names
     frame = Frame(no=1, start_point="1", end_point="2", section="W14X30")
     frame._create(model)
     
-    # 通过坐标创建杆件
+    # Create a frame by coordinates
     frame = Frame(
         no=2, 
         start_x=0, start_y=0, start_z=0,
@@ -34,16 +35,16 @@ Usage:
     )
     frame._create(model)
     
-    # 获取杆件
+    # Fetch a frame
     frame = Frame.get_by_name(model, "1")
-    print(f"截面: {frame.section}")
+    print(f"Section: {frame.section}")
 """
 
 import math
 from dataclasses import dataclass, field
 from typing import Optional, List, Tuple, Union, ClassVar
 
-# 从 frame 模块导入枚举 (避免重复定义)
+# Import enums from the frame package to avoid duplication.
 from PySap2000.frame.enums import (
     FrameType,
     FrameSectionType,
@@ -54,7 +55,7 @@ from PySap2000.frame.enums import (
 from PySap2000.com_helper import com_ret, com_data
 
 
-# 截面类型到获取方法的映射
+# Map section types to SAP2000 getter methods.
 SECTION_TYPE_METHOD_MAP = {
     FrameSectionType.I_SECTION: 'GetISection_1',
     FrameSectionType.PIPE: 'GetPipe',
@@ -67,27 +68,27 @@ SECTION_TYPE_METHOD_MAP = {
 @dataclass
 class Frame:
     """
-    框架杆件数据对象
-    
-    对应 SAP2000 的 FrameObj
+    Frame element data object.
+
+    Maps to SAP2000 `FrameObj`.
     
     Attributes:
-        no: 杆件编号/名称
-        start_point: 起始节点编号 (I-End)
-        end_point: 结束节点编号 (J-End)
-        section: 截面名称
-        s_auto: 自动选择列表名称
-        material: 材料名称
+        no: Frame identifier or name
+        start_point: Start point name (I-End)
+        end_point: End point name (J-End)
+        section: Section name
+        s_auto: Auto-select list name
+        material: Material name
     """
     
-    # 必填属性
+    # Required attribute
     no: Union[int, str] = None
     
-    # 通过节点定义
+    # Definition by points
     start_point: Optional[Union[int, str]] = None
     end_point: Optional[Union[int, str]] = None
     
-    # 通过坐标定义
+    # Definition by coordinates
     start_x: Optional[float] = None
     start_y: Optional[float] = None
     start_z: Optional[float] = None
@@ -95,42 +96,42 @@ class Frame:
     end_y: Optional[float] = None
     end_z: Optional[float] = None
     
-    # 截面和材料
+    # Section and material
     section: str = ""
     s_auto: str = ""
     section_type: Optional[FrameSectionType] = None
     section_type_name: str = ""
     material: Optional[str] = None
     
-    # 杆件属性
+    # Frame properties
     type: FrameType = FrameType.BEAM
     local_axis_angle: float = 0.0
     advanced_axes: bool = False
     
-    # 端部释放 (U1, U2, U3, R1, R2, R3)
+    # End releases (U1, U2, U3, R1, R2, R3)
     release_i: Tuple[bool, ...] = field(default_factory=lambda: (False,)*6)
     release_j: Tuple[bool, ...] = field(default_factory=lambda: (False,)*6)
     
-    # 只读属性
+    # Read-only attributes
     length: Optional[float] = field(default=None, repr=False)
-    weight: float = 0.0  # 杆件重量 [kg]
+    weight: float = 0.0  # Frame weight [kg]
     guid: Optional[str] = None
     
-    # 可选属性
+    # Optional attributes
     coordinate_system: str = "Global"
     comment: str = ""
     
-    # 类属性
+    # Class metadata
     _object_type: ClassVar[str] = "FrameObj"
     
-    # ==================== 核心 CRUD 方法 ====================
+    # ==================== Core CRUD Methods ====================
     
     def _create(self, model) -> int:
         """
-        在 SAP2000 中创建杆件
+        Create the frame in SAP2000.
         
         Returns:
-            0 表示成功
+            `0` on success
         """
         from PySap2000.logger import get_logger
         _log = get_logger("frame")
@@ -138,7 +139,7 @@ class Frame:
         user_name = str(self.no) if self.no is not None else ""
         section = self.section if self.section else "Default"
 
-        # 检查杆件名称是否已存在
+        # Check whether the frame name already exists
         if user_name:
             try:
                 existing = self.get_name_list(model)
@@ -148,9 +149,9 @@ class Frame:
             except Exception:
                 pass
 
-        # 通过坐标创建
+        # Create by coordinates
         if self.start_x is not None and self.end_x is not None:
-            # 检查截面是否存在
+            # Check whether the section exists
             self._check_section_exists(model, section, _log)
             result = model.FrameObj.AddByCoord(
                 self.start_x, self.start_y or 0, self.start_z or 0,
@@ -162,11 +163,11 @@ class Frame:
                 self.no = assigned_name
             return com_ret(result)
         
-        # 通过节点创建
+        # Create by points
         if self.start_point is not None and self.end_point is not None:
-            # 检查节点是否存在
+            # Check whether the points exist
             self._check_points_exist(model, _log)
-            # 检查截面是否存在
+            # Check whether the section exists
             self._check_section_exists(model, section, _log)
 
             result = model.FrameObj.AddByPoint(
@@ -182,7 +183,7 @@ class Frame:
         raise FrameError("Frame creation requires points or coordinates")
 
     def _check_points_exist(self, model, _log):
-        """检查端点是否存在于模型中"""
+        """Warn if end points are missing from the model."""
         try:
             ret = model.PointObj.GetNameList(0, [])
             raw_names = com_data(ret, index=1)
@@ -194,7 +195,7 @@ class Frame:
             pass
 
     def _check_section_exists(self, model, section, _log):
-        """检查截面是否存在于模型中"""
+        """Warn if the section is missing from the model."""
         if section == "Default":
             return
         try:
@@ -207,10 +208,10 @@ class Frame:
             pass
     
     def _get(self, model) -> 'Frame':
-        """从 SAP2000 获取杆件数据"""
+        """Fetch frame data from SAP2000."""
         no_str = str(self.no)
         
-        # 获取端点
+        # Get end points
         result = model.FrameObj.GetPoints(no_str)
         self.start_point = com_data(result, index=0)
         self.end_point = com_data(result, index=1)
@@ -218,46 +219,46 @@ class Frame:
             from PySap2000.exceptions import FrameError
             raise FrameError(f"Failed to get endpoints for Frame '{no_str}'")
         
-        # 获取截面
+        # Get section data
         result = model.FrameObj.GetSection(no_str)
         self.section = com_data(result, index=0, default="")
         s_auto_val = com_data(result, index=1)
         self.s_auto = s_auto_val if s_auto_val else ""
         
-        # 获取截面类型
+        # Get section type
         self._get_section_type(model)
         
-        # 获取局部轴
+        # Get local axis data
         self._get_local_axes(model)
         
-        # 获取端部释放
+        # Get end releases
         self._get_releases(model)
         
-        # 获取 GUID
+        # Get GUID
         self._get_guid(model)
         
-        # 计算长度
+        # Compute length
         self._calculate_length(model)
         
-        # 计算重量
+        # Compute weight
         self._calculate_weight(model)
         
         return self
     
     def _delete(self, model) -> int:
-        """从 SAP2000 删除杆件"""
+        """Delete the frame from SAP2000."""
         return model.FrameObj.Delete(str(self.no))
 
     def change_name(self, model, new_name: str) -> int:
         """
-        更改杆件名称
+        Change the frame name.
 
         Args:
-            model: SapModel 对象
-            new_name: 新名称
+            model: `SapModel` object
+            new_name: New frame name
 
         Returns:
-            0 表示成功
+            `0` on success
         """
         ret = model.FrameObj.ChangeName(str(self.no), new_name)
         if ret == 0:
@@ -265,7 +266,7 @@ class Frame:
         return ret
     
     def _update(self, model) -> int:
-        """更新杆件截面"""
+        """Update the assigned frame section."""
         from PySap2000.logger import get_logger
         _log = get_logger("frame")
         if self.section:
@@ -273,10 +274,10 @@ class Frame:
             return model.FrameObj.SetSection(str(self.no), self.section, ItemType.OBJECT)
         return 0
     
-    # ==================== 内部辅助方法 ====================
+    # ==================== Internal Helpers ====================
     
     def _get_section_type(self, model):
-        """获取截面类型"""
+        """Fetch the section type."""
         if self.section:
             try:
                 result = model.PropFrame.GetTypeOAPI(self.section)
@@ -290,7 +291,7 @@ class Frame:
                 pass
     
     def _get_local_axes(self, model):
-        """获取局部轴角度"""
+        """Fetch local axis information."""
         try:
             result = model.FrameObj.GetLocalAxes(str(self.no))
             self.local_axis_angle = com_data(result, index=0, default=0.0)
@@ -299,7 +300,7 @@ class Frame:
             pass
     
     def _get_releases(self, model):
-        """获取端部释放"""
+        """Fetch end release information."""
         try:
             result = model.FrameObj.GetReleases(str(self.no))
             ri = com_data(result, index=0)
@@ -312,7 +313,7 @@ class Frame:
             pass
     
     def _get_guid(self, model):
-        """获取 GUID"""
+        """Fetch the frame GUID."""
         try:
             result = model.FrameObj.GetGUID(str(self.no))
             self.guid = com_data(result, index=0)
@@ -321,12 +322,11 @@ class Frame:
     
     def _calculate_length(self, model, point_cache: dict = None):
         """
-        计算杆件长度
+        Compute the frame length.
         
         Args:
-            model: SapModel 对象
-            point_cache: 可选的节点坐标缓存 {name: (x, y, z)}，
-                         批量操作时传入可避免重复 COM 调用
+            model: `SapModel` object
+            point_cache: Optional point-coordinate cache `{name: (x, y, z)}`
         """
         try:
             if point_cache is not None:
@@ -338,7 +338,7 @@ class Frame:
                         3
                     )
                     return
-            # 回退到逐个查询
+            # Fall back to per-point queries
             from PySap2000.structure_core.point import Point
             p1 = Point(no=self.start_point)._get(model)
             p2 = Point(no=self.end_point)._get(model)
@@ -351,19 +351,20 @@ class Frame:
     
     def _calculate_weight(self, model, *, _units_context: bool = False) -> float:
         """
-        计算杆件重量 (kg)
+        Compute frame weight in kilograms.
         
         weight = weight_per_meter × length
         
-        如果当前不是 N-m-C 单位，会临时切换获取数据。
-        批量调用时可由调用方统一切换单位后传入 _units_context=True 避免反复切换。
+        If the current unit system is not `N_M_C`, units are switched
+        temporarily. In batch mode, callers can pass `_units_context=True`
+        after switching units once to avoid repeated toggles.
         
         Args:
-            model: SapModel 对象
-            _units_context: True 表示调用方已切换到 N_M_C 单位，跳过切换
+            model: `SapModel` object
+            _units_context: `True` when the caller has already switched to `N_M_C`
             
         Returns:
-            杆件重量 (kg)，如果截面或长度无效则返回 0.0
+            Frame weight in kilograms, or `0.0` if data is invalid
         """
         if not self.section:
             self.weight = 0.0
@@ -373,7 +374,7 @@ class Frame:
             from PySap2000.section.frame_section import FrameSection
             from PySap2000.global_parameters.units import Units, UnitSystem
             
-            # _units_context 为 True 时表示调用方已切换到 N_M_C，跳过切换
+            # When `_units_context` is True, the caller already switched units.
             need_switch = False
             if not _units_context:
                 current_units = Units.get_present_units(model)
@@ -382,7 +383,7 @@ class Frame:
                     Units.set_present_units(model, UnitSystem.N_M_C)
             
             try:
-                # 获取截面的单位长度重量 (kg/m)
+                # Get section weight per unit length (kg/m)
                 section = FrameSection.get_by_name(model, self.section)
                 weight_per_meter = section.weight_per_meter
                 
@@ -390,7 +391,7 @@ class Frame:
                     self.weight = 0.0
                     return 0.0
                 
-                # 计算长度 (m)
+                # Compute frame length (m)
                 from PySap2000.structure_core.point import Point
                 p1 = Point(no=self.start_point)._get(model)
                 p2 = Point(no=self.end_point)._get(model)
@@ -408,16 +409,16 @@ class Frame:
         
         return self.weight
     
-    # ==================== 静态方法 ====================
+    # ==================== Static Methods ====================
     
     @staticmethod
     def get_count(model) -> int:
-        """获取杆件总数"""
+        """Return the total number of frames."""
         return model.FrameObj.Count()
     
     @staticmethod
     def get_name_list(model) -> List[str]:
-        """获取所有杆件名称列表"""
+        """Return the list of all frame names."""
         result = model.FrameObj.GetNameList(0, [])
         names = com_data(result, index=1)
         if names is not None:
@@ -426,23 +427,23 @@ class Frame:
     
     @staticmethod
     def get_section_name_list(model) -> List[str]:
-        """获取所有截面名称列表"""
+        """Return the list of all frame section names."""
         result = model.PropFrame.GetNameList(0, [])
         names = com_data(result, index=1)
         if names is not None:
             return list(names)
         return []
     
-    # ==================== 类方法 ====================
+    # ==================== Class Methods ====================
     
     @classmethod
     def get_by_name(cls, model, name: str) -> 'Frame':
         """
-        获取指定名称的杆件
+        Fetch a frame by name.
         
         Example:
             frame = Frame.get_by_name(model, "1")
-            print(f"截面: {frame.section}")
+            print(f"Section: {frame.section}")
         """
         frame = cls(no=name)
         frame._get(model)
@@ -451,17 +452,17 @@ class Frame:
     @classmethod
     def get_all(cls, model, names: List[str] = None) -> List['Frame']:
         """
-        获取所有杆件（使用 Database Tables API 批量获取，性能远优于逐个 COM 调用）
-        
-        原实现: N 个杆件 = N×6+ 次 COM 调用 + 2N 次节点查询
-        新实现: 3 次 DB Tables 调用获取全部数据
+        Fetch all frames using the Database Tables API.
+
+        Compared with per-object COM calls, this approach dramatically reduces
+        call count and is much faster for large models.
         
         Args:
-            model: SapModel 对象
-            names: 可选，指定杆件名称列表。如果为 None，获取所有杆件
+            model: `SapModel` object
+            names: Optional frame name list; `None` fetches all frames
             
         Returns:
-            Frame 对象列表
+            List of `Frame` objects
             
         Example:
             frames = Frame.get_all(model)
@@ -470,14 +471,14 @@ class Frame:
         """
         from PySap2000.database_tables import DatabaseTables
         
-        # 1) 批量获取杆件连接关系 (Frame名, 起点, 终点)
+        # 1) Fetch frame connectivity in bulk
         conn_table = DatabaseTables.get_table_for_display(
             model, "Connectivity - Frame"
         )
         if conn_table is None or conn_table.num_records == 0:
             return []
         
-        # 2) 批量获取截面分配
+        # 2) Fetch section assignments in bulk
         sec_table = DatabaseTables.get_table_for_display(
             model, "Frame Section Assignments"
         )
@@ -490,7 +491,7 @@ class Frame:
                     row.get("AutoSelect", ""),
                 )
         
-        # 3) 批量获取节点坐标（用于计算长度）
+        # 3) Fetch point coordinates in bulk for length calculation
         coord_table = DatabaseTables.get_table_for_display(
             model, "Joint Coordinates"
         )
@@ -507,7 +508,7 @@ class Frame:
                 except (ValueError, TypeError):
                     pass
         
-        # 构建 name filter
+        # Build a name filter
         name_filter = set(str(n) for n in names) if names else None
         
         frames = []
@@ -528,14 +529,14 @@ class Frame:
                 s_auto=sec_info[1] if sec_info[1] else "",
             )
             
-            # 用缓存计算长度，不产生额外 COM 调用
+            # Compute length from the cache without extra COM calls
             frame._calculate_length(model, point_cache=point_cache)
             
             frames.append(frame)
         
         return frames
     
-    # ==================== 批量操作方法 ====================
+    # ==================== Batch Methods ====================
     
     @classmethod
     def calculate_weights_batch(
@@ -544,19 +545,19 @@ class Frame:
         frames: List['Frame'] = None
     ) -> dict:
         """
-        批量计算杆件重量，只切换一次单位，用 Database Tables 预加载节点坐标
+        Compute frame weights in batch mode.
         
         Args:
-            model: SapModel 对象
-            frames: 杆件列表，如果为 None 则获取所有杆件
+            model: `SapModel` object
+            frames: Optional frame list; fetch all if `None`
             
         Returns:
-            dict: {杆件名称: 重量(kg)}
+            Dict mapping frame name to weight in kilograms
             
         Example:
             weights = Frame.calculate_weights_batch(model)
             total = sum(weights.values())
-            print(f"总重量: {total:.2f} kg")
+            print(f"Total weight: {total:.2f} kg")
         """
         from PySap2000.global_parameters.units import Units, UnitSystem
         from PySap2000.section.frame_section import FrameSection
@@ -568,7 +569,7 @@ class Frame:
         if not frames:
             return {}
         
-        # 保存当前单位
+        # Save the current unit system
         current_units = Units.get_present_units(model)
         need_switch = current_units != UnitSystem.N_M_C
         
@@ -576,10 +577,10 @@ class Frame:
             Units.set_present_units(model, UnitSystem.N_M_C)
         
         weights = {}
-        section_cache = {}  # 缓存截面数据
+        section_cache = {}  # Section data cache
         
         try:
-            # 用 Database Tables 一次性获取所有节点坐标（替代逐个 COM 调用）
+            # Fetch all point coordinates once via Database Tables
             point_cache = {}
             coord_table = DatabaseTables.get_table_for_display(
                 model, "Joint Coordinates"
@@ -598,7 +599,7 @@ class Frame:
             
             for frame in frames:
                 try:
-                    # 获取截面重量（带缓存）
+                    # Get section weight with caching
                     if frame.section not in section_cache:
                         section = FrameSection.get_by_name(model, frame.section)
                         section_cache[frame.section] = section.weight_per_meter
@@ -615,7 +616,7 @@ class Frame:
                         weights[str(frame.no)] = 0.0
                         continue
                     
-                    # 计算长度和重量
+                    # Compute length and weight
                     length = math.sqrt(
                         (p2[0] - p1[0])**2 + 
                         (p2[1] - p1[1])**2 + 
@@ -638,14 +639,14 @@ class Frame:
         frames: List['Frame']
     ) -> Tuple[List['Frame'], List[Tuple[str, str]]]:
         """
-        批量创建杆件
+        Create frames in batch mode.
         
         Args:
-            model: SapModel 对象
-            frames: 待创建的杆件列表
+            model: `SapModel` object
+            frames: Frames to create
             
         Returns:
-            Tuple[成功列表, 失败列表(名称, 错误信息)]
+            Tuple of successful frames and failed `(name, error)` pairs
             
         Example:
             frames = [
@@ -653,7 +654,7 @@ class Frame:
                 Frame(no="F2", start_point="2", end_point="3", section="W14X30"),
             ]
             succeeded, failed = Frame.create_batch(model, frames)
-            print(f"成功: {len(succeeded)}, 失败: {len(failed)}")
+            print(f"Succeeded: {len(succeeded)}, Failed: {len(failed)}")
         """
         succeeded = []
         failed = []
@@ -664,7 +665,7 @@ class Frame:
                 if ret == 0:
                     succeeded.append(frame)
                 else:
-                    failed.append((str(frame.no), f"返回码: {ret}"))
+                    failed.append((str(frame.no), f"Return code: {ret}"))
             except Exception as e:
                 failed.append((str(frame.no), str(e)))
         
@@ -677,14 +678,14 @@ class Frame:
         names: List[str]
     ) -> Tuple[List[str], List[Tuple[str, str]]]:
         """
-        批量删除杆件
+        Delete frames in batch mode.
         
         Args:
-            model: SapModel 对象
-            names: 待删除的杆件名称列表
+            model: `SapModel` object
+            names: Names of frames to delete
             
         Returns:
-            Tuple[成功名称列表, 失败列表(名称, 错误信息)]
+            Tuple of successful names and failed `(name, error)` pairs
             
         Example:
             succeeded, failed = Frame.delete_batch(model, ["F1", "F2", "F3"])
@@ -698,7 +699,7 @@ class Frame:
                 if ret == 0:
                     succeeded.append(name)
                 else:
-                    failed.append((name, f"返回码: {ret}"))
+                    failed.append((name, f"Return code: {ret}"))
             except Exception as e:
                 failed.append((name, str(e)))
         
@@ -712,15 +713,15 @@ class Frame:
         section: str
     ) -> Tuple[List[str], List[Tuple[str, str]]]:
         """
-        批量设置杆件截面
+        Assign a section to multiple frames.
         
         Args:
-            model: SapModel 对象
-            names: 杆件名称列表
-            section: 截面名称
+            model: `SapModel` object
+            names: Frame name list
+            section: Section name
             
         Returns:
-            Tuple[成功名称列表, 失败列表(名称, 错误信息)]
+            Tuple of successful names and failed `(name, error)` pairs
             
         Example:
             succeeded, failed = Frame.set_section_batch(
@@ -738,7 +739,7 @@ class Frame:
                 if ret == 0:
                     succeeded.append(name)
                 else:
-                    failed.append((name, f"返回码: {ret}"))
+                    failed.append((name, f"Return code: {ret}"))
             except Exception as e:
                 failed.append((name, str(e)))
         

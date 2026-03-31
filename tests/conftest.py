@@ -60,11 +60,11 @@ def model(app):
 @pytest.fixture(scope="session", autouse=True)
 def ensure_base_points(app):
     """
-    确保基础节点在所有测试之前存在。
-    
-    多个测试文件（area, cable, frame）依赖这些点，
-    但 test_point.py 按字母排序在它们之后执行。
-    这里提前创建，_create 内部会跳过已存在的点（返回 -1）。
+    Ensure base joints exist before any tests run.
+
+    Several test modules (area, cable, frame) depend on these points, but
+    test_point.py runs later alphabetically. Create them here; `_create`
+    skips existing points (returns -1).
     """
     base_points = [
         Point(no=10, x=0, y=0, z=0),

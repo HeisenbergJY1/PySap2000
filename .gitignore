@@ -40,10 +40,11 @@ Desktop.ini
 # Third-party API / reference docs (too large for git)
 dluba,api/
 docs/
+!docs/EXAMPLES.md
+!docs/FAQ.md
 
 # Deprecated / not for release
 steel_design/
-utils/
 web_agent/
 langchain_agent/
 visualization/

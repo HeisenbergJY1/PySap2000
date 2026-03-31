@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-modifier.py - 面单元修改器函数
-对应 SAP2000 的 AreaObj 修改器相关 API
+modifier.py - Area modifier helpers.
+
+Wraps SAP2000 `AreaObj` modifier APIs.
 """
 
 from typing import Optional, List, Tuple
@@ -18,24 +19,24 @@ def set_area_modifiers(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    设置面单元修改系数
+    Set modifier values for an area object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        modifiers: 10个修改系数值
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        modifiers: 10 modifier values
             [f11, f22, f12, m11, m22, m12, v13, v23, mass, weight]
-        item_type: 项目类型
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
         
     Example:
-        # 设置面单元 "1" 的修改系数 (弯曲刚度折减为 0.7)
+        # Set modifiers for area "1" with bending stiffness reduced to 0.7
         modifiers = [1.0, 1.0, 1.0, 0.7, 0.7, 0.7, 1.0, 1.0, 1.0, 1.0]
         set_area_modifiers(model, "1", modifiers)
     """
-    # 确保有10个值
+    # Ensure the API always receives 10 modifier values.
     mod_list = list(modifiers)
     while len(mod_list) < 10:
         mod_list.append(1.0)
@@ -51,16 +52,16 @@ def set_area_modifiers_tuple(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    使用元组设置面单元修改系数
+    Set area modifiers from a tuple.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        modifiers: 10个修改系数值的元组
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        modifiers: Tuple of 10 modifier values
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     """
     return set_area_modifiers(model, area_name, list(modifiers), item_type)
 
@@ -72,16 +73,16 @@ def set_area_modifiers_data(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    使用数据对象设置面单元修改系数
+    Set area modifiers from a data object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        data: AreaModifierData 对象
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        data: `AreaModifierData` instance
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
         
     Example:
         data = AreaModifierData(m11=0.7, m22=0.7, m12=0.7)
@@ -95,19 +96,19 @@ def get_area_modifiers(
     area_name: str
 ) -> Optional[AreaModifierData]:
     """
-    获取面单元修改系数数据对象
+    Get area modifiers as a structured data object.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        AreaModifierData 对象，失败返回 None
+        `AreaModifierData`, or `None` if the query fails.
         
     Example:
         data = get_area_modifiers(model, "1")
         if data:
-            print(f"弯曲刚度 m11: {data.m11}")
+            print(f"Bending stiffness m11: {data.m11}")
     """
     modifiers = get_area_modifiers_tuple(model, area_name)
     if modifiers:
@@ -120,20 +121,20 @@ def get_area_modifiers_tuple(
     area_name: str
 ) -> Optional[Tuple[float, ...]]:
     """
-    获取面单元修改系数元组
+    Get area modifiers as a tuple.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
+        model: SAP2000 SapModel object
+        area_name: Area object name
         
     Returns:
-        10个修改系数值的元组，失败返回 None
+        Tuple of 10 modifier values, or `None` if the query fails.
         
     Example:
         modifiers = get_area_modifiers_tuple(model, "1")
         if modifiers:
-            print(f"膜刚度 f11: {modifiers[0]}")
-            print(f"弯曲刚度 m11: {modifiers[3]}")
+            print(f"Membrane stiffness f11: {modifiers[0]}")
+            print(f"Bending stiffness m11: {modifiers[3]}")
     """
     try:
         result = model.AreaObj.GetModifiers(str(area_name), [])
@@ -152,14 +153,14 @@ def delete_area_modifiers(
     item_type: ItemType = ItemType.OBJECT
 ) -> int:
     """
-    删除面单元修改系数 (恢复默认值)
+    Delete area modifiers and restore default values.
     
     Args:
-        model: SapModel 对象
-        area_name: 面单元名称
-        item_type: 项目类型
+        model: SAP2000 SapModel object
+        area_name: Area object name
+        item_type: Target scope
         
     Returns:
-        0 表示成功，非 0 表示失败
+        `0` on success. Nonzero indicates failure.
     """
     return model.AreaObj.DeleteModifiers(str(area_name), int(item_type))

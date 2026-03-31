@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-hinge.py - Frame 端部释放数据对象
-对应 SAP2000 的 FrameObj.SetReleases
+hinge.py - Frame end-release data object.
+
+Wraps SAP2000 `FrameObj.SetReleases`.
 
 Usage:
     from frame import FrameHinge, FrameHingeType
-    
-    # 使用预设类型
+
+    # Use a preset hinge type
     hinge = FrameHinge(type=FrameHingeType.BOTH_HINGED)
     hinge.apply(model, frame_no=1)
-    
-    # 自定义释放
+
+    # Use custom releases
     hinge = FrameHinge(
         release_i=(False, False, False, False, True, True),
         release_j=(False, False, False, True, True, True)
@@ -25,19 +26,20 @@ from enum import IntEnum
 
 class FrameHingeType(IntEnum):
     """
-    Frame 铰类型（预设）
-    对应 SAP2000 中常用的端部释放组合
+    Preset frame hinge types.
+
+    Corresponds to commonly used end-release combinations in SAP2000.
     """
-    BOTH_FIXED = 0      # 两端固定（刚接）
-    I_END_HINGED = 1    # I端铰接（释放 R2, R3）
-    J_END_HINGED = 2    # J端铰接（释放 R2, R3）
-    BOTH_HINGED = 3     # 两端铰接
-    I_END_PINNED = 4    # I端销接（释放 R1, R2, R3）
-    J_END_PINNED = 5    # J端销接（释放 R1, R2, R3）
-    BOTH_PINNED = 6     # 两端销接
+    BOTH_FIXED = 0      # Fixed at both ends
+    I_END_HINGED = 1    # Hinged at the I-end (release R2, R3)
+    J_END_HINGED = 2    # Hinged at the J-end (release R2, R3)
+    BOTH_HINGED = 3     # Hinged at both ends
+    I_END_PINNED = 4    # Pinned at the I-end (release R1, R2, R3)
+    J_END_PINNED = 5    # Pinned at the J-end (release R1, R2, R3)
+    BOTH_PINNED = 6     # Pinned at both ends
 
 
-# 铰类型对应的释放值 (U1, U2, U3, R1, R2, R3)
+# Release tuples for each hinge type: (U1, U2, U3, R1, R2, R3)
 HINGE_RELEASES = {
     FrameHingeType.BOTH_FIXED: (
         (False, False, False, False, False, False),
@@ -73,8 +75,9 @@ HINGE_RELEASES = {
 @dataclass
 class FrameHinge:
     """
-    Frame 端部释放数据对象
-    对应 SAP2000 的 FrameObj.SetReleases
+    Frame end-release data object.
+
+    Wraps SAP2000 `FrameObj.SetReleases`.
     """
     
     no: int = None
@@ -100,7 +103,7 @@ class FrameHinge:
             self.partial_fixity_j = (0.0,) * 6
     
     def apply(self, model, frame_no: Union[int, str]) -> int:
-        """应用到单个 Frame"""
+        """Apply the hinge definition to a single frame."""
         return model.FrameObj.SetReleases(
             str(frame_no),
             list(self.release_i),
@@ -110,7 +113,7 @@ class FrameHinge:
         )
     
     def apply_to_list(self, model, frames: List[Union[int, str]]) -> int:
-        """应用到多个 Frame"""
+        """Apply the hinge definition to multiple frames."""
         ret = 0
         for frame in frames:
             result = self.apply(model, frame)
@@ -120,7 +123,7 @@ class FrameHinge:
     
     @classmethod
     def get_from_frame(cls, model, frame_no: Union[int, str]) -> 'FrameHinge':
-        """从 Frame 获取铰信息"""
+        """Create a hinge object from an existing frame assignment."""
         result = model.FrameObj.GetReleases(str(frame_no))
         hinge = cls()
         if len(result) >= 4:
@@ -139,7 +142,7 @@ class FrameHinge:
         return FrameHingeType.BOTH_FIXED
     
     def clear(self, model, frame_no: Union[int, str]) -> int:
-        """清除端部释放"""
+        """Clear all end releases on the frame."""
         return model.FrameObj.SetReleases(
             str(frame_no), [False]*6, [False]*6, [0.0]*6, [0.0]*6
         )
