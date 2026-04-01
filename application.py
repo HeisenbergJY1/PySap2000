@@ -21,6 +21,7 @@ Usage:
 """
 
 import gc
+import inspect
 import comtypes.client
 from typing import Optional, List, Union, TypeVar, Type, TYPE_CHECKING
 from PySap2000.exceptions import SAPConnectionError, ObjectError
@@ -450,9 +451,52 @@ class Application:
             ObjectError: The object type does not support bulk retrieval
         """
         self._ensure_connected()
-        if hasattr(obj_type, '_get_all'):
-            return obj_type._get_all(self._model, nos)
+
+        bulk_getters = [
+            candidate
+            for attr_name in ("get_all", "_get_all")
+            if callable(candidate := getattr(obj_type, attr_name, None))
+        ]
+
+        if nos is not None:
+            for bulk_getter in bulk_getters:
+                if self._supports_name_filtered_bulk_get(bulk_getter):
+                    return bulk_getter(self._model, nos)
+            if bulk_getters:
+                raise ObjectError(
+                    f"{obj_type.__name__} does not support filtered bulk retrieval"
+                )
+        elif bulk_getters:
+            return bulk_getters[0](self._model)
+
         raise ObjectError(f"{obj_type.__name__} does not support get_all")
+
+    @staticmethod
+    def _supports_name_filtered_bulk_get(bulk_getter) -> bool:
+        """Return whether a bulk getter accepts a list of object identifiers."""
+        try:
+            parameters = list(inspect.signature(bulk_getter).parameters.values())
+        except (TypeError, ValueError):
+            return False
+
+        if any(
+            p.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
+            for p in parameters
+        ):
+            return True
+
+        named_parameters = [
+            p for p in parameters
+            if p.kind in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                inspect.Parameter.KEYWORD_ONLY,
+            )
+        ]
+        if len(named_parameters) < 2:
+            return False
+
+        return named_parameters[1].name in {"names", "nos"}
     
     def update_object(self, obj: 'Updatable') -> int:
         """

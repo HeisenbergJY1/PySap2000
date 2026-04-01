@@ -2,6 +2,8 @@
 """Tests for the Application connection manager."""
 
 import pytest
+from PySap2000 import Application
+from PySap2000.exceptions import ObjectError
 
 pytestmark = pytest.mark.application
 
@@ -87,3 +89,74 @@ class TestApplicationUserComment:
     def test_get_user_comment(self, app):
         comment = app.get_user_comment()
         assert isinstance(comment, str)
+
+
+class TestApplicationBulkGet:
+    """Bulk retrieval dispatch."""
+
+    @staticmethod
+    def _make_app():
+        app = Application.__new__(Application)
+        app._model = object()
+        return app
+
+    def test_get_object_list_uses_name_filtered_get_all(self):
+        class NameFiltered:
+            calls = []
+
+            @classmethod
+            def get_all(cls, model, names=None):
+                cls.calls.append((model, names))
+                return ["ok"]
+
+        app = self._make_app()
+        result = app.get_object_list(NameFiltered, ["1", "2"])
+
+        assert result == ["ok"]
+        assert NameFiltered.calls == [(app._model, ["1", "2"])]
+
+    def test_get_object_list_uses_name_filtered__get_all(self):
+        class LegacyNameFiltered:
+            calls = []
+
+            @classmethod
+            def _get_all(cls, model, nos=None):
+                cls.calls.append((model, nos))
+                return ["legacy"]
+
+        app = self._make_app()
+        result = app.get_object_list(LegacyNameFiltered, ["3"])
+
+        assert result == ["legacy"]
+        assert LegacyNameFiltered.calls == [(app._model, ["3"])]
+
+    def test_get_object_list_rejects_non_name_filtered_get_all(self):
+        class EnumFiltered:
+            calls = []
+
+            @classmethod
+            def get_all(cls, model, prop_type=None):
+                cls.calls.append((model, prop_type))
+                return ["unexpected"]
+
+        app = self._make_app()
+
+        with pytest.raises(ObjectError, match="does not support filtered bulk retrieval"):
+            app.get_object_list(EnumFiltered, ["DECK"])
+
+        assert EnumFiltered.calls == []
+
+    def test_get_object_list_still_supports_unfiltered_get_all(self):
+        class EnumFiltered:
+            calls = []
+
+            @classmethod
+            def get_all(cls, model, prop_type=None):
+                cls.calls.append((model, prop_type))
+                return ["all"]
+
+        app = self._make_app()
+        result = app.get_object_list(EnumFiltered)
+
+        assert result == ["all"]
+        assert EnumFiltered.calls == [(app._model, None)]
