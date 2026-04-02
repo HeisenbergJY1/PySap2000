@@ -71,7 +71,7 @@ class SteelUsage:
         Returns:
             `SteelUsage` object
         """
-        from global_parameters.units import Units, UnitSystem
+        from PySap2000.global_parameters.units import Units, UnitSystem
         
         result = cls()
         
@@ -85,7 +85,7 @@ class SteelUsage:
             ret = model.DatabaseTables.GetTableForDisplayArray(
                 "Connectivity - Frame", ["Frame", "Length"], "", 0, [], 0, []
             )
-            if isinstance(ret, (list, tuple)) and len(ret) >= 5 and ret[5] == 0:
+            if isinstance(ret, (list, tuple)) and len(ret) >= 6 and ret[5] == 0:
                 fields = list(ret[2])
                 num_records = ret[3]
                 data = ret[4]
@@ -108,7 +108,7 @@ class SteelUsage:
             ret = model.DatabaseTables.GetTableForDisplayArray(
                 "Frame Section Assignments", ["Frame", "AnalSect", "MatProp"], "", 0, [], 0, []
             )
-            if isinstance(ret, (list, tuple)) and len(ret) >= 5 and ret[5] == 0:
+            if isinstance(ret, (list, tuple)) and len(ret) >= 6 and ret[5] == 0:
                 fields = list(ret[2])
                 num_records = ret[3]
                 data = ret[4]
@@ -254,7 +254,7 @@ class SteelUsage:
     @staticmethod
     def _group_by_group_fast(model, frame_data) -> Dict[str, float]:
         """Group by SAP2000 group"""
-        from group.group import Group
+        from PySap2000.group.group import Group
         
         result: Dict[str, float] = {}
         frame_weights = {name: weight for name, _, weight in frame_data}

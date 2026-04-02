@@ -298,6 +298,11 @@ class Cable:
             cables.append(cable)
         
         return cables
+
+    @classmethod
+    def get_all(cls, model, names: List[str] = None) -> List['Cable']:
+        """Get all cable objects or a filtered cable subset."""
+        return cls._get_all(model, names)
     
     def _delete(self, model) -> int:
         """Delete cable object from SAP2000"""

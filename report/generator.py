@@ -303,7 +303,7 @@ class ReportGenerator:
         Returns:
             Absolute output file path.
         """
-        from structure_core.frame import Frame
+        from PySap2000.structure_core.frame import Frame
 
         if frame_names is None:
             frame_names = Frame.get_name_list(self._model)

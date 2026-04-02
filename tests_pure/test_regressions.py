@@ -13,9 +13,18 @@ from setuptools.discovery import find_package_path
 
 
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-_PARENT_DIR = os.path.dirname(_THIS_DIR)
+_PACKAGE_DIR = os.path.dirname(_THIS_DIR)
+_PARENT_DIR = os.path.dirname(_PACKAGE_DIR)
 if _PARENT_DIR not in sys.path:
     sys.path.insert(0, _PARENT_DIR)
+
+try:
+    import pytest
+except ImportError:
+    pytest = None
+    pytestmark = ()
+else:
+    pytestmark = pytest.mark.pure_python
 
 from PySap2000 import Application
 from PySap2000.database_tables.tables import TableData

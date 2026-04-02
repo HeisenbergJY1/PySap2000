@@ -275,7 +275,7 @@ class FrameSection:
             return 0.0
         
         try:
-            from global_parameters.units import Units, UnitSystem
+            from PySap2000.global_parameters.units import Units, UnitSystem
             
             current_units = Units.get_present_units(model)
             need_switch = current_units != UnitSystem.N_M_C

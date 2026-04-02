@@ -15,8 +15,8 @@ import os
 import pytest
 
 # Project layout:
-#   mysite_spancore/
-#     PySap2000/          <-- _pkg_dir  (bare imports like 'from frame.enums')
+#   parent/
+#     PySap2000/          <-- _pkg_dir
 #       tests/
 #         conftest.py     <-- this file
 #       __init__.py
@@ -31,13 +31,16 @@ _parent_dir = os.path.dirname(_pkg_dir)
 if _parent_dir not in sys.path:
     sys.path.insert(0, _parent_dir)
 
-# Add pkg dir so bare 'from frame.enums import ...' works
-if _pkg_dir not in sys.path:
-    sys.path.insert(0, _pkg_dir)
-
 from PySap2000 import Application
 from PySap2000.global_parameters import Units, UnitSystem
 from PySap2000.structure_core import Point
+
+
+def pytest_collection_modifyitems(items):
+    """Mark all tests in this subtree as SAP2000 integration tests."""
+    integration = pytest.mark.integration
+    for item in items:
+        item.add_marker(integration)
 
 
 @pytest.fixture(scope="session")

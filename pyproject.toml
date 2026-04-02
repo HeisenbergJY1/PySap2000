@@ -61,8 +61,8 @@ Issues = "https://github.com/JIANGYAO-AISA/PySap2000/issues"
 [tool.setuptools.dynamic]
 version = {attr = "PySap2000.__version__"}
 
-[tool.setuptools.packages.find]
-include = [
+[tool.setuptools]
+packages = [
     "PySap2000",
     "PySap2000.analyze",
     "PySap2000.area",
@@ -89,23 +89,15 @@ include = [
     "PySap2000.structure_core",
     "PySap2000.utils",
 ]
-exclude = [
-    "converters*",
-    "docs*",
-    "export_docs*",
-    "langchain_agent*",
-    "tests*",
-    "view*",
-    "visualization*",
-    "web_agent*",
-    "dlubal_api*",
-]
+
+[tool.setuptools.package-dir]
+"PySap2000" = "."
 
 [tool.setuptools.package-data]
 "PySap2000" = ["py.typed"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "tests_pure"]
 markers = [
     "analyze: Analyze tests",
     "application: Application tests",
@@ -129,4 +121,6 @@ markers = [
     "section: Section tests",
     "selection: Selection tests",
     "statistics: Statistics tests",
+    "integration: Tests that require a live SAP2000 instance",
+    "pure_python: Tests that run without SAP2000",
 ]

@@ -68,7 +68,7 @@ class CableUsage:
         Returns:
             `CableUsage` object
         """
-        from global_parameters.units import Units, UnitSystem
+        from PySap2000.global_parameters.units import Units, UnitSystem
         
         result = cls()
         
@@ -94,7 +94,7 @@ class CableUsage:
             ret = model.DatabaseTables.GetTableForDisplayArray(
                 "Connectivity - Cable", ["Cable", "Length"], "", 0, [], 0, []
             )
-            if isinstance(ret, (list, tuple)) and len(ret) >= 5 and ret[5] == 0:
+            if isinstance(ret, (list, tuple)) and len(ret) >= 6 and ret[5] == 0:
                 fields = list(ret[2])
                 num_records = ret[3]
                 data = ret[4]
@@ -115,7 +115,7 @@ class CableUsage:
             ret = model.DatabaseTables.GetTableForDisplayArray(
                 "Cable Section Assignments", ["Cable", "CableSect"], "", 0, [], 0, []
             )
-            if isinstance(ret, (list, tuple)) and len(ret) >= 5 and ret[5] == 0:
+            if isinstance(ret, (list, tuple)) and len(ret) >= 6 and ret[5] == 0:
                 fields = list(ret[2])
                 num_records = ret[3]
                 data = ret[4]
@@ -215,7 +215,7 @@ class CableUsage:
     @staticmethod
     def _group_by_group_fast(model, cable_data) -> Dict[str, float]:
         """Group by SAP2000 group"""
-        from group.group import Group
+        from PySap2000.group.group import Group
         
         result: Dict[str, float] = {}
         cable_weights = {name: weight for name, _, weight in cable_data}

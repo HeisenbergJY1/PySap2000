@@ -136,8 +136,8 @@ def collect_frame_element_info(
     frame_names: List[str],
 ) -> List[FrameElementInfo]:
     """Collect frame element information (Table 2.5)."""
-    from structure_core.frame import Frame
-    from frame.release import get_frame_release
+    from PySap2000.structure_core.frame import Frame
+    from PySap2000.frame.release import get_frame_release
 
     # 1. Basic info: section, length, and end releases.
     results = []
