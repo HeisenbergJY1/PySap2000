@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.egg-info/
+# Ephemeral dirs at repo root (e.g. tempfile / tools)
+/tmp*/
 dist/
 build/
 *.egg
@@ -21,6 +23,9 @@ env/
 
 # Kiro
 .kiro/
+
+# Codex (review dist/install/temp artifacts)
+.codex_*/
 
 # OS
 Thumbs.db
@@ -51,6 +56,8 @@ visualization/
 export_docs/
 view/
 converters/
+examples/
+
 
 # Distribution
 *.whl
