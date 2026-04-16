@@ -21,8 +21,9 @@ env/
 *.swo
 *~
 
-# Kiro
+# Kiro (keep steering files tracked)
 .kiro/
+!.kiro/steering/
 
 # Codex (review dist/install/temp artifacts)
 .codex_*/
@@ -58,6 +59,9 @@ view/
 converters/
 examples/
 
+
+# Scripts (publish tooling, not for release)
+scripts/
 
 # Distribution
 *.whl

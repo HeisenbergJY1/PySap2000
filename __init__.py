@@ -47,7 +47,7 @@ Author: JIANGYAO-AISA
 Version: 2.0.0
 """
 
-__version__ = "2.0.16"
+__version__ = "2.0.17"
 __author__ = "JIANGYAO-AISA"
 
 # Core class

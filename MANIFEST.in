@@ -6,8 +6,12 @@ include pyproject.toml
 prune converters
 prune docs
 prune export_docs
+prune examples
 prune langchain_agent
+prune scripts
+prune steel_design
 prune tests
+prune tests_pure
 prune utils
 prune view
 prune visualization
@@ -17,6 +21,11 @@ prune dluba,api
 # Exclude dev-only files
 exclude test_pysap2000.py
 exclude .gitignore
+exclude CLAUDE.md
+exclude EXPERT_REVIEW.md
+exclude IMPROVEMENTS.md
+prune .claude
 prune .kiro
+prune .codex_*
 prune .pytest_cache
 prune __pycache__
